@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+
+<link rel="stylesheet" href="./basic.css"/>
+<link rel="stylesheet" href="./responsive.css" />
+
+<title>FeedList</title>
+</head>
+<body>
+    <header class="bg-color-header" style="padding-left: 20px;padding-right: 20px;padding-top: 20px;">
+        <div style="display: flex;">
+            <img src="./logo.png" style="height: 40px;"/>
+            <div style="margin-left: 20px;width: 300px;min-width: 140px;">
+                <input class="form-control" type="text" name="search" placeholder="Search for intelligence"/>
+                <a style="float: right;text-decoration: underline;">Advanced search</a>
+            </div>
+            <div class="ma-l-auto form-group mb-0" >
+                <select id="my-select" class="form-control" name="intelgroup">
+                    <option>INTEL GROUP NAME</option>
+                </select>
+            </div>
+            <div class="form-group mb-0 ml-2">
+                <select id="my-select" class="form-control" name="intelgroup">
+                    <option>USER ACCOUNT</option>
+                </select>
+            </div>
+        </div>
+        <hr />
+        <div style="display: flex;align-items: center; justify-content: center;">
+            <div class="font-weight-bold">Member actions:</div>
+            <a style="text-decoration: underline;margin-left: 20px;">View intel</a> 
+            <div class="font-weight-bold" style="margin-left: 150px;">Admin actions:</div>
+            <a style="text-decoration: underline; margin-left: 10px;">Manage feeds</a>
+            <a style="text-decoration: underline; margin-left: 10px;">Manage observables</a>
+            <a style="text-decoration: underline; margin-left: 20px;">Manage users</a>
+        </div>
+        <hr style="margin-bottom:0px"/>
+    </header>
+
+    <div class="manage-iv ml-auto mr-auto mt-3" style="max-width: 1380px;">
+        <div class="fs-25 fw-600">Manage Indicator visibility</div>
+        <div class="fw-600 mt-3">Manage by type</div>
+        <div>
+            <table class="w-75 mt-2">
+                <thead >
+                    <tr>
+                        <td>
+                            <div class="dp-flex ai-center">
+                                <span>Type</span>
+                                <button class="fw-600 dp-flex ai-center jc-center ml-2" style="background-color: #ff9900;width: 30px;height: 30px;border-radius: 50%;">?</button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="dp-flex ai-center">
+                                <span>Value</span>
+                                <button class="fw-600 dp-flex ai-center jc-center ml-2" style="background-color: #ff9900;width: 30px;height: 30px;border-radius: 50%;">?</button>
+                            </div>
+                        </td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>IP(ip)</td>
+                        <td>Ipv4(ipv4)</td>
+                        <td><a class="td-underline">Disable</a></td>
+                    </tr>
+                    <tr>
+                        <td>Hash(hash)</td>
+                        <td>Md5(md5)</td>
+                        <td><a class="td-underline">Disable</a></td>
+                    </tr>
+                    <tr>
+                        <td>System(system)</td>
+                        <td>Filename(filename)</td>
+                        <td><a class="td-underline">Disable</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="fw-600 mt-3">Global extractions</div>
+        <div class="dp-flex ai-flexend">
+            <table class="w-100 mt-2">
+                <thead >
+                    <tr>
+                        <td>Type</td>
+                        <td>Value</td>
+                        <td>Value to whitelist</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ip(ip)</td>
+                        <td>Ipv4(ipv4)</td>
+                        <td>"1.1.1.1"</td>
+                        <td><a class="td-underline">Disable</a></td>
+                    </tr>
+                    <tr>
+                        <td>Hash(hash)</td>
+                        <td>Md5(md5)</td>
+                        <td>"9384jdy84"</td>
+                        <td><a class="td-underline">Disable</a></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="bg-color-pink btn ml-3" type="button">Add custom whitelist entry</button>
+        </div>
+    </div>
+    <style>
+        table td{
+            padding: 10px;
+            border: 1px solid #BDBDBD;
+        }
+        table thead td {
+            background: #eeeeee;
+        }
+    </style>
+
+<!-- Optional JavaScript; choose one of the two! -->
+
+<!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+<!-- Option 2: jQuery, Popper.js, and Bootstrap JS
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous"></script>
+-->
+</body>
+</html>

@@ -1,0 +1,14 @@
+@media screen and (max-width: 1000px) {
+    header div:nth-child(3) {
+        font-size: 14px !important;
+    }
+    header div:nth-child(3) div:nth-child(4).font-weight-bold {
+        margin-left: auto !important;
+    }
+    body .add-custom-oe input {
+        width: 100% !important;
+    }
+    body .add-custom-oe select {
+        width: 100% !important;
+    }
+}

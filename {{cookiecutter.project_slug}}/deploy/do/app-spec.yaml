@@ -1,0 +1,32 @@
+{% set project = cookiecutter.project_slug.replace('_', '-') %}
+databases:
+- engine: PG
+  name: {{  project }}
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "12"
+name: {{ project }}
+region: fra
+services:
+- dockerfile_path: Dockerfile.web
+  envs:
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    value: {% raw %}${{% endraw %}{{ project }}.DATABASE_URL}
+  - key: DJANGO_SETTINGS_MODULE
+    scope: RUN_AND_BUILD_TIME
+    value: {{ cookiecutter.project_slug }}.settings_do
+  - key: SECRET_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: '{{ random_ascii_string(40) }}'
+  github:
+    branch: master
+    deploy_on_push: true
+    repo: user/{{ project }}
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: {{ project }}
+  routes:
+  - path: /
+  run_command: gunicorn --bind 0.0.0.0:8080 --workers 1 --threads 8 --timeout 0 --worker-tmp-dir /dev/shm {{ cookiecutter.project_slug }}.wsgi:application

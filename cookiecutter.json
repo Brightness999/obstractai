@@ -1,0 +1,32 @@
+{
+  "project_name": "My SaaS App",
+  "project_slug": "{{ cookiecutter.project_name.lower()|replace(' ', '_')|replace('-', '_')|replace('.', '_')|trim() }}",
+  "description": "The most amazing SaaS application the world has ever seen!",
+  "author_name": "Elon Musk",
+  "domain_name": "localhost:8000",
+  "email": "{{ cookiecutter.author_name.lower()|replace(' ', '.') }}@{{ cookiecutter.domain_name }}",
+  "use_docker": "n",
+  "database": [
+    "sqlite",
+    "postgres"
+  ],
+  "use_teams": "n",
+  "use_subscriptions": "y",
+  "enable_google_login": "n",
+  "deploy_platform": [
+    "none",
+    "heroku",
+    "heroku_docker",
+    "digital_ocean_app_platform",
+    "google_cloud_run"
+  ],
+  "_extensions": [
+    "cookiecutter.extensions.RandomStringExtension"
+  ],
+  "_copy_without_render": [
+      "*.html",
+      "*.js",
+      "*.vue",
+      "templates/*"
+  ]
+}

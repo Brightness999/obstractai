@@ -1,0 +1,14 @@
+.idea
+*.pyc
+*~
+db.sqlite3
+.sass-cache/
+{{cookiecutter.project_slug}}/localsettings.py
+{{cookiecutter.project_slug}}/local.py
+static_root/
+node_modules/
+media/
+docs/_build
+_dist/
+.env.dev
+.env.production

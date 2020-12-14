@@ -1,0 +1,54 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% load socialaccount %}
+{% block body %}
+<div id="fullpage-form-wrapper">
+    <div id="fullpage-form">
+        <h1 class="title is-size-4">Sign Up</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                {{ form.email }}
+              </div>
+              {{ form.email.errors }}
+            </div>
+            <div class="field">
+              <label class="label">Password</label>
+              <div class="control">
+                {{ form.password1 }}
+              </div>
+              {{ form.password1.errors }}
+            </div>
+            <div class="field">
+              <label class="label">Confirm Password</label>
+              <div class="control">
+                {{ form.password1 }}
+              </div>
+              {{ form.password1.errors }}
+            </div>
+
+
+            <input class="button is-primary is-fullwidth" type="submit" value="Sign Up">
+
+            <p class="has-text-centered">or</p>
+            <a class="button is-fullwidth" href="{% provider_login_url 'google' %}">
+               <img class="socialicon" src="{% static 'images/socialauth/google-g.svg' %}" alt="Google Logo">
+               Continue with Google
+            </a>
+
+
+            <hr>
+            <div class="field has-text-centered has-text-grey">
+                Already have account?
+                <a class="muted-link" href="{% url 'account_login' %}">
+                    Go to sign in.
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

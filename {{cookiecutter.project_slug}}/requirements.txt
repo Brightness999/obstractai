@@ -1,3 +1,0 @@
-# Heroku looks for requirements.txt in top directory when deploying
--r requirements/requirements.txt
-{% if cookiecutter.deploy_platform == 'heroku' or cookiecutter.deploy_platform == 'heroku_docker' or cookiecutter.deploy_platform == 'google_cloud_run' or cookiecutter.deploy_platform == 'digital_ocean_app_platform' %}-r requirements/prod-requirements.txt{% endif %}

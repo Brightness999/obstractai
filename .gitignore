@@ -1,4 +1,14 @@
 .idea
 *.pyc
 *~
-node_modules
+db.sqlite3
+.sass-cache/
+cyobstract/localsettings.py
+cyobstract/local.py
+static_root/
+node_modules/
+media/
+docs/_build
+_dist/
+.env.dev
+.env.production

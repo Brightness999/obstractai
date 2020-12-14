@@ -1,6 +1,0 @@
-gunicorn
-google-cloud-secret-manager
-google-auth
-django-storages[google]
-django-environ
-

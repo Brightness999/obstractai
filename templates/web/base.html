@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!--IE compatibility-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--Mobile friendly-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% include 'web/components/meta.html' %}
+{% include 'web/components/favicon.html' %}
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    <script src="https://use.fontawesome.com/72135c02f1.js"></script>
+    {% if GOOGLE_ANALYTICS_ID %}
+        {% include 'web/components/google_analytics.html' %}
+    {% endif %}
+    {% block page_head %}
+    {% endblock %}
+</head>
+<body>
+{% block top_nav %}
+{% include 'web/components/top_nav.html' %}
+{% endblock %}
+{% block messages %}
+<!-- {% include 'web/components/messages.html' %} -->
+{% endblock %}
+{% block body %}
+{% endblock %}
+<!-- {% block footer %}
+{% include 'web/components/footer.html' %} -->
+{% endblock %}
+{% block page_js %}
+{% endblock %}
+{% include 'web/components/messages-js.html' %}
+{% include 'web/components/navbar-js.html' %}
+</body>
+</html>

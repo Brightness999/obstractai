@@ -1,0 +1,32 @@
+
+databases:
+- engine: PG
+  name: pega
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "12"
+name: pega
+region: fra
+services:
+- dockerfile_path: Dockerfile.web
+  envs:
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    value: ${pega.DATABASE_URL}
+  - key: DJANGO_SETTINGS_MODULE
+    scope: RUN_AND_BUILD_TIME
+    value: pega.settings_do
+  - key: SECRET_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: 'PJtbVGiuEmmpMoyCyMPVgOmRwXuisqluqvYJRAup'
+  github:
+    branch: master
+    deploy_on_push: true
+    repo: user/pega
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: pega
+  routes:
+  - path: /
+  run_command: gunicorn --bind 0.0.0.0:8080 --workers 1 --threads 8 --timeout 0 --worker-tmp-dir /dev/shm pega.wsgi:application

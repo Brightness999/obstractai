@@ -1,0 +1,73 @@
+
+{% load static %}
+<head>
+{% load meta_tags %}
+{% load static %}
+{% if project_meta %}
+{% with project_meta|get_title:page_title as title %}
+{% with project_meta|get_description:page_description as description %}
+{% with project_meta|get_image_url:page_image as image %}
+    <title>{{ title }}</title>
+    <meta name="description" content="{{ description }}">
+    <meta name="keywords" content="{{ project_meta.KEYWORDS }}">
+    <!-- Twitter Card data -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="{{ description }}">
+    <meta name="twitter:image" content="{{ image }}">
+    <!-- Open Graph data -->
+    <meta property="og:title" content="{{ title }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ page_url }}" />
+    <meta property="og:image" content="{{ image }}" />
+    <meta property="og:description" content="{{ description }}" />
+    <meta property="og:site_name" content="{{ project_meta.NAME }}" />
+    <link rel="canonical" href="{% if page_canonical_url %}{{ page_canonical_url }}{% else %}{{ page_url }}{% endif %}">
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
+    {% endif %}
+    
+    <meta charset="utf-8">
+    <!--IE compatibility-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--Mobile friendly-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    <link async rel="stylesheet" href="//cdn.jsdelivr.net/npm/semantic-ui@2.0.1/dist/semantic.min.css" />
+    <!-- <link async rel="stylesheet" href="{% static 'css/semantic.min.css' %}" /> -->
+    <link rel="stylesheet" href="{% static 'css/SuperResponsiveTableStyle.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'css/home.css' %}"> -->
+    <!-- <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"> -->
+    <script src="{% static 'rest_framework/js/coreapi-0.1.1.js' %}"></script>
+    <script src="{% url 'api_schemajs' %}"></script>
+    <script src="https://use.fontawesome.com/72135c02f1.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script async src="//cdn.jsdelivr.net/npm/semantic-ui@2.0.1/dist/semantic.min.js" ></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script src="{% static 'js/home-bundle.js' %}"></script>
+    <script type="application/javascript">
+        // see: https://bulma.io/documentation/components/navbar/
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all "navbar-burger" elements
+            const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+            // Check if there are any navbar burgers
+            if ($navbarBurgers.length > 0) {
+                // Add a click event on each of them
+                $navbarBurgers.forEach(el => {
+                    el.addEventListener('click', () => {
+                        // Get the target from the "data-target" attribute
+                        const target = el.dataset.target;
+                        const $target = document.getElementById(target);
+    
+                        // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                        el.classList.toggle('is-active');
+                        $target.classList.toggle('is-active');
+                    });
+                });
+            }
+        });
+    </script>
+</body>

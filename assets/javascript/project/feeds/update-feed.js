@@ -5,6 +5,7 @@ import {
 	TextField,
 	Button
 } from "@material-ui/core";
+import Alert from '@material-ui/lab/Alert';
 
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
@@ -21,6 +22,12 @@ const UpdateFeed = (props) => {
 	const [tags, setTags] = useState(props.tags || '');
 	const history = useHistory();
 	const [confidence, setConfidence] = useState(props.confidence || '');
+	const [urlError, setUrlError] = useState(false);
+	const [nameError, setNameError] = useState(false);
+	const [descriptionError, setDescriptionError] = useState(false);
+	const [categoryError, setCategoryError] = useState(false);
+	const [tagError, setTagError] = useState(false);
+	const [groupError, setGroupError] = useState(false);
 
 	let auth = new coreapi.auth.SessionAuthentication({
 		csrfCookieName: 'csrftoken',
@@ -54,15 +61,16 @@ const UpdateFeed = (props) => {
 			params['manage_enabled'] = 'false';
 			action = getAction(API_ROOT, ["feeds", "add"]);
 		}
+		
+		if(url.trim() == '') setUrlError(true);
+		if(name.trim() == '') setNameError(true);
+		if(description.trim() == '') setDescriptionError(true);
+		if(category.trim() == '') setCategoryError(true);
+		if(tags.trim() == '') setTagError(true);
+		if(props.currentgroup.trim() == '') setGroupError(true);
+
 		if(url && name && description && category && tags && props.currentgroup != ''){
 			if(confirm("Did you really confirm?"))
-				// client.action(window.schema, action, params).then((result) => {
-				// 	props.saveFeed(result);
-				// 	history.push('/feeds');
-				// }).catch((error) => {
-				// 	console.log("Error: ", error);
-				// 	setErrors(error.content);
-				// });
 				fetch('/api/feeds', {
 					method: 'post',
 					headers: {
@@ -90,7 +98,7 @@ const UpdateFeed = (props) => {
 			<section className="section app-card">
 				<div className="columns">
 					<div className="column is-two-thirds">
-						
+						{groupError && <Alert severity="error" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
 						<TextField
 							id="outlined-full-width1"
 							label="URL"
@@ -103,8 +111,9 @@ const UpdateFeed = (props) => {
 							}}
 							variant="outlined"
 							value={url}
-							onChange={(event) => setUrl(event.target.value)}
+							onChange={(event) => {setUrl(event.target.value); setUrlError(false);}}
 						/>
+						{urlError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 						<TextField
 							id="outlined-full-width2"
 							label="Name"
@@ -117,8 +126,9 @@ const UpdateFeed = (props) => {
 							}}
 							variant="outlined"
 							value={name}
-							onChange={(event) => setName(event.target.value)}
+							onChange={(event) => {setName(event.target.value); setNameError(false);}}
 						/>
+						{nameError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 						<TextField
 							id="outlined-full-width3"
 							label="Description"
@@ -131,8 +141,9 @@ const UpdateFeed = (props) => {
 							}}
 							variant="outlined"
 							value={description}
-							onChange={(event) => setDescription(event.target.value)}
+							onChange={(event) => {setDescription(event.target.value); setDescriptionError(false);}}
 						/>
+						{descriptionError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 						<TextField
 							id="outlined-select-currency-native"
 							style={Styles.TextField}
@@ -140,7 +151,7 @@ const UpdateFeed = (props) => {
 							select
 							label="Category"
 							value={category}
-							onChange={(event) => setCategory(event.target.value)}
+							onChange={(event) => {setCategory(event.target.value); setCategoryError(false);}}
 							SelectProps={{
 								native: true,
 							}}
@@ -153,6 +164,7 @@ const UpdateFeed = (props) => {
 								</option>
 							))}
 						</TextField>
+						{categoryError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 						<TextField
 							id="outlined-full-width5"
 							label="Tags"
@@ -165,8 +177,9 @@ const UpdateFeed = (props) => {
 							}}
 							variant="outlined"
 							value={tags}
-							onChange={(event) => setTags(event.target.value)}
+							onChange={(event) => {setTags(event.target.value); setTagError(false);}}
 						/>
+						{tagError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 						<TextField
 							id="outlined-select-currency-native"
 							style={Styles.TextField}

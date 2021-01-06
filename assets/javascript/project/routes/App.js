@@ -93,13 +93,15 @@ const App = () => {
               <Feeds currentgroup={currentgroup} />
             </Route>
             <Route path="/categories" component={Categories} />
-            <Route path="/extractions" component={Extractions} />
+            <Route path="/extractions">
+              <Extractions client={client} currentgroup={currentgroup} />
+            </Route>
             <Route path="/intelreports" component={IntelReports} />
             <Route path="/indicators" component={Indicators} />
-            <Route path="/whitelist" component={WhiteLists} />
-            <Route path="/plans" component={Plan} />
+            {/* <Route path="/whitelist" component={WhiteLists} /> */}
+            {/* <Route path="/plans" component={Plan} /> */}
             <Route path="/manageplan" component={CurrentPlan} />
-            <Route path="/getfulltext" component={GetFullText} />
+            {/* <Route path="/getfulltext" component={GetFullText} /> */}
             <Route path="/account" component={Account} />
           </Switch>
         </BrowserRouter>

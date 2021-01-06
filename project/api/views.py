@@ -134,15 +134,18 @@ def feeds(request):
 	feeds = Feeds.objects.all()
 	data=request.data
 	groupid= request.data['intelgroup_id']
-	flag = True
+	isUrlExist = False
+	isEqualGroup = False
 	for feed in feeds:
-		if(data['url'] in feed.url and feed.intelgroup_id == groupid):
-			Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid)
-			flag = False
-		elif(data['url'] in feed.url and feed.intelgroup_id != groupid):
-			Feeds.objects.create(uniqueid=feed.uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
-			flag = False
-	if(flag):
+		if(data['url'] in feed.url):
+			isUrlExist = True
+			if feed.intelgroup_id == groupid:
+				isEqualGroup = True
+				Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid)
+	if isUrlExist and not isEqualGroup:
+		Feeds.objects.create(uniqueid=feed.uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
+		isUrlExist = True
+	if not isUrlExist:
 		Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])
 		ftr = "http://ftr-premium.fivefilters.org/"
 		encode = urllib.parse.quote_plus(data['url'])

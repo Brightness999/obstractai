@@ -39,7 +39,7 @@ const MenuBar = (props) => {
                             </a>
                             <div className="navbar-dropdown is-left">
                                 <Link to="/indicators/" className="navbar-item">Indicators</Link>
-                                <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
+                                {/* <Link to="/whitelist/" className="navbar-item">Whitelist</Link> */}
                             </div>
                         </div>
                         {currentgroup!=''&& <a href={`/subscriptions/intelgroup/${currentgroup}`} className="navbar-item">Plan</a>}

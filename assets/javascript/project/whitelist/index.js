@@ -21,7 +21,6 @@ const Loading = () => {
 }
 
 const WhiteList = (props) => {
-
     const ListEnable = (index) =>{
         let params;
         if(props.whitelist[index].enabled === 'Enable')
@@ -84,17 +83,6 @@ const WhiteList = (props) => {
 						</Tr>
 					</Thead>
 					<Tbody>
-                        {/* {isAdd && <Tr>
-                                <Td><TextField id="outlined-basic1" variant="outlined" value={type} onChange={(event)=>setType(event.target.value)}/></Td>
-                                <Td><TextField id="outlined-basic2" variant="outlined" value={typeApi} onChange={(event)=>setTypeApi(event.target.value)}/></Td>
-                                <Td><TextField id="outlined-basic3" variant="outlined" value={value} onChange={(event)=>setValue(event.target.value)}/></Td>
-                                <Td><TextField id="outlined-basic4" variant="outlined" value={valueApi} onChange={(event)=>setValueApi(event.target.value)}/></Td>
-                                <Td><TextField id="outlined-basic5" variant="outlined" value={example} onChange={(event)=>setExample(event.target.value)}/></Td>
-                                <Td><button className="button is-outlined" onClick={saveIndicator}>Save</button>
-									<button className="button is-outlined" onClick={()=>setIsAdd(false)}>Cancel</button>
-								</Td>
-                            </Tr>
-                        } */}
 						{
 							props.whitelist.map((list, index) => {
 								return <ListTable index={index} key={list.id} list={list} ListEnable={(index) => ListEnable(index)} />

@@ -103,10 +103,10 @@ const ViewReport = (props) => {
 			</section>
 			<section>
 				<Grid container>
-					<Grid item xs={6} id="extraction">
+					<Grid item xs={12} id="extraction">
 						
 					</Grid>
-					<Grid item xs={6} style={{borderRadius: 20+'px'}}>
+					<Grid item xs={12} className="section">
 						<section className="section app-card">
 							<Grid container>
 								<Grid item xs={3} className="pt-4">

@@ -103,9 +103,10 @@ class GlobalIndicatorSerializer(serializers.ModelSerializer):
 
 class UserExtractionSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
     class Meta:
         model = Extractions
-        fields = ('id', 'types', 'value', 'words_matched', 'user_id', 'intelgroup_id', 'enabled', 'user')
+        fields = ('id', 'types', 'value', 'words_matched', 'user_id', 'intelgroup_id', 'enabled', 'user', 'intelgroup')
 
 
 class IndicatorSerializer(serializers.ModelSerializer):

@@ -347,3 +347,15 @@ def feeds(request):
 	queryset = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
 	serializer = FeedCategorySerializer(queryset, many=True)
 	return Response(serializer.data)
+
+@api_view(['POST', 'PUT'])
+def extractions(request):
+	if request.method == 'POST':
+		Extractions.objects.create(types=request.data['types'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup']);
+		create_data = Extractions.objects.filter(user_id=request.user.id).last()
+		serializer = UserExtractionSerializer(create_data)
+		return Response(serializer.data)
+	elif request.method == 'PUT':
+		Extractions.objects.filter(id=request.data['extraction_id']).update(enabled=request.data['enabled'])
+		serializer = UserExtractionSerializer(Extractions.objects.filter(id=request.data['extraction_id']).values()[0])
+		return Response(serializer.data)

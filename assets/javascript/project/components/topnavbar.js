@@ -4,7 +4,7 @@ import { TextField } from "@material-ui/core";
 import { Dropdown } from "semantic-ui-react";
 
 const TopNavBar = (props) => {
-	const [intelgroup, setIntelgroup] = useState([]);
+	const [intelgroup, setIntelgroup] = useState('');
 	const intelgroupOptions = props.mygroups.map((group, index) => ({
 		key: index, value: group.intelgroup.id, text: group.intelgroup.name
 	}));
@@ -41,7 +41,7 @@ const TopNavBar = (props) => {
 							options={intelgroupOptions}
 							onChange={(e, {value}) => {
 								setIntelgroup(value);
-								props.currentIntelgroup(intelgroup);
+								props.currentIntelgroup(value);
 							}}
 						/>
 						<div className="navbar-item has-dropdown is-hoverable">

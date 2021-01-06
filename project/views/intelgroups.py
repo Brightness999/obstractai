@@ -119,7 +119,6 @@ class RoleIntelGroupViewSet(viewsets.ModelViewSet):
         elif role[0].role == 2:
             intelgroup_id = UserIntelGroupRoles.objects.filter(id=request.data['role']).all()[0].intelgroup_id
             users = UserIntelGroupRoles.objects.filter(intelgroup_id=intelgroup_id, role=2).all()
-            print(users)
             if(len(users)<2):
                 result.append({'message':True})
             else:
@@ -143,7 +142,6 @@ class IntelGroupRoleViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['POST'])
     def makeadmin(self, request):
-        print(request.data['role'])
         target_user = UserIntelGroupRoles.objects.filter(id=request.data['role'])
         if(target_user[0].role == 1):
             target_user.update(role=2)

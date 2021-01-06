@@ -41,7 +41,8 @@ const UpdateFeed = (props) => {
 			description: description,
 			category: category,
 			tags: tags,
-			confidence: confidence
+			confidence: confidence,
+			intelgroup_id: props.currentgroup
 		}
 
 		let action;
@@ -54,15 +55,28 @@ const UpdateFeed = (props) => {
 			params['manage_enabled'] = 'false';
 			action = getAction(API_ROOT, ["feeds", "add"]);
 		}
-		if(url && name && description && category && tags){
+		if(url && name && description && category && tags && props.currentgroup != ''){
 			if(confirm("Did you really confirm?"))
-				client.action(window.schema, action, params).then((result) => {
-					props.saveFeed(result);
+				// client.action(window.schema, action, params).then((result) => {
+				// 	props.saveFeed(result);
+				// 	history.push('/feeds');
+				// }).catch((error) => {
+				// 	console.log("Error: ", error);
+				// 	setErrors(error.content);
+				// });
+				fetch('/api/feeds', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': client.transports[0].auth.csrfToken,
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params),
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					props.saveFeed(res);
 					history.push('/feeds');
-				}).catch((error) => {
-					console.log("Error: ", error);
-					setErrors(error.content);
-				});
+				})
 		}
 	}
 

@@ -84,7 +84,6 @@ const Loading = function() {
 }
 
 const IntelGroup = (props) => {
-	console.log(props);
 	const [isLoading, setIsLoading] = useState(true);
 	const [intelgroups, setIntelgroups] = useState([]);
 	const [users, setUsers] = useState([]);
@@ -153,8 +152,6 @@ const IntelGroup = (props) => {
 	};
 
 	const getIntelgroupById = (group_id) => {
-		console.log(intelgroups);
-		console.log(group_id);
 		for(const intelgroup of intelgroups){
 			if(intelgroup.intelgroup_id.toString() == group_id)
 				return intelgroup;

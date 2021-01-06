@@ -110,7 +110,7 @@ const ExtractionList = (props) => {
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>
-							<Th>Observable Types<Tooltip title="Add" arrow ><button className="button is-outlined" style={Styles.HelpButton}>?</button></Tooltip></Th>
+							<Th>Observable Types<Tooltip title="Observable type" arrow ><button className="button is-outlined" style={Styles.HelpButton}>?</button></Tooltip></Th>
 							<Th>Observable Value<button className="button is-outlined" style={Styles.HelpButton}>?</button></Th>
 							<Th>Words to match on<button className="button is-outlined" style={Styles.HelpButton}>?</button></Th>
 							<Th></Th>

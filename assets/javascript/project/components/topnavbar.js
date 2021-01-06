@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { TextField } from "@material-ui/core";
 import { Dropdown } from "semantic-ui-react";
@@ -8,6 +8,13 @@ const TopNavBar = (props) => {
 	const intelgroupOptions = props.mygroups.map((group, index) => ({
 		key: index, value: group.intelgroup.id, text: group.intelgroup.name
 	}));
+
+	useEffect(()=>{
+		props.mygroups.map((group, index) => ({
+			key: index, value: group.intelgroup.id, text: group.intelgroup.name
+		}));
+	},[props.mygroups]);
+
 
 	return (
 		<nav className="navbar" role="navigation" aria-label="main navigation">

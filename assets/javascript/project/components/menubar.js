@@ -22,7 +22,7 @@ const MenuBar = () => {
                             </a>
                             <div className="navbar-dropdown is-left">
                                 <Link to="/feeds/" className="navbar-item">Custom</Link>
-                                <Link to="/feeds/" className="navbar-item">Configure</Link>
+                                {/* <Link to="/feeds/" className="navbar-item">Configure</Link> */}
                             </div>
                         </div>
                         {/* <div className="navbar-item has-dropdown is-hoverable">

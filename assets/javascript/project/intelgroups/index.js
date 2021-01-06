@@ -82,11 +82,6 @@ const Loading = function() {
 }
 
 const IntelGroup = (props) => {
-	let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-	const client = new coreapi.Client({auth: auth});
 	const [isLoading, setIsLoading] = useState(true);
 	const [intelgroups, setIntelgroups] = useState([]);
 	const [users, setUsers] = useState([]);
@@ -94,26 +89,17 @@ const IntelGroup = (props) => {
 	useEffect(() => {
 		const intelgroup_action = getAction(API_ROOT, ["intelgroups", "list"]);
 		const customer_action = getAction(API_ROOT, ["customers", "list"]);
-		client.action(window.schema, intelgroup_action).then((result) => {
+		props.client.action(window.schema, intelgroup_action).then((result) => {
 			setIntelgroups(result.results);
-			client.action(window.schema, customer_action).then((result) => {
+			props.client.action(window.schema, customer_action).then((result) => {
 				setUsers(result.results);
 				setIsLoading(false);
 			});
 		});
-		// fetch('../../api/test', {
-		// 	method: 'get',
-		// 	headers: {
-		// 	  'Content-Type': 'application/json',
-		// 	  'accept': 'application/json',
-		// 	//   'X-CSRFToken': client.transports[0].auth.csrfToken,
-		// 	},
-		// 	credentials: 'same-origin',
-		// }).then((response)=> { return response.json();})
-		// .then((res)=>{console.log(res);})
 	}, []);
 	
 	const handleIntelGroupSaved = function(intelgroup) {
+		props.intelgroupSave(intelgroup);
 		let found = false;
 		const newIntelgroup = [];
 		for (let existingIntelgroup of intelgroups) {
@@ -134,7 +120,7 @@ const IntelGroup = (props) => {
 		if(confirm("Do you want to accept?")){
 			const action = getAction(API_ROOT, ["intelgroups", "invitate"]);
 			const params = {'role': intelgroups[index].id};
-			client.action(window.schema, action, params).then((result) => {
+			props.client.action(window.schema, action, params).then((result) => {
 				setIntelgroups(result);
 			});
 		}
@@ -144,7 +130,7 @@ const IntelGroup = (props) => {
 		if(confirm("Are you sure you want to delete?")){
 			const action = getAction(API_ROOT, ["intelgroups", "deleteIntelGroup"]);
 			const params = {'role': intelgroups[index].intelgroup_id};
-			client.action(window.schema, action, params).then((result) => {
+			props.client.action(window.schema, action, params).then((result) => {
 				const newIntelgroup = intelgroups.slice(0, index).concat(intelgroups.slice(index+1));
 				setIntelgroups(newIntelgroup);
 			});
@@ -169,7 +155,7 @@ const IntelGroup = (props) => {
 				<User/>
 			</Route>
 			<Route  path="/intelgroups/new">
-				<UpdateIntelGroup client={client} intelgroupSaved={handleIntelGroupSaved} users={users} />
+				<UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} />
 			</Route>
 			<Route path="/intelgroups">
 				{getDefaultView()}

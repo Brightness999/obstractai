@@ -40,44 +40,38 @@ def account(request):
 
 @api_view(['POST'])
 def apikeys(request):
+	apikeys = []
 	key = secrets.token_urlsafe(16)
 	APIKeys.objects.create(name=request.data['name'], intelgroup_id=request.data['intelgroup_id'], value=key, user_id=request.user.id)
-	apikeys = []
-	for apikey in APIKeys.objects.all():
+	for apikey in APIKeys.objects.filter(user_id=request.user.id).all():
 		serializer = GroupAPIkeySerializer(apikey)
 		apikeys.append(serializer.data)
 		
 	return Response(apikeys)
 
-@api_view(['POST'])
+@api_view(['POST', 'PUT', 'DELETE'])
 def webhooks(request):
-	WebHooks.objects.create(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id)
-	webhooks = []
-	for webhook in WebHooks.objects.all():
-		serializer = GroupWebHookSerializer(webhook)
-		webhooks.append(serializer.data)
-	
-	return Response(webhooks)
-
-@api_view(['PUT'])
-def webhooks(request):
-	WebHooks.objects.filter(id=request.data['id']).update(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id)
-	webhooks = []
-	for webhook in WebHooks.objects.all():
-		serializer = GroupWebHookSerializer(webhook)
-		webhooks.append(serializer.data)
-	
-	return Response(webhooks)
-
-@api_view(['DELETE'])
-def webhooks(request):
-	WebHooks.objects.filter(id=request.data['id']).delete()
-	webhooks = []
-	for webhook in WebHooks.objects.all():
-		serializer = GroupWebHookSerializer(webhook)
-		webhooks.append(serializer.data)
-	
-	return Response(webhooks)
+	if request.method == 'POST':
+		WebHooks.objects.create(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id)
+		webhooks = []
+		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
+			serializer = GroupWebHookSerializer(webhook)
+			webhooks.append(serializer.data)
+		return Response(webhooks)
+	elif request.method == 'PUT':
+		WebHooks.objects.filter(id=request.data['id']).update(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id)
+		webhooks = []
+		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
+			serializer = GroupWebHookSerializer(webhook)
+			webhooks.append(serializer.data)
+		return Response(webhooks)
+	elif request.method == 'DELETE':
+		WebHooks.objects.filter(id=request.data['id']).delete()
+		webhooks = []
+		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
+			serializer = GroupWebHookSerializer(webhook)
+			webhooks.append(serializer.data)
+		return Response(webhooks)
 
 @api_view(['GET'])
 def reports(request):

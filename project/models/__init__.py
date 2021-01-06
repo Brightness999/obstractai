@@ -1,4 +1,3 @@
-from .users import Users
 from .intelgroups import IntelGroups
 from .attributes import Atrributes
 from .extractions import Extractions

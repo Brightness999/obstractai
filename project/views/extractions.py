@@ -15,8 +15,12 @@ class ExtractionViewSet(viewsets.ModelViewSet):
     queryset = Extractions.objects.order_by('id').all()
     serializer_class = UserExtractionSerializer
 
+    def get_queryset(self):
+        extractions = Extractions.objects.filter(user_id=self.request.user.id).order_by('id').all()
+        return extractions
+
     def create(self, request):
         Extractions.objects.create(types=request.data['types'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id);
-        create_data = Extractions.objects.last()
+        create_data = Extractions.objects.filter(user_id=request.user.id).last()
         serializer = UserExtractionSerializer(create_data)
         return Response(serializer.data)

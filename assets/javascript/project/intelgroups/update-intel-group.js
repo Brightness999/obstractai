@@ -110,11 +110,11 @@ const UpdateIntelGroup = function(props) {
           <input className="input" type="text" placeholder="Description"
                 onChange={(event) => setDescription(event.target.value)} value={description} required={true}>
           </input>
-          <Tooltip title="Add" aria-label="add">
+          {/* <Tooltip title="Add" aria-label="add">
             <Fab color="secondary">
               <AddIcon />
             </Fab>
-          </Tooltip>
+          </Tooltip> */}
           </span>
         </div>
         {renderErrors(errors.description)}
@@ -134,14 +134,14 @@ const UpdateIntelGroup = function(props) {
               setUserIds(value);
             }}
           />
-          <ReactTags
+          {/* <ReactTags
             ref={reacttag}
             tags={tags}
             suggestions={userOptions}
             onDelete={onDelete}
             onAddition={onAddition}
             allowNew={true}
-          />
+          /> */}
         </div>
         {renderErrors(errors.planid)}
       </div>

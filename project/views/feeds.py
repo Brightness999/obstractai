@@ -17,7 +17,7 @@ import pprint
 import json
 from cyobstract import extract
 
-from ..models import Feeds, FeedChannels, FeedItems, Indicators, GlobalIndicators
+from ..models import Feeds, FeedChannels, FeedItems, Indicators, GlobalIndicators, UserIntelGroupRoles
 from ..serializers import FeedCategorySerializer, FeedSerializer
 
 @method_decorator(login_required, name='dispatch')
@@ -26,11 +26,18 @@ class FeedViewSet(viewsets.ModelViewSet):
     serializer_class = FeedCategorySerializer
 
     def get_queryset(self):
-        feeds = Feeds.objects.select_related('category').order_by('id').all()
+        groupids = []
+        for role in UserIntelGroupRoles.objects.filter(user_id=self.request.user.id).order_by('id').all():
+            groupids.append(role.intelgroup_id)
+        print(groupids)
+        feeds = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
         return feeds
     def partial_update(self,request, pk):
+        groupids = []
+        for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all():
+            groupids.append(role.intelgroup_id)
         Feeds.objects.filter(pk=pk).update(url=request.data['url'], category_id=request.data['category'], description=request.data['description'], name=request.data['name'], tags=request.data['tags'], manage_enabled=request.data['manage_enabled'])
-        feeds = Feeds.objects.select_related('category').order_by('id').all().values()
+        feeds = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all().values()
         return Response(feeds)
 
     @action(detail=False, methods=['POST'])

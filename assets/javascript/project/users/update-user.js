@@ -13,7 +13,6 @@ import {API_ROOT} from "../const";
 
 
 const UpdateUser = function(props) {
-  console.log(props);
   const client = props.client;
   const [id, setId] = useState(null);
   const [userids, setUserIds] = useState([]);

@@ -220,6 +220,7 @@ const WebHooks = (props) => {
                 body: JSON.stringify(params),
             }).then((res)=>{return res.json()})
             .then((res)=>{
+                console.log(res);
                 setWebHooks(res);
                 setOpen(false);
             });
@@ -285,7 +286,7 @@ const WebHooks = (props) => {
                     </button>
                 </DialogActions>
             </Dialog>
-            <Table className="table is-striped is-fullwidth has-vcentered-cells">
+            <Table className="table is-striped is-fullwidth has-vcentered-cells my-4">
                 <Thead>
                     <Tr>
                         <Th>Endpoint</Th>

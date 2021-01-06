@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { Dropdown } from "semantic-ui-react";
 
+import { getAction } from "../api";
+import { API_ROOT } from "./const";
 
 const Welcome = () => {
 	return (
@@ -16,13 +18,35 @@ const AddIntelgroup = (props) => {
 
 	const [name, setName] = useState('');
   	const [description, setDescription] = useState('');
-  	const [userids, setUserIds] = useState([]);
+	const [userids, setUserIds] = useState([]);
+	const history = useHistory();
+	
+	
 
 	const userOptions = props.users.map((user, index) => ({
 		key: index,
 		value: user.id,
 		text: user.email
 	}));
+
+	const saveIntelgroup = function() {
+		let params = {
+		  name: name,
+		  description: description,
+		  userids: userids,
+		};
+		const action = getAction(API_ROOT, ["intelgroup", "newgroup"]);
+		if(name != '' && description != '' && userids != []){
+		  props.client.action(window.schema, action, params).then((result) => {
+			props.intelgroupSave(result);
+			history.push('/intelgroups');
+		  }).catch((error) => {
+			console.log("Error: ", error);
+			setErrors(error.content);
+		  });
+		}
+	};
+
 	return (
 		<section className="section app-card">
 			<h2 className="subtitle">Intel Group Details</h2>
@@ -83,7 +107,7 @@ const HomePage = (props) =>{
 	console.log(props);
 	
 	if(props.mygroups.length == 0)
-		return <AddIntelgroup users={props.users} client={props.client} />
+		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />
 	else
 		return <Welcome/>
 }

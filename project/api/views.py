@@ -84,6 +84,7 @@ def reports(request):
 	feeds = []
 	groupids = []
 	feedids = []
+	myfeedids = []
 	feedchannels = []
 	feeditems =[]
 	indicators = []
@@ -97,7 +98,9 @@ def reports(request):
 	for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).all():
 		serializer = FeedCategorySerializer(feed)
 		feeds.append(serializer.data)
-		feedids.append(feed.id)
+		# feedids.append(feed.id)
+		feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+		print(myfeedids)
 	for channel in FeedChannels.objects.filter(feed_id__in=feedids).order_by('id').all():
 		serializer = FeedChannelSerializer(channel)
 		feedchannels.append(serializer.data)
@@ -131,19 +134,18 @@ def searchreports(request):
 
 @api_view(['POST'])
 def feeds(request):
-	feeds = Feeds.objects.all()
 	data=request.data
 	groupid= request.data['intelgroup_id']
 	isUrlExist = False
 	isEqualGroup = False
-	for feed in feeds:
+	for feed in Feeds.objects.all():
 		if(data['url'] in feed.url):
 			isUrlExist = True
 			if feed.intelgroup_id == groupid:
 				isEqualGroup = True
 				Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid)
 	if isUrlExist and not isEqualGroup:
-		Feeds.objects.create(uniqueid=feed.uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
+		Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
 		isUrlExist = True
 	if not isUrlExist:
 		Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])

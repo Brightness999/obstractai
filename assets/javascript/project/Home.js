@@ -105,7 +105,6 @@ const AddIntelgroup = (props) => {
 }
 
 const HomePage = (props) =>{
-	console.log(props);
 	
 	if(props.mygroups.length == 0)
 		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />

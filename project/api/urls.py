@@ -11,5 +11,6 @@ urlpatterns = [
     path(r'webhooks', views.webhooks, name='webhooks'),
     path(r'reports', views.reports, name='reports'),
     path(r'searchreports', views.searchreports, name='searchreports'),
+    path(r'feeds', views.feeds, name='feeds'),
 
 ]

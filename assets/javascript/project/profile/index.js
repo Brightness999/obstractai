@@ -220,7 +220,6 @@ const WebHooks = (props) => {
                 body: JSON.stringify(params),
             }).then((res)=>{return res.json()})
             .then((res)=>{
-                console.log(res);
                 setWebHooks(res);
                 setOpen(false);
             });
@@ -329,7 +328,6 @@ const Account = () => {
             credentials: 'same-origin',
         }).then((response)=> { return response.json();})
         .then((res)=>{
-            console.log(res);
             setProfile(res.profile);
             setWebHooks(res.webhooks);
             setAPIKeys(res.apikeys);

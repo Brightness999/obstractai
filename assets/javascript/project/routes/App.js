@@ -80,7 +80,7 @@ const App = () => {
       <Provider store={store}>
         <BrowserRouter basename='/home/'>
           <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
-          <MenuBar/>
+          <MenuBar currentgroup={currentgroup} />
           <Switch>
             <Route exact path="/">
               <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />

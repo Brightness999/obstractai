@@ -137,19 +137,14 @@ const ExtractionList = (props) => {
 }
 
 
-const Extractions = () => {
+const Extractions = (props) => {
 	const [extractionlist, setExtractionList] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
-	let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-	const client = new coreapi.Client({auth: auth});
 
 	useEffect(() => {
 		
 		const extraction_action = getAction(API_ROOT, ['extractions', 'list']);
-		client.action(window.schema, extraction_action).then((result) => {
+		props.client.action(window.schema, extraction_action).then((result) => {
 			setExtractionList(result.results);
 			setIsLoading(false);
 		});
@@ -177,7 +172,7 @@ const Extractions = () => {
 		if(isLoading){
 			return <Loading/>
 		} else {
-			return <ExtractionList client={client} extractionlist={extractionlist} saveExtraction={saveExtraction} />
+			return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} />
 		}
 	}
 

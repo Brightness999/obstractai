@@ -7,6 +7,7 @@ import {
 import Styles from "../styles";
 
 const ReportCard = function (props) {
+	console.log(props);
 	let tags = [];
 	if(props.feed[0]){
 		if(props.feed[0].tags.indexOf(",") > -1)

@@ -14,7 +14,6 @@ import Styles from '../styles';
 
 
 const UpdateFeed = (props) => {
-	console.log(props.currentgroup);
 	const [url, setUrl] = useState(props.url || '');
 	const [name, setName] = useState(props.name || '');
 	const [description, setDescription] = useState(props.description || '');

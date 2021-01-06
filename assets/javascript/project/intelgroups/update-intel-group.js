@@ -11,10 +11,11 @@ import {API_ROOT} from "../const";
 
 
 const UpdateIntelGroup = function(props) {
+  console.log(props);
   const client = props.client;
-  const [id, setId] = useState(props.id || null);
-  const [name, setName] = useState(props.name || '');
-  const [description, setDescription] = useState(props.description || '');
+  const [id, setId] = useState(props.intelgroup_id || null);
+  const [name, setName] = useState(props.intelgroup? props.intelgroup.name: '');
+  const [description, setDescription] = useState(props.intelgroup? props.intelgroup.description : '');
   const [userids, setUserIds] = useState([]);
   const [errors, setErrors] = useState({});
   const [tags, setTags] = useState([]);
@@ -78,19 +79,6 @@ const UpdateIntelGroup = function(props) {
     }
   };
 
-  const renderErrors = function(errors) {
-    if (errors) {
-      return (
-        <p className="help is-danger">
-          { errors.map((error, i) => {
-            return <span key={i}>{error}</span>
-          })}
-        </p>
-      );
-    }
-    return '';
-  };
-
   return (
     <section className="section app-card">
       <h2 className="subtitle">Intel Group Details</h2>
@@ -101,7 +89,6 @@ const UpdateIntelGroup = function(props) {
                 onChange={(event) => setName(event.target.value)} value={name} required={true}>
           </input>
         </div>
-        {renderErrors(errors.name)}
       </div>
       <div className="field column is-two-thirds">
         <div className="control">
@@ -117,8 +104,8 @@ const UpdateIntelGroup = function(props) {
           </Tooltip> */}
           </span>
         </div>
-        {renderErrors(errors.description)}
       </div>
+      {!editMode &&
       <div className="field column is-two-thirds">
         <div className="control" style={{zIndex:1}}>
           <label className="label">Invite Users</label>
@@ -143,8 +130,8 @@ const UpdateIntelGroup = function(props) {
             allowNew={true}
           /> */}
         </div>
-        {renderErrors(errors.planid)}
       </div>
+      }
       <div className="field is-grouped">
         <div className="control">
           <button type='button' className={`button is-primary ${editMode ? 'is-outlined' : ''}`}

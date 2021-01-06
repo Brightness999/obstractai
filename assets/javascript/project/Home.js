@@ -20,7 +20,7 @@ const AddIntelgroup = (props) => {
   	const [description, setDescription] = useState('');
 	const [userids, setUserIds] = useState([]);
 	const history = useHistory();
-	
+
 	
 
 	const userOptions = props.users.map((user, index) => ({
@@ -92,7 +92,7 @@ const AddIntelgroup = (props) => {
 				</button>
 				</div>
 				<div className="control">
-					<Link to="/">
+					<Link to="/intelgroups">
 						<button className="button is-text">
 						<span>Cancel</span>
 						</button>

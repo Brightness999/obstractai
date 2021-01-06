@@ -200,7 +200,7 @@ const ReportList = (props) => {
 					});
 					const itemfeed = [];
 					props.feeds.forEach(feed => {
-						if(feed.id == feeditem.feed.id){
+						if(feed.uniqueid == feeditem.feed.uniqueid){
 							itemfeed.push(feed);
 						}
 					});

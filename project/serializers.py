@@ -45,7 +45,7 @@ class FeedCategorySerializer(serializers.ModelSerializer):
     category = CategorySerializer(many=False)
     class Meta:
         model = Feeds
-        fields = ('id', 'name', 'category_id', 'description', 'tags', 'url', 'confidence', 'manage_enabled', 'intelgroup_id','updated_at', 'category' )
+        fields = ('id', 'name', 'category_id', 'description', 'tags', 'url', 'confidence', 'manage_enabled', 'intelgroup_id','updated_at', 'category', 'uniqueid' )
     def add(self, instance, validated_data):
         instance.category_id = validated_data.get('category', instance.category_id)
         return instance

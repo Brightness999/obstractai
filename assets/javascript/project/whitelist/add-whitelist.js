@@ -8,6 +8,7 @@ import { API_ROOT } from "../const";
 import Styles from "../styles";
 
 const AddWhitelist = (props) => {
+    console.log(props.indicators);
     const [isAlert, setIsAlert] = useState(false);
     const [indicator, setIndicator] = useState('');
     const [value, setValue] = useState('');
@@ -51,7 +52,7 @@ const AddWhitelist = (props) => {
 							<option value=''>Select Indicator</option>
 							{props.indicators.map((indicator) => (
 								<option key={indicator.id} value={indicator.id}>
-									{indicator.types}
+									{indicator.value}
 								</option>
 							))}
 						</TextField>

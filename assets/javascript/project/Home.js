@@ -19,6 +19,7 @@ const AddIntelgroup = (props) => {
 	const [name, setName] = useState('');
   	const [description, setDescription] = useState('');
 	const [userids, setUserIds] = useState([]);
+	const [isRefuse, setIsRefuse] = useState(false);
 	const history = useHistory();
 
 	
@@ -36,7 +37,7 @@ const AddIntelgroup = (props) => {
 		  userids: userids,
 		};
 		const action = getAction(API_ROOT, ["intelgroup", "newgroup"]);
-		if(name != '' && description != '' && userids != []){
+		if((name != '' && description != '' && userids != []) || isRefuse){
 		  props.client.action(window.schema, action, params).then((result) => {
 			props.intelgroupSave(result);
 			history.push('/intelgroups');
@@ -92,11 +93,11 @@ const AddIntelgroup = (props) => {
 				</button>
 				</div>
 				<div className="control">
-					<Link to="/intelgroups">
-						<button className="button is-text">
+					{/* <Link to="/intelgroups"> */}
+					<button className="button is-text" onClick={()=>{setIsRefuse(true); saveIntelgroup()}}>
 						<span>Cancel</span>
-						</button>
-					</Link>
+					</button>
+					{/* </Link> */}
 				</div>
 			</div>
 		</section>

@@ -33,13 +33,23 @@ class IntelGroupViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['POST'])
     def newgroup(self, request):
-        IntelGroups.objects.create(name=request.data['name'], description=request.data['description'])
-        new_group = IntelGroups.objects.filter(name=request.data['name']).all().values()
+        name = ''
+        if(request.data['name'] == ''):
+            name = 'Intel Group' + str(IntelGroups.objects.last().id+1)
+        else:
+            name = request.data['name']
+        IntelGroups.objects.create(name=name, description=request.data['description'])
+        new_group = IntelGroups.objects.filter(name=name).all().values()
         UserIntelGroupRoles.objects.create(intelgroup_id=new_group[0]['id'], user_id=request.user.id, role=2)
         for invite_id in request.data['userids']:
             if invite_id != request.user.id:
                 UserIntelGroupRoles.objects.create(intelgroup_id=new_group[0]['id'], user_id=invite_id, role=0)
         new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=new_group[0]['id'], user_id=request.user.id).all()
+        serializer = RoleGroupSerializer(new_role[0])
+        return Response(serializer.data)
+    def partial_update(self, request, pk):
+        IntelGroups.objects.filter(pk=pk).update(name=request.data['name'],description=request.data['description'])
+        new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=pk, user_id=request.user.id).all()
         serializer = RoleGroupSerializer(new_role[0])
         return Response(serializer.data)
 

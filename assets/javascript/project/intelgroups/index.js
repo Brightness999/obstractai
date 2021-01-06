@@ -4,6 +4,8 @@ import {
 		Switch,
 		Route,
 		Link,
+		useParams,
+		useLocation
 } from "react-router-dom";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 import IntelGroupTable from './intel-group-table';
@@ -82,6 +84,7 @@ const Loading = function() {
 }
 
 const IntelGroup = (props) => {
+	console.log(props);
 	const [isLoading, setIsLoading] = useState(true);
 	const [intelgroups, setIntelgroups] = useState([]);
 	const [users, setUsers] = useState([]);
@@ -138,7 +141,7 @@ const IntelGroup = (props) => {
 	};
 
 
-	const getDefaultView = function() {
+	const getDefaultView = () => {
 		if (isLoading) {
 			return <Loading/>
 		}
@@ -147,16 +150,41 @@ const IntelGroup = (props) => {
 		} else {
 			return <IntelgroupList intelgroups={intelgroups} invitation={invitation} deleteIntelGroup={deleteIntelGroup}/>
 		}
-  };
+	};
+
+	const getIntelgroupById = (group_id) => {
+		console.log(intelgroups);
+		console.log(group_id);
+		for(const intelgroup of intelgroups){
+			if(intelgroup.intelgroup_id.toString() == group_id)
+				return intelgroup;
+		};
+	}
+	  
+	const renderUpdateGroup = (data) => {
+		if(isLoading){
+			return <Loading/>;
+		} 
+		else {
+			const group_id = data.match.params.id;
+			const intelgroup = getIntelgroupById(group_id);			
+			return(
+				<UpdateIntelGroup client={props.client} {...intelgroup} intelgroupSaved={handleIntelGroupSaved} users={users} />
+			) 
+		}
+	}
 	
 	return (
 	  	<Switch  >
-			<Route  path="/intelgroups/manage/:id">
+			<Route path="/intelgroups/manage/:id">
 				<User/>
 			</Route>
-			<Route  path="/intelgroups/new">
+			<Route path="/intelgroups/new">
 				<UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} />
 			</Route>
+			<Route path="/intelgroups/:id" render={(props)=> renderUpdateGroup(props)} />
+				{/* <UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} /> */}
+			{/* </Route> */}
 			<Route path="/intelgroups">
 				{getDefaultView()}
 			</Route> 

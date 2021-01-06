@@ -19,6 +19,7 @@ import CurrentPlan from '../plans/current-plan';
 import { useScrollTrigger } from '@material-ui/core';
 import GetFullText from '../cyobstract/getfulltext';
 import Account from '../profile';
+import { isExists } from 'date-fns';
 
 
 const Loading = () => {
@@ -55,6 +56,22 @@ const App = () => {
   const currentIntelgroup = (intelgroup) => {
     setCurrentGroup(intelgroup);
   }
+  const intelgroupSave = (intelgroup) => {
+    let flag = false;
+    const newIntelgroup = [];
+		for (let group of mygroups) {
+			if (group.id === intelgroup.id) {
+				newIntelgroup.push(intelgroup);
+				flag = true;
+			} else {
+				newIntelgroup.push(group);
+			}
+		}
+		if (!flag) {
+			newIntelgroup.push(intelgroup);
+		}
+		setMyGroups(newIntelgroup);
+  }
 
   if(isLoading)
     return <Loading/>
@@ -66,9 +83,11 @@ const App = () => {
           <MenuBar/>
           <Switch>
             <Route exact path="/">
-              <HomePage mygroups={mygroups} client={client} users={users} />
+              <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
-            <Route path="/intelgroups" component={IntelGroup} />
+            <Route path="/intelgroups" >
+              <IntelGroup client={client} intelgroupSave={(data)=>intelgroupSave(data)} />
+            </Route>
             <Route path="/feeds">
               <Feeds currentgroup={currentgroup} />
             </Route>

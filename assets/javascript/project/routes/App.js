@@ -54,6 +54,7 @@ const App = () => {
   },[]);
   
   const currentIntelgroup = (intelgroup) => {
+    console.log(intelgroup);
     setCurrentGroup(intelgroup);
   }
   const intelgroupSave = (intelgroup) => {

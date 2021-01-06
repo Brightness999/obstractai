@@ -29,7 +29,6 @@ class FeedViewSet(viewsets.ModelViewSet):
         groupids = []
         for role in UserIntelGroupRoles.objects.filter(user_id=self.request.user.id).order_by('id').all():
             groupids.append(role.intelgroup_id)
-        print(groupids)
         feeds = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
         return feeds
     def partial_update(self,request, pk):
@@ -55,9 +54,7 @@ class FeedViewSet(viewsets.ModelViewSet):
                 flag = False
         if(flag):
             Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])
-            print(Feeds.objects.last().id)
             ftr = "http://ftr-premium.fivefilters.org/"
-            # encode = urllib.parse.quote_plus("https://www.fcbarcelona.com/en/football/first-team/news")
             encode = urllib.parse.quote_plus(data['url'])
             req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key=KSF8GH22GZRKA8")
             contents = urllib.request.urlopen(req).read()
@@ -113,7 +110,6 @@ class FeedViewSet(viewsets.ModelViewSet):
                         results = extract.extract_observables(text)
                         for result in results:
                             if result == 'ipv4addr' and len(results[result])>0:
-                                print(GlobalIndicators.objects.filter(value_api=result).values()[0]['id'])
                                 Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
                             elif result == 'ipv4cidr' and len(results[result])>0:
                                 Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
@@ -209,7 +205,6 @@ class FeedViewSet(viewsets.ModelViewSet):
                                 elif result == 'ssdeep' and len(results[result])>0:
                                     Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
                                 elif result == 'fqdn' and len(results[result])>0:
-                                    print(GlobalIndicators.objects.filter(value_api=result).values()[0])
                                     Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
                                 elif result == 'url' and len(results[result])>0:
                                     Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')

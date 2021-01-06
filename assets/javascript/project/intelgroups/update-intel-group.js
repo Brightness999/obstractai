@@ -11,7 +11,6 @@ import {API_ROOT} from "../const";
 
 
 const UpdateIntelGroup = function(props) {
-  console.log(props);
   const client = props.client;
   const [id, setId] = useState(props.intelgroup_id || null);
   const [name, setName] = useState(props.intelgroup? props.intelgroup.name: '');
@@ -54,7 +53,6 @@ const UpdateIntelGroup = function(props) {
   }
 
   const saveIntelgroup = function() {
-    console.log(tags);
     let params = {
       name: name,
       description: description,
@@ -117,7 +115,6 @@ const UpdateIntelGroup = function(props) {
             selection
             options={stateOptions}
             onChange={(e,{value}) => {
-              console.log(value);
               setUserIds(value);
             }}
           />

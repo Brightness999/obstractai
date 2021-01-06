@@ -12,7 +12,7 @@ class Feeds(BaseModel):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Categories, on_delete=models.CASCADE)
     tags = models.CharField(max_length=100)
-    url = models.CharField(max_length=100)
+    url = models.TextField(default='')
     description = models.CharField(max_length=100)
     manage_enabled = models.CharField(max_length=100)
     confidence = models.PositiveIntegerField(default=0)

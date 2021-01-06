@@ -1,7 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const MenuBar = () => {
+const MenuBar = (props) => {
+    console.log(props.currentgroup);
+    const [currentgroup, setCurrentGroup] = useState(props.currentgroup);
+
+    useEffect(()=>{
+        setCurrentGroup(props.currentgroup);
+    },[props.currentgroup])
+
     return (
         // <div className="navbar" role="navigation" aria-label="main navigation">
             <div className="container">
@@ -25,15 +32,6 @@ const MenuBar = () => {
                                 {/* <Link to="/feeds/" className="navbar-item">Configure</Link> */}
                             </div>
                         </div>
-                        {/* <div className="navbar-item has-dropdown is-hoverable">
-                            <a className="navbar-link">
-                                <span className="is-show-desktop">Plan</span>
-                            </a>
-                            <div className="navbar-dropdown is-left">
-                                <Link to="/plans/" className="navbar-item">Plan List</Link>
-                                <Link to="/manageplan/" className="navbar-item">Current Plan</Link>
-                            </div>
-                        </div> */}
                         <Link to="/categories/" className="navbar-item">Categories</Link>
                         <Link to="/extractions/" className="navbar-item">Extractions</Link>
                         <div className="navbar-item has-dropdown is-hoverable">
@@ -45,7 +43,7 @@ const MenuBar = () => {
                                 <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
                             </div>
                         </div>
-                        <a href="/subscriptions/intelgroup/10" className="navbar-item">Plan</a>
+                        {currentgroup!=''&& <a href={`/subscriptions/intelgroup/${currentgroup}`} className="navbar-item">Plan</a>}
                     </div>
                 </div>
             </div>

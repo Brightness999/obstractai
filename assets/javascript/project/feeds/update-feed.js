@@ -67,7 +67,7 @@ const UpdateFeed = (props) => {
 		if(description.trim() == '') setDescriptionError(true);
 		if(category.trim() == '') setCategoryError(true);
 		if(tags.trim() == '') setTagError(true);
-		if(props.currentgroup.trim() == '') setGroupError(true);
+		if(props.currentgroup == '') setGroupError(true);
 
 		if(url && name && description && category && tags && props.currentgroup != ''){
 			if(confirm("Did you really confirm?"))

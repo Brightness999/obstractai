@@ -194,9 +194,11 @@ const ReportList = (props) => {
 					});
 					const classifications = [];
 					props.classifications.forEach(classification => {
-						if(classification.intelgroup_id == feeditem.feed.intelgroup_id){
-							classifications.push(classification);
-						}
+						props.feeds.forEach(feed => {
+							if(feed.uniqueid == feeditem.feed.uniqueid){
+								classifications.push(classification);
+							}
+						});
 					});
 					const itemfeed = [];
 					props.feeds.forEach(feed => {

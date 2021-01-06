@@ -19,6 +19,7 @@ const Loading = () => {
 }
 
 const ExtractionList = (props) => {
+	console.log(props);
 	const [isAdd, setIsAdd] = useState(false);
 	const [type, setType] = useState('');
 	const [value, setValue] = useState('');
@@ -26,26 +27,37 @@ const ExtractionList = (props) => {
 	const [isAlert, setIsAlert] = useState(false);
 	const [isConfrim, setIsConfirm] = useState(false);
 	const [isInvitation, setIsInvitation] = useState(false);
-
+	const [groupError, setGroupError] = useState(false);
+	
 	const saveExtraction = () => {
-		
 		let params = {
 			types: type,
 			value: value,
 			words_matched: words,
-			enabled: 'Enable'
+			enabled: 'Enable',
+			currentgroup: props.currentgroup
 		}
 		const action = getAction(API_ROOT, ['extractions', 'create']);
-		if(type != '' && value != '', words != ''){
+		if(props.currentgroup == '') setGroupError(true);
+		if(type == '' || value == '' || words == '') setIsAlert(true);
+		if(type != '' && value != '' && words != '' && props.currentgroup != ''){
 			setIsAdd(false);
 			setType('');
 			setValue('');
 			setWords('');
-			props.client.action(window.schema, action, params).then((result)=>{
-				props.saveExtraction(result);
+			fetch('/api/extractions', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				props.saveExtraction(res);
 			})
 		}
-		else setIsAlert(true);
 	}
 
 	const cancelExtraction = () => {
@@ -53,6 +65,26 @@ const ExtractionList = (props) => {
 		setType('');
 		setValue('');
 		setWords('');
+	}
+
+	const changeStatus = (index) => {
+		console.log(index);
+		let params = {
+			extraction_id: props.extractionlist[index].id,
+			enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
+		}
+		fetch('/api/extractions',{
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>{
+			props.saveExtraction(res);
+		})
 	}
 
 	return (
@@ -74,7 +106,7 @@ const ExtractionList = (props) => {
 					</Grid>
 				</Grid>
 				{isAlert && <Alert severity="warning" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
-				
+				{groupError && <Alert severity="warning" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>
@@ -99,7 +131,7 @@ const ExtractionList = (props) => {
 								<Td>{extraction.types}</Td>
 								<Td>{extraction.value}</Td>
 								<Td>{extraction.words_matched}</Td>
-								<Td><a>{extraction.enabled}</a></Td>
+								<Td><a className="button is-text" onClick={()=>changeStatus(index)}>{extraction.enabled}</a></Td>
 							</Tr>
 						})}
 					</Tbody>
@@ -120,13 +152,13 @@ const ExtractionList = (props) => {
 						<Tr>
 							<Td>Threat type (threat_type)</Td>
 							<Td>Malware (malware)</Td>
-							<Td>“malware”</Td>
+							<Td>malware</Td>
 							<Td><Link to="#">Disable</Link></Td>
 						</Tr>
 						<Tr>
 							<Td>Country (country)</Td>
 							<Td>United Kingdom (united_kingdom)</Td>
-							<Td>“United Kingdom”, “UK”</Td>
+							<Td>United Kingdom, UK</Td>
 							<Td><Link to="#">Disable</Link></Td>
 						</Tr>
 					</Tbody>
@@ -142,7 +174,6 @@ const Extractions = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		
 		const extraction_action = getAction(API_ROOT, ['extractions', 'list']);
 		props.client.action(window.schema, extraction_action).then((result) => {
 			setExtractionList(result.results);
@@ -172,7 +203,7 @@ const Extractions = (props) => {
 		if(isLoading){
 			return <Loading/>
 		} else {
-			return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} />
+			return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} currentgroup={props.currentgroup} />
 		}
 	}
 

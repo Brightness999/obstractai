@@ -256,34 +256,36 @@ class FeedViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['PATCH'])
     def search(self, request):
         data = []
-        groupids = []
-        for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all():
-            groupids.append(role.intelgroup_id)
+        # groupids = []
+        # for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all():
+        #     groupids.append(role.intelgroup_id)
+        currentgroup = int(request.data['name'])
         if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
-            data = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
+            print(currentgroup)
+            data = Feeds.objects.filter(intelgroup_id=currentgroup).order_by('id').all()
         if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
-            data = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').filter(category_id = request.data['category']).all()
+            data = Feeds.objects.filter(intelgroup_id=currentgroup).order_by('id').filter(category_id = request.data['category']).all()
         if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
-            feedlist = Feeds.objects.filter(intelgroup_id__in=groupids).all()
+            feedlist = Feeds.objects.filter(intelgroup_id=currentgroup).all()
             for feed in feedlist:
                 if(request.data['tags'] in feed.tags):
                     data.append(feed)
         if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
-            data = Feeds.objects.filter(intelgroup_id__in=groupids).filter(confidence__gte=request.data['confidence']).order_by('id').all()
+            data = Feeds.objects.filter(intelgroup_id=currentgroup).filter(confidence__gte=request.data['confidence']).order_by('id').all()
         if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
-            data = Feeds.objects.filter(intelgroup_id__in=groupids).filter(confidence__gte=request.data['confidence']).filter(category_id=request.data['category']).order_by('id').all()
+            data = Feeds.objects.filter(intelgroup_id=currentgroup).filter(confidence__gte=request.data['confidence']).filter(category_id=request.data['category']).order_by('id').all()
         if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
-            temp = Feeds.objects.filter(intelgroup_id__in=groupids).filter(confidence__gte=request.data['confidence']).order_by('id').all()
+            temp = Feeds.objects.filter(intelgroup_id=currentgroup).filter(confidence__gte=request.data['confidence']).order_by('id').all()
             for t in temp:
                 if(request.data['tags'] in t.tags):
                     data.append(t)
         if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
-            temp = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').filter(category_id = request.data['category']).all()
+            temp = Feeds.objects.filter(intelgroup_id=currentgroup).order_by('id').filter(category_id = request.data['category']).all()
             for t in temp:
                 if(request.data['tags'] in t.tags):
                     data.append(t)
         if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
-            temp = Feed.objects.filter(intelgroup_id__in=groupids).filter(confidence__gte=request.data['confidence'])
+            temp = Feed.objects.filter(intelgroup_id=currentgroup).filter(confidence__gte=request.data['confidence'])
             for t in temp:
                 if(request.data['tags'] in t.tags):
                     data.append(t)

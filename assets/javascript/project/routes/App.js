@@ -98,7 +98,9 @@ const App = () => {
             <Route path="/extractions">
               <Extractions client={client} currentgroup={currentgroup} />
             </Route>
-            <Route path="/intelreports" component={IntelReports} />
+            <Route path="/intelreports" >
+              <IntelReports client={client} />
+            </Route>
             <Route path="/globalindicators" component={Indicators} />
             <Route path="/whitelist" >
               <WhiteLists client={client} currentgroup={currentgroup} />

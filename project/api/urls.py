@@ -7,6 +7,7 @@ app_name = 'api'
 urlpatterns = [
     path(r'test', views.home, name='home'),
     path(r'account', views.account, name='account'),
+    path(r'changingemail', views.emailchange, name='email'),
     path(r'apikeys', views.apikeys, name='apikeys'),
     path(r'webhooks', views.webhooks, name='webhooks'),
     path(r'reports', views.reports, name='reports'),

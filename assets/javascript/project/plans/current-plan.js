@@ -43,7 +43,6 @@ const EmptyPlan = function() {
 };
 
 const PlanList = function(props) {
-	console.log(props);
 	return (
 		<section className="section">
 			<h1 className="title is-3">Manage Plan</h1>

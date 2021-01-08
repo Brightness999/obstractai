@@ -9,6 +9,7 @@ import {
 		useLocation
 } from "react-router-dom";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
+
 import UserTable from './user-table';
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
@@ -48,7 +49,7 @@ const UserList = function(props) {
 				<label className="title is-4">Manage Intel Group Users</label>
 				{ props.group_role == 2 ? 
 						<Link to="/new" >
-							<button className="button is-primary is-filled is-pulled-right">
+							<button className="button is-primary is-pulled-right">
 								<span className="icon is-small">
 									<i className="fa fa-plus"></i>
 								</span>
@@ -96,7 +97,6 @@ const Loading = function() {
 }
 
 const User = (props) => {
-	const path = useLocation().pathname;
 	const group_id = useParams().id;
 	let auth = new coreapi.auth.SessionAuthentication({
 		csrfCookieName: 'csrftoken',
@@ -120,21 +120,15 @@ const User = (props) => {
 		});
 	}, []);
 
-	const handleUserSaved = function(user) {
-		let found = false;
-		const newUser = [];
+	const handleUserSaved = function(invitedUsers) {
+		const newUsers = [];
 		for (let existingUser of users) {
-			if (existingUser.id === user.id) {
-				newUser.push(user);
-				found = true;
-			} else {
-				newUser.push(existingUser);
-			}
+			newUsers.push(existingUser);
 		}
-		if (!found) {
-			newUser.push(user);
+		for (let user of invitedUsers) {
+			newUsers.push(user);
 		}
-		setUsers(newUser);
+		setUsers(newUsers);
 	};
 
 	const deleteUser = function (index) {
@@ -176,7 +170,7 @@ const User = (props) => {
 	<Router basename='/home/intelgroups/manage'>
 	  <Switch>
 		<Route path="/new">
-		  <UpdateUser client={client} userSaved={handleUserSaved} group_id={group_id} path={path.split('/')[3]} />
+		  <UpdateUser client={client} userSaved={handleUserSaved} group_id={group_id} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}

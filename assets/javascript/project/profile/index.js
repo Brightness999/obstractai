@@ -6,8 +6,8 @@ import {
 } from '@material-ui/core';
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 // import { WithContext as ReactTags } from 'react-tag-input/dist-modules/components/ReactTags';
-
 import Alert from '@material-ui/lab/Alert';
+
 import { getAction } from "../../api";
 import { API_ROOT } from "../const";
 import IntelgroupTable from "./intelgroup-table";
@@ -25,14 +25,9 @@ const Loading = function() {
 
 const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
-    const [firstname, setFirstName] = useState('');
-    const [lastname, setLastName] = useState('');
-    
 
     return (
         <section className="semisection">
-            
-        
             <h1 className="title is-3">User account</h1>
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>setEmail(e.target.value)} />
@@ -62,19 +57,23 @@ const Intelgroups = (props) => {
         const params = {'role': intelgroups[index].id};
         props.client.action(window.schema, action, params).then((result) => {
             setIntelgroups(result);
+            props.deleteIntelGroup(result);
         });
     }
 
     const leaveGroup = (index) => {
         const action = getAction(API_ROOT, ['intelgroups', 'leave']);
         const params = {'role': intelgroups[index].id};
+        if(confirm('Are you sure to leave this group?'))
         props.client.action(window.schema, action, params).then((result) => {
             if(result[0].message){
                 setMessage("You can't leave the group. Before leaving group, you must make other people admin.")
                 setIsAlert(true);
             }
-            else
+            else{
                 setIntelgroups(result);
+                props.deleteIntelGroup(result);
+            }
         });
     }
 
@@ -305,12 +304,7 @@ const WebHooks = (props) => {
     );
 }
 
-const Account = () => {
-    let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-	const client = new coreapi.Client({auth: auth});
+const Account = (props) => {
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState([]);
     const [intelgroups, setIntelGroups] = useState([]);
@@ -342,14 +336,13 @@ const Account = () => {
         else
             return (
                 <Container>
-                    <Profile profile={profile} client={client} />
-                    <Intelgroups intelgroups={intelgroups} client={client} />
-                    <APIKeys apikeys={apikeys} client={client} intelgroups={intelgroups} />
-                    <WebHooks webhooks={webhooks} client={client} intelgroups={intelgroups} />
+                    <Profile profile={profile} client={props.client} />
+                    <Intelgroups intelgroups={intelgroups} client={props.client} deleteIntelGroup={props.deleteIntelGroup} />
+                    <APIKeys apikeys={apikeys} client={props.client} intelgroups={intelgroups} />
+                    <WebHooks webhooks={webhooks} client={props.client} intelgroups={intelgroups} />
                 </Container>
             )
     }
-
     return AccountView();
 }
 

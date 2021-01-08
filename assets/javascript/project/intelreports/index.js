@@ -1,12 +1,11 @@
 import React, {useState, useEffect} from "react";
-import { Switch, Route, Link } from "react-router-dom";
+import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, TextField, Grid } from "@material-ui/core";
 
 import ReportCard from "./report-card";
 import ViewReport from "./view-report";
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
-import Styles from '../styles';
 
 const Loading = () => {
 	return (
@@ -24,32 +23,7 @@ const ReportList = (props) => {
 	const [tag, setTag] = useState('0');
 	const [feedname, setFeedName] = useState('0');
 	const [classification, setClassification] = useState('0');
-	const [intelligence, setIntelligence] = useState('0');
-
-	const searchReport = () => {
-		let params = {
-			category:category,
-			indicator:indicator,
-			confidence: confidence,
-			tag:tag,
-			feedname:feedname,
-			classification:classification
-		}
-		if(category!='0' || indicator!='0' || confidence!='0' || tag!='0' || feedname!='0' || classification!='0'){
-			fetch('/api/searchreports', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-				},
-				credentials: 'same-origin',
-                body: JSON.stringify(params),
-			}).then(res=>{return res.json()})
-			.then(res=>{
-				console.log(res);
-			})
-		}
-	}
+	const [intelligence, setIntelligence] = useState('');
 	
 	return (
 		<Container>
@@ -59,9 +33,7 @@ const ReportList = (props) => {
 							<label className="title is-2">Intel Reports</label>
 					</Grid>
 					<Grid item md={1} xs={6}>
-						<div style={{paddingTop:16+'px'}}>
-							<label className="title is-5" >filter:</label>
-						</div>
+						<p className="title is-5 pt-4" >filter:</p>
 					</Grid>
 					<Grid item md={7} xs={8}>
 						<span className="col-10">
@@ -132,7 +104,7 @@ const ReportList = (props) => {
 							>
 								<option value="0">Tag</option>
 								{props.tags.map((tag) => (
-									<option key={tag.id} value={tag.id}>
+									<option key={tag.id} value={tag.name}>
 										{tag.name}
 									</option>
 								))}
@@ -177,7 +149,7 @@ const ReportList = (props) => {
 					</Grid>
 					<Grid item md={1} xs={4}>
 						<span>
-							<button className="button is-success mt-3" onClick={()=>searchReport()} >
+							<button className="button is-success mt-3" onClick={()=>props.searchReport(category, indicator, tag, feedname, confidence, classification, intelligence)} >
 								Filter
 							</button>
 						</span>
@@ -215,12 +187,7 @@ const ReportList = (props) => {
 }
 
 
-const IntelReports = () => {
-	let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-	const client = new coreapi.Client({auth: auth});
+const IntelReports = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
@@ -231,6 +198,7 @@ const IntelReports = () => {
 	const [feeditems, setFeedItmes] = useState([]);
 	const [feedchannels, setFeedChannels] = useState([]);
 	const [globalindicators, setGlobalIndicators] = useState([]);
+	const history = useHistory();
 	const confidences = [];
 	for (let i=1;i<100;i++){
 		confidences[confidences.length] = i;
@@ -246,27 +214,50 @@ const IntelReports = () => {
             credentials: 'same-origin',
         }).then((res)=> { return res.json();})
         .then((res)=>{
+			console.log(res);
 			setFeeds(res.feeds);
 			setCategories(res.categories);
-			setIsLoading(false);
 			setClassifications(res.extractions);
 			setIndicators(res.indicators);
 			setFeedItmes(res.feeditems);
 			setFeedChannels(res.feedchannels);
 			setGlobalIndicators(res.globalindicators);
 			setTags(res.tags);
+			setIsLoading(false);
         });
 	},[]);
 
-	const Search = (category, tag) => {
-		let params ={
-			category: category,
-			tags: tag
+	const searchReport = (category, indicator, tag, feedname, confidence, classification, intelligence) => {
+		setIsLoading(true);
+		let params = {
+			category:category,
+			indicator:indicator,
+			confidence: confidence,
+			tag:tag,
+			feedname:feedname,
+			classification:classification
 		}
-		const action = getAction(API_ROOT, ["feeds", "search"]);
-		client.action(window.schema, action, params).then((result) => {
-			saveFeed(result);
-		});
+		fetch('/api/searchreports', {
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params),
+		}).then(res=>{return res.json()})
+		.then(res=>{
+			console.log(res);
+			setFeeds(res.feeds);
+			setCategories(res.categories);
+			setClassifications(res.extractions);
+			setIndicators(res.indicators);
+			setFeedItmes(res.feeditems);
+			setFeedChannels(res.feedchannels);
+			setGlobalIndicators(res.globalindicators);
+			setTags(res.tags);
+			setIsLoading(false);
+		})
 	}
 
 	const ReportListView = () => {
@@ -274,9 +265,9 @@ const IntelReports = () => {
 			return <Loading/>
 		}
 		else {
-			return <ReportList categories={categories} tags={tags} feeds={feeds} client={client}
-				classifications={classifications} indicators={indicators} feeditems={feeditems}
-				feedchannels={feedchannels} confidences={confidences} tags={tags} globalindicators={globalindicators} />
+			return <ReportList categories={categories} tags={tags} feeds={feeds} client={props.client}
+				classifications={classifications} indicators={indicators} feeditems={feeditems} searchReport={searchReport}
+				feedchannels={feedchannels} confidences={confidences} globalindicators={globalindicators} />
 		}
 	}
 
@@ -293,10 +284,10 @@ const IntelReports = () => {
 		} 
 		else {
 			const feeditem_id = props.match.params.id;
-			const feeditem = getFeedById(feeditem_id);			
+			const feeditem = getFeedById(feeditem_id);
 			return(
-				<ViewReport client={client} {...feeditem} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} />
-			) 
+				<ViewReport client={props.client} {...feeditem} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} />
+			)
 		}
 	}
 

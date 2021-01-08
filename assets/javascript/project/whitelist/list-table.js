@@ -4,8 +4,8 @@ import { Tr, Td } from 'react-super-responsive-table';
 const ListTable = (props) => {
 	return (
 		<Tr>
-            <Td>{`${props.list.indicator.types}(${props.list.indicator.type_api})`}</Td>
-            <Td>{`${props.list.indicator.value}(${props.list.indicator.value_api})`}</Td>
+            <Td>{`${props.list.indicator.globalindicator.type}(${props.list.indicator.globalindicator.type_api})`}</Td>
+            <Td>{`${props.list.indicator.globalindicator.value}(${props.list.indicator.globalindicator.value_api})`}</Td>
             <Td>{props.list.value}</Td>
             <Td>
                 <a onClick={()=>props.ListEnable(props.index)}>

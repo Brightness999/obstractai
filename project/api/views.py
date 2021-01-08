@@ -15,8 +15,8 @@ from rest_framework.response import Response
 from cyobstract import extract
 
 from apps.users.models import CustomUser
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators
-from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer
+from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists
+from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer
 
 def home(request):
         return render(request, 'project/index.html')
@@ -135,6 +135,7 @@ def searchreports(request):
 @api_view(['POST'])
 def feeds(request):
 	data=request.data
+	tags = data['tags'].split(',')
 	groupid= request.data['intelgroup_id']
 	isUrlExist = False
 	isEqualGroup = False
@@ -144,11 +145,32 @@ def feeds(request):
 			if feed.intelgroup_id == groupid:
 				isEqualGroup = True
 				Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid)
+				for tag in tags:
+					flag = False
+					for existingtag in Tags.objects.all():
+						if tag.strip() == existingtag.name:
+							flag = True
+					if not flag:
+						Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 	if isUrlExist and not isEqualGroup:
 		Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
+		for tag in tags:
+			flag = False
+			for existingtag in Tags.objects.all():
+				if tag.strip() == existingtag.name:
+					flag = True
+			if not flag:
+				Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 		isUrlExist = True
 	if not isUrlExist:
 		Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])
+		for tag in tags:
+			flag = False
+			for existingtag in Tags.objects.all():
+				if tag.strip() == existingtag.name:
+					flag = True
+			if not flag:
+				Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 		ftr = "http://ftr-premium.fivefilters.org/"
 		encode = urllib.parse.quote_plus(data['url'])
 		req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key=KSF8GH22GZRKA8")
@@ -348,6 +370,18 @@ def feeds(request):
 	serializer = FeedCategorySerializer(queryset, many=True)
 	return Response(serializer.data)
 
+@api_view(['POST'])
+def feed(request):
+	feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+	feed_serializer = FeedCategorySerializer(feeds, many=True)
+	categories = Categories.objects.order_by('id').all()
+	category_serializer = CategorySerializer(categories, many=True)
+	tags = Tags.objects.order_by('id').all()
+	tag_serializer = TagSerializer(tags, many=True)
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	role_serializer = UserGroupRoleSerializer(currentrole[0])
+	return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data})
+
 @api_view(['POST', 'PUT'])
 def extractions(request):
 	if request.method == 'POST':
@@ -359,3 +393,26 @@ def extractions(request):
 		Extractions.objects.filter(id=request.data['extraction_id']).update(enabled=request.data['enabled'])
 		serializer = UserExtractionSerializer(Extractions.objects.filter(id=request.data['extraction_id']).values()[0])
 		return Response(serializer.data)
+
+@api_view(['POST'])
+def whitelist(request):
+	feedids = [];
+	feeditemids = [];
+	for feed in Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).all():
+		feedids.append(feed.id)
+	for feeditem in FeedItems.objects.filter(feed_id__in=feedids).all():
+		feeditemids.append(feeditem.id)
+	indicators = Indicators.objects.filter(feeditem_id__in=feeditemids).order_by('id').all()
+	whitelist = Whitelists.objects.order_by('id').all()
+	globalindicators = GlobalIndicators.objects.order_by('id').all()	
+	indicator_serializer = IndicatorGlobalSerializer(indicators, many=True)
+	whitelist_serializer = UserIndicatorWhitelistSerializer(whitelist, many=True)
+	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
+	return Response({'indicators': indicator_serializer.data, 'whitelist': whitelist_serializer.data, 'globalindicators': global_serializer.data})
+
+@api_view(['POST'])
+def indicators(request):
+	print(request.data)
+	Indicators.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
+	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
+	return Response(serializer.data)

@@ -12,6 +12,9 @@ urlpatterns = [
     path(r'reports', views.reports, name='reports'),
     path(r'searchreports', views.searchreports, name='searchreports'),
     path(r'feeds', views.feeds, name='feeds'),
+    path(r'feed', views.feed, name='feed'),
     path(r'extractions', views.extractions, name='extractions'),
+    path(r'whitelist', views.whitelist, name='whitelist'),
+    path(r'indicators', views.indicators, name='indicators'),
 
 ]

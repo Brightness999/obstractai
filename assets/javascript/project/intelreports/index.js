@@ -177,7 +177,7 @@ const ReportList = (props) => {
 					</Grid>
 					<Grid item md={1} xs={4}>
 						<span>
-							<button className="button is-outlined" onClick={()=>searchReport()} style={Styles.FeedStoreFilterButton} >
+							<button className="button is-success mt-3" onClick={()=>searchReport()} >
 								Filter
 							</button>
 						</span>
@@ -255,7 +255,6 @@ const IntelReports = () => {
 			setFeedChannels(res.feedchannels);
 			setGlobalIndicators(res.globalindicators);
 			setTags(res.tags);
-			console.log(res);
         });
 	},[]);
 
@@ -289,7 +288,6 @@ const IntelReports = () => {
 	}
 
 	const renderViewReport = (props) => {
-		console.log(props);
 		if(isLoading){
 			return <Loading/>;
 		} 

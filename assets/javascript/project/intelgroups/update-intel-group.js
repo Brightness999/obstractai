@@ -2,9 +2,6 @@ import React, {useState} from "react";
 import { Link, useHistory } from "react-router-dom";
 import { Dropdown } from "semantic-ui-react";
 import ReactTags from 'react-tag-autocomplete';
-import AddIcon from '@material-ui/icons/Add';
-import Fab from '@material-ui/core/Fab';
-import Tooltip from '@material-ui/core/Tooltip';
 
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
@@ -95,11 +92,6 @@ const UpdateIntelGroup = function(props) {
           <input className="input" type="text" placeholder="Description"
                 onChange={(event) => setDescription(event.target.value)} value={description} required={true}>
           </input>
-          {/* <Tooltip title="Add" aria-label="add">
-            <Fab color="secondary">
-              <AddIcon />
-            </Fab>
-          </Tooltip> */}
           </span>
         </div>
       </div>

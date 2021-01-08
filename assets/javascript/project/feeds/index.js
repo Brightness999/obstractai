@@ -3,6 +3,7 @@ import {
 	Switch,
 	Route,
 	Link,
+	useHistory
 } from "react-router-dom";
 import {
 	Container,
@@ -36,7 +37,7 @@ const FeedList = (props) => {
 		for(const t of props.tags){
 			if(t.id == tag) tag_value = t.name
 		}
-		props.Search(category, tag_value);
+		props.Search(category, tag_value, confidence);
 	}
 	return (
 		<Container>
@@ -118,19 +119,20 @@ const FeedList = (props) => {
 					</Grid>
 				</Grid>
 			</section>
-			<section className="section" style={Styles.SectionStyle}>
+			{props.currentrole.role==2 &&
+			<section className="section" >
 				<Link to="/feeds/new">
-					<button style={Styles.FeedStoreCreateButton}>
+					<button className="button is-medium is-link is-rounded">
 						<span className="icon is-small">
 							<i className="fa fa-plus"></i>
 						</span>
 						<span>Create custom feed</span>
 					</button>
 				</Link>
-			</section>
+			</section>}
 			{
 				props.feedlist.map((feed, index) => {
-					return <FeedCard index={index} key={feed.id} feed={feed} />;
+					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
 				})
 			}
 			
@@ -140,53 +142,50 @@ const FeedList = (props) => {
 
 
 const Feeds = (props) => {
-	let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-	const client = new coreapi.Client({auth: auth});
 	const [isLoading, setIsLoading] = useState(true);
 	const [feedlist, setFeedList] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
-	const [currentgroup, setCurrentGroup] = useState(props.currentgroup);
+	const [currentrole, setCurrentRole] = useState({});
+	const history = useHistory();
 	const confidences = [];
 	for(let i=1;i<=100;i++){
 		confidences.push(i);
 	}
 
 	useEffect(()=>{
-		setCurrentGroup(props.currentgroup);
+		if(props.currentgroup == '') history.push('/');
+		else{
+			let params = {
+				currentgroup: props.currentgroup
+			}
+			fetch('/api/feed', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				setFeedList(res.feedlist);
+				setCategories(res.categories);
+				setTags(res.tags);
+				setCurrentRole(res.currentrole);
+				setIsLoading(false);
+			});
+		}
 	},[props.currentgroup]);
 
-	useEffect(()=>{
-		const feed_action = getAction(API_ROOT, ["feeds", "list"]);
-		const category_action = getAction(API_ROOT, ["categories", "list"]);
-		const tag_action = getAction(API_ROOT, ["tags", "list"]);
-		client.action(window.schema, feed_action).then((result) => {
-			setFeedList(result.results);
-			client.action(window.schema, category_action).then((result) => {
-				setCategories(result.results);
-				client.action(window.schema, tag_action).then((result) => {
-					setTags(result.results);
-					setIsLoading(false);
-				})
-			});
-		});
-	},[]);
-
-	const Search = (category, tag) => {
-		let auth = new coreapi.auth.SessionAuthentication({
-			csrfCookieName: 'csrftoken',
-			csrfHeaderName: 'X-CSRFToken'
-		});
-		const client = new coreapi.Client({auth: auth});
+	const Search = (category, tag, confidence) => {
 		let params ={
 			category: category,
-			tags: tag
+			tags: tag,
+			confidence: confidence
 		}
 		const action = getAction(API_ROOT, ["feeds", "search"]);
-		client.action(window.schema, action, params).then((result) => {
+		props.client.action(window.schema, action, params).then((result) => {
 			saveFeed(result);
 		});
 	}
@@ -194,8 +193,17 @@ const Feeds = (props) => {
 	const FeedListView = () => {
 		if(isLoading){
 			return <Loading/>
-		} else {
-			return <FeedList feedlist={feedlist} categories={categories} tags={tags} Search={Search} confidences={confidences} />
+		}
+		else {
+			if(currentrole.role==0){
+				return(
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to {currentrole.intelgroup.name} pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+				)
+			}
+			else return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} Search={Search} confidences={confidences} currentrole={currentrole} />
 		}
 	}
 
@@ -210,24 +218,24 @@ const Feeds = (props) => {
 		setFeedList(result);
 	}
 
-	const renderUpdateFeed = (props) => {
+	const renderUpdateFeed = (data) => {
 		if(isLoading){
 			return <Loading/>;
-		} 
+		}
 		else {
-			const feed_id = props.match.params.id;
+		const feed_id = data.match.params.id;
 			const feed = getFeedById(feed_id);			
 			return(
-				<UpdateFeed client={client} currentgroup={currentgroup} {...feed} categories={categories} 
+				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={currentrole}
 					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
-			) 
+			) ;
 		}
 	}
 
 	return (
 		<Switch>
 			<Route path="/feeds/new">
-				<UpdateFeed client={client} currentgroup={currentgroup} categories={categories} 
+				<UpdateFeed client={props.client} categories={categories}  currentrole={currentrole}
 					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 			</Route>
 			<Route path="/feeds/edit/:id" render={(props) => renderUpdateFeed(props)} >

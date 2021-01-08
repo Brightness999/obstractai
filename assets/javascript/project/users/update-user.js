@@ -1,12 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Link, useHistory} from "react-router-dom";
-import clsx from "clsx";
-import { 
-  FormControl ,
-  Select,
-  Input,
-  MenuItem,
-} from "@material-ui/core";
+
 import { Dropdown } from "semantic-ui-react";
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
@@ -53,8 +47,8 @@ const UpdateUser = function(props) {
       const action = getAction(API_ROOT, ["user", "invitation"]);
       client.action(window.schema, action, params).then((result) => {
         if(result.role != 'success')
-          props.userSaved(result[0]);
-        history.push('/'+props.path);
+          props.userSaved(result);
+        history.push('/'+props.group_id);
       }).catch((error) => {
         console.log("Error: ", error);
         setErrors(error.content);
@@ -107,11 +101,9 @@ const UpdateUser = function(props) {
           </button>
         </div>
         <div className="control">
-          <Link to={props.path == 'new'?"../" : props.path}>
-            <button className="button is-text">
+            <button className="button is-text" onClick={()=>{props.group_id == 'new' ? history.goBack() : history.push(`/${props.group_id}`)}}>
               <span>Cancel</span>
             </button>
-          </Link>
         </div>
       </div>
     </section>

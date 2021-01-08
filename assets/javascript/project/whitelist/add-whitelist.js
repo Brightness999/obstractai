@@ -8,7 +8,6 @@ import { API_ROOT } from "../const";
 import Styles from "../styles";
 
 const AddWhitelist = (props) => {
-    console.log(props.indicators);
     const [isAlert, setIsAlert] = useState(false);
     const [indicator, setIndicator] = useState('');
     const [value, setValue] = useState('');
@@ -16,7 +15,7 @@ const AddWhitelist = (props) => {
 
     const AddList = () => {
         let params = {indicator: indicator, value: value, enabled:'Disable'};
-        const action = getAction(API_ROOT, ['whitelist', 'create']);
+        const action = getAction(API_ROOT, ['whitelist', 'create_0']);
         if(indicator != '' && value != '')
             props.client.action(window.schema, action, params).then((result)=>{
                 props.saveWhitelist(result);
@@ -52,7 +51,7 @@ const AddWhitelist = (props) => {
 							<option value=''>Select Indicator</option>
 							{props.indicators.map((indicator) => (
 								<option key={indicator.id} value={indicator.id}>
-									{indicator.value}
+									{indicator.globalindicator.value}
 								</option>
 							))}
 						</TextField>

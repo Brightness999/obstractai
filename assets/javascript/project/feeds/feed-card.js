@@ -5,6 +5,8 @@ import {
 } from "@material-ui/core";
 
 import Styles from "../styles";
+import { getAction } from "../../api";
+import { API_ROOT } from "../const";
 
 const FeedCard = function (props) {
   let tags = [];
@@ -13,6 +15,19 @@ const FeedCard = function (props) {
       tags = props.feed.tags.split(',');
     else tags.push(props.feed.tags);
   }
+
+  const enableFeed = () => {
+    let params = [];
+    params['confidence'] = props.feed.id;
+    if(props.feed.manage_enabled=='false')
+      params['manage_enabled'] = 'true';
+    else params['manage_enabled'] = 'false';
+    const action = getAction(API_ROOT, ["feeds", "enable"]);
+    props.client.action(window.schema, action, params).then(result=>{
+      props.saveFeed(result);
+    })
+  }
+
   return (
     <section className="section app-card" style={Styles.FeedStoreCard}>
       <div className="columns">
@@ -50,20 +65,26 @@ const FeedCard = function (props) {
             </Grid>
             <Grid item xs={2}>
               <Link to="/feeds" >
-                <button className="button is-outlined" style={props.feed.manage_enabled == 'true'? Styles.FeedStoreEnableButton: Styles.FeedStoreDisableButton}>
-                <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
-                </button>
+                {props.feed.manage_enabled == 'true' && props.currentrole.role == 2 &&
+                <button className={props.feed.manage_enabled=='true' ? "button is-fullwidth is-success" : "button is-fullwidth is-outlined"} onClick={enableFeed}>
+                  <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
+                </button>}
+                {props.feed.manage_enabled == 'false' && props.currentrole.role ==2 && 
+                <button className="button is-fullwidth is-outlined" onClick={enableFeed}>
+                  <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
+                </button>}
+                {props.currentrole.role == 1 &&
+                <button className="button is-fullwidth is-static">
+                  <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
+                </button>}
               </Link>
               <Link to={`/feeds/edit/${props.feed.id}`} style={Styles.FeedStoreLink}>
-                <span>{props.feed.manage_enabled == 'true'? "Custom settings and enable" : "See in feed list"}</span>
+                <span>{props.currentrole.role == 2? "Custom settings and enable" : "See in feed list"}</span>
               </Link>
             </Grid>
           </Grid>
         </div>
       </div>
-      {/* <Button variant="contained" style={Styles.FeedAddButton} onClick={() => updateFeed()}>
-        { props.id ? 'Enable' : 'Add New Feed'}
-      </Button> */}
     </section>
   );
 }

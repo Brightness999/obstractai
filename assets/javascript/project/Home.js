@@ -11,7 +11,7 @@ const Welcome = (props) => {
 			<h1 className="title is-size-2" style={{textAlign:'center'}}>Welcome to Cyobstract</h1>
 			{props.mygroups.map(mygroup=>{
 				if(mygroup.role == 0)
-					return <div className="section app-card">
+					return <div className="section app-card" key={mygroup.id}>
 						<p className="subtitle is-4">! You have an invitation to <span className="title is-3 has-text-primary">{mygroup.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-4" to="/intelgroups" >Click here to accept.</Link></p>
 					</div> 
 			})}

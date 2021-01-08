@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from ..models import GlobalIndicators
 from ..serializers import UserGlobalIndicatorSerializer
 
-class IndicatorViewSet(viewsets.ModelViewSet):
+class GlobalIndicatorViewSet(viewsets.ModelViewSet):
     
     queryset = GlobalIndicators.objects.order_by('id').all()
     serializer_class = UserGlobalIndicatorSerializer

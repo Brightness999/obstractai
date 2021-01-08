@@ -5,10 +5,16 @@ import { Dropdown } from "semantic-ui-react";
 import { getAction } from "../api";
 import { API_ROOT } from "./const";
 
-const Welcome = () => {
+const Welcome = (props) => {
 	return (
 		<div style={{paddingTop:100+'px'}}>
 			<h1 className="title is-size-2" style={{textAlign:'center'}}>Welcome to Cyobstract</h1>
+			{props.mygroups.map(mygroup=>{
+				if(mygroup.role == 0)
+					return <div className="section app-card">
+						<p className="subtitle is-4">! You have an invitation to <span className="title is-3 has-text-primary">{mygroup.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-4" to="/intelgroups" >Click here to accept.</Link></p>
+					</div> 
+			})}
 		</div>
 	);
 }
@@ -93,11 +99,9 @@ const AddIntelgroup = (props) => {
 				</button>
 				</div>
 				<div className="control">
-					{/* <Link to="/intelgroups"> */}
 					<button className="button is-text" onClick={()=>{setIsRefuse(true); saveIntelgroup()}}>
 						<span>Cancel</span>
 					</button>
-					{/* </Link> */}
 				</div>
 			</div>
 		</section>
@@ -109,6 +113,6 @@ const HomePage = (props) =>{
 	if(props.mygroups.length == 0)
 		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />
 	else
-		return <Welcome/>
+		return <Welcome mygroups={props.mygroups} />
 }
 export default HomePage;

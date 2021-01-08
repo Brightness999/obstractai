@@ -33,11 +33,6 @@ const ManagePlan = (props) => {
             expiry: expiry,
             cvv: cvv
         };
-        // const action = getAction(API_ROOT, ['plans', 'create']);
-        // props.client.action(window.schema, action, params).then((result)=>{
-        //     console.log(reuslt);
-        //     history.push('/manageplan')
-        // })
     }
     return (
         <Container>

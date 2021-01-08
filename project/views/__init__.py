@@ -37,6 +37,6 @@ from .feeds import *
 from .categories import *
 from .tags import *
 from .extractions import *
-from .indicators import *
+from .globalindicators import *
 from .whitelist import *
 from .apikeys import *

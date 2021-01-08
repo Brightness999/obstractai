@@ -15,7 +15,6 @@ const IntelgroupTable = (props) => {
             {props.intelgroup.role == 1 && <Td>Member</Td>}
             {props.intelgroup.role == 0 && <Td>Pending</Td>}
             {props.intelgroup.role == 0 && <Td>
-                {/* <button className="button is-success" onClick={()=>props.acceptInvite(props.index)}>Accept invite</button> */}
                 <button className="button is-success" onClick={()=>setOpen(true)}>Accept invite</button>
                 <Dialog
                     open={open}

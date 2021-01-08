@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Switch, Route, Link } from "react-router-dom";
+import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, TextField, Grid } from "@material-ui/core";
 import { Table, Thead, Tbody, Tr, Th, Td } from "react-super-responsive-table";
 
@@ -39,9 +39,17 @@ const WhiteList = (props) => {
             params = {id:props.indicators[index].id, enabled: 'Disable'};
         else if(props.indicators[index].enabled === 'Disable')
             params = {id:props.indicators[index].id, enabled: 'Enable'};
-        const action = getAction(API_ROOT, ['indicators', 'partial_update']);
-        props.client.action(window.schema, action, params).then((result)=>{
-            props.saveIndicator(result);
+        fetch('/api/indicators', {
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(params)
+        }).then(res=>{return res.json()})
+        .then(res=> {
+            props.saveIndicator(res);
         })
     }
 
@@ -68,7 +76,7 @@ const WhiteList = (props) => {
             <section className="section">
                 <span className="title is-5">Manage by whitelist</span>
                 <Link to="/whitelist/new">
-                    <button className="button is-outlined" style={Styles.WhitelistAddButton} >
+                    <button className="button is-info is-pulled-right"  >
                         <span>Add whitelist</span>
                     </button>
 
@@ -96,27 +104,36 @@ const WhiteList = (props) => {
 
 }
 
-const WhiteLists = () => {
-    let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-    const client = new coreapi.Client({auth: auth});
+const WhiteLists = (props) => {
     const [isLoading, setIsLoading] = useState(true);
     const [whitelist, setWhitelist] = useState([]);
     const [indicators, setIndicators] = useState([]);
+    const [globalindicators, setGlobalIndicators] = useState([]);
+    const history = useHistory();
 
     useEffect(() => {
-        const whitelist_action = getAction(API_ROOT, ['whitelist', 'list']);
-        const indicator_action = getAction(API_ROOT, ['indicators', 'list']);
-        client.action(window.schema, whitelist_action).then((result) => {
-            setWhitelist(result.results);
-            client.action(window.schema, indicator_action).then((result)=>{
-                setIndicators(result.results);
+        if(props.currentgroup == '') history.push('/');
+        else{
+            let params = {
+                currentgroup: props.currentgroup
+            }
+            fetch('/api/whitelist', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params)
+            }).then(res=>{return res.json()})
+            .then(res=>{
+                setWhitelist(res.whitelist);
+                setIndicators(res.indicators);
+                setGlobalIndicators(res.globalindicators);
                 setIsLoading(false);
-            });
-        });
-    },[]);
+            })
+        }
+    },[props.currentgroup]);
 
     const saveWhitelist = (newList) =>{
         let flag = false;
@@ -151,14 +168,15 @@ const WhiteLists = () => {
     const WhiteListView = () => {
         if(isLoading)
             return <Loading/>
-        else
-            return <WhiteList client={client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} indicators={indicators} />
+        else{
+            return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} indicators={indicators} />
+        }
     }
 
     return(
         <Switch>
             <Route path="/whitelist/new">
-                <AddWhitelist client={client} indicators={indicators} saveWhitelist={saveWhitelist} />
+                <AddWhitelist client={props.client} indicators={indicators} saveWhitelist={saveWhitelist} />
             </Route>
             <Route path="/whitelist">
                 {WhiteListView()}

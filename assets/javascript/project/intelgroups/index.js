@@ -8,6 +8,8 @@ import {
 		useLocation
 } from "react-router-dom";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
+import Alert from '@material-ui/lab/Alert';
+
 import IntelGroupTable from './intel-group-table';
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
@@ -39,9 +41,25 @@ const EmptyIntelgroupList = function() {
 };
 
 const IntelgroupList = function(props) {
+	const [isAlert, setIsAlert] = useState(false);
+	const deleteIntelGroup = function (index) {
+		if(confirm("Are you sure you want to delete?")){
+			const action = getAction(API_ROOT, ['intelgroups', 'leave']);
+			const params = {'role': props.intelgroups[index].id};
+			props.client.action(window.schema, action, params).then((result) => {
+				if(result[0].message){
+					setIsAlert(true);
+				}
+				else
+					props.saveIntelgroup(result);
+			});
+		}
+	};
+
 	return (
 		<section className="section app-card">
 			<h1 className="subtitle">All Intel Groups</h1>
+			{isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>You can't leave the group. Before leaving group, you must make other people admin.</Alert>}
 			<Table className="table is-striped is-fullwidth has-vcentered-cells">
 				<Thead>
 				<Tr>
@@ -56,7 +74,7 @@ const IntelgroupList = function(props) {
 					props.intelgroups.map((group, index) => {
 						// https://stackoverflow.com/a/27009534/8207
 						return <IntelGroupTable key={group.id} index={index} {...group} 
-							invitation={(data) => props.invitation(data)} deleteIntelGroup={(index) => props.deleteIntelGroup(index)}
+							invitation={(data) => props.invitation(data)} deleteIntelGroup={(index) => deleteIntelGroup(index)} rejectInvite={(data)=>props.rejectInvite(data)}
 						/>;
 					})
 				}
@@ -87,6 +105,7 @@ const IntelGroup = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [intelgroups, setIntelgroups] = useState([]);
 	const [users, setUsers] = useState([]);
+	const [isAlert, setIsAlert] = useState(false);
 	
 	useEffect(() => {
 		const intelgroup_action = getAction(API_ROOT, ["intelgroups", "list"]);
@@ -119,26 +138,38 @@ const IntelGroup = (props) => {
 	};
 
 	const invitation = function (index) {
-		if(confirm("Do you want to accept?")){
-			const action = getAction(API_ROOT, ["intelgroups", "invitate"]);
-			const params = {'role': intelgroups[index].id};
-			props.client.action(window.schema, action, params).then((result) => {
-				setIntelgroups(result);
-			});
-		}
+		const action = getAction(API_ROOT, ["intelgroups", "invitate"]);
+		const params = {'role': intelgroups[index].id};
+		props.client.action(window.schema, action, params).then((result) => {
+			setIntelgroups(result);
+		});
 	};
+
+	const rejectInvite = (index) => {
+		const action = getAction(API_ROOT, ['intelgroups', 'reject']);
+        const params = {'role': intelgroups[index].id};
+        props.client.action(window.schema, action, params).then((result) => {
+            setIntelgroups(result);
+        });
+	}
 
 	const deleteIntelGroup = function (index) {
 		if(confirm("Are you sure you want to delete?")){
-			const action = getAction(API_ROOT, ["intelgroups", "deleteIntelGroup"]);
-			const params = {'role': intelgroups[index].intelgroup_id};
+			const action = getAction(API_ROOT, ['intelgroups', 'leave']);
+			const params = {'role': intelgroups[index].id};
 			props.client.action(window.schema, action, params).then((result) => {
-				const newIntelgroup = intelgroups.slice(0, index).concat(intelgroups.slice(index+1));
-				setIntelgroups(newIntelgroup);
+				if(result[0].message){
+					setIsAlert(true);
+				}
+				else{
+					setIntelgroups(result);
+					props.deleteIntelGroup(result);
+				}
 			});
 		}
 	};
 
+	const saveIntelgroup = (data) => {setIntelgroups(data);}
 
 	const getDefaultView = () => {
 		if (isLoading) {
@@ -147,7 +178,7 @@ const IntelGroup = (props) => {
 		if (intelgroups.length === 0) {
 			return <EmptyIntelgroupList/>;
 		} else {
-			return <IntelgroupList intelgroups={intelgroups} invitation={invitation} deleteIntelGroup={deleteIntelGroup}/>
+			return <IntelgroupList client={props.client} intelgroups={intelgroups} saveIntelgroup={saveIntelgroup} invitation={invitation} deleteIntelGroup={deleteIntelGroup} rejectInvite={rejectInvite} />
 		}
 	};
 
@@ -180,8 +211,6 @@ const IntelGroup = (props) => {
 				<UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} />
 			</Route>
 			<Route path="/intelgroups/:id" render={(props)=> renderUpdateGroup(props)} />
-				{/* <UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} /> */}
-			{/* </Route> */}
 			<Route path="/intelgroups">
 				{getDefaultView()}
 			</Route> 

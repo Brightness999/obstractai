@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Switch, Route, Link } from "react-router-dom";
+import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, Grid, TextField, Tooltip } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
 import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
@@ -19,7 +19,6 @@ const Loading = () => {
 }
 
 const ExtractionList = (props) => {
-	console.log(props);
 	const [isAdd, setIsAdd] = useState(false);
 	const [type, setType] = useState('');
 	const [value, setValue] = useState('');
@@ -28,6 +27,7 @@ const ExtractionList = (props) => {
 	const [isConfrim, setIsConfirm] = useState(false);
 	const [isInvitation, setIsInvitation] = useState(false);
 	const [groupError, setGroupError] = useState(false);
+	
 	
 	const saveExtraction = () => {
 		let params = {
@@ -68,7 +68,6 @@ const ExtractionList = (props) => {
 	}
 
 	const changeStatus = (index) => {
-		console.log(index);
 		let params = {
 			extraction_id: props.extractionlist[index].id,
 			enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
@@ -172,13 +171,17 @@ const ExtractionList = (props) => {
 const Extractions = (props) => {
 	const [extractionlist, setExtractionList] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const history = useHistory();
 
 	useEffect(() => {
-		const extraction_action = getAction(API_ROOT, ['extractions', 'list']);
-		props.client.action(window.schema, extraction_action).then((result) => {
-			setExtractionList(result.results);
-			setIsLoading(false);
-		});
+		if(props.currentgroup == '') history.push('/');
+		else{
+			const extraction_action = getAction(API_ROOT, ['extractions', 'list']);
+			props.client.action(window.schema, extraction_action).then((result) => {
+				setExtractionList(result.results);
+				setIsLoading(false);
+			});
+		}
 	}, []);
 
 	const saveExtraction = (new_extraction) => {

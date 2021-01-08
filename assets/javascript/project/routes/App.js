@@ -72,6 +72,9 @@ const App = () => {
 		}
 		setMyGroups(newIntelgroup);
   }
+  const deleteIntelGroup = (intelgroups) => {
+    setMyGroups(intelgroups);
+  }
 
   if(isLoading)
     return <Loading/>
@@ -86,22 +89,26 @@ const App = () => {
               <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
             <Route path="/intelgroups" >
-              <IntelGroup client={client} intelgroupSave={(data)=>intelgroupSave(data)} />
+              <IntelGroup client={client} intelgroupSave={(data)=>intelgroupSave(data)} deleteIntelGroup={(data)=>deleteIntelGroup(data)}/>
             </Route>
             <Route path="/feeds">
-              <Feeds currentgroup={currentgroup} />
+              <Feeds currentgroup={currentgroup} client={client}/>
             </Route>
             <Route path="/categories" component={Categories} />
             <Route path="/extractions">
               <Extractions client={client} currentgroup={currentgroup} />
             </Route>
             <Route path="/intelreports" component={IntelReports} />
-            <Route path="/indicators" component={Indicators} />
-            {/* <Route path="/whitelist" component={WhiteLists} /> */}
+            <Route path="/globalindicators" component={Indicators} />
+            <Route path="/whitelist" >
+              <WhiteLists client={client} currentgroup={currentgroup} />
+            </Route>
             {/* <Route path="/plans" component={Plan} /> */}
-            <Route path="/manageplan" component={CurrentPlan} />
+            {/* <Route path="/manageplan" component={CurrentPlan} /> */}
             {/* <Route path="/getfulltext" component={GetFullText} /> */}
-            <Route path="/account" component={Account} />
+            <Route path="/account" >
+              <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} />
+            </Route>
           </Switch>
         </BrowserRouter>
       </Provider>

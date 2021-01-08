@@ -29,6 +29,13 @@ class RoleGroupSerializer(serializers.ModelSerializer):
         model = UserIntelGroupRoles
         fields = ('id', 'user_id', 'intelgroup_id', 'role','intelgroup')
 
+class UserGroupRoleSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    class Meta:
+        model = UserIntelGroupRoles
+        fields = ('id', 'user_id', 'intelgroup_id', 'role', 'user', 'intelgroup')
+
 class PlanSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -114,13 +121,6 @@ class IndicatorSerializer(serializers.ModelSerializer):
         model = Indicators
         fields = ('id', 'globalindicator_id', 'feeditem_id', 'enabled', 'value')
 
-class UserIndicatorWhitelistSerializer(serializers.ModelSerializer):
-    user = UserSerializer(many=False, read_only=True)
-    indicator = IndicatorSerializer(many=False)
-    class Meta:
-        model = Whitelists
-        fields = ('id', 'value', 'indicator_id', 'user_id', 'enabled', 'user', 'indicator')
-
 class APIKeySerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -177,3 +177,17 @@ class IndicatorGlobalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Indicators
         fields = ('id', 'value', 'enabled', 'feeditem_id', 'globalindicator_id', 'globalindicator' )
+
+class GlobalItemIndicatorSerializer(serializers.ModelSerializer):
+    globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
+    feeditem = FeedItemSerializer(many=False, read_only=True)
+    class Meta:
+        model = Indicators
+        fields = ('id', 'value', 'enabled', 'feeditem_id', 'globalindicator_id', 'globalindicator', 'feeditem' )
+
+class UserIndicatorWhitelistSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    indicator = IndicatorGlobalSerializer(many=False)
+    class Meta:
+        model = Whitelists
+        fields = ('id', 'value', 'indicator_id', 'user_id', 'enabled', 'user', 'indicator')

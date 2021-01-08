@@ -93,7 +93,7 @@ const WebhookTable = (props) => {
                         </div>
                     </DialogContent>
                     <DialogActions>
-                        <button onClick={()=>{setOpen(false); editEndpoint();}} className="button is-success" autoFocus>
+                        <button onClick={()=>{editEndpoint();}} className="button is-success" autoFocus>
                             Confirm
                         </button>
                         <button onClick={()=>{setOpen(false);}} className="button is-danger" >

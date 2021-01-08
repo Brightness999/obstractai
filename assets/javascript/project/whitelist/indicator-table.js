@@ -4,8 +4,8 @@ import { Tr, Td } from 'react-super-responsive-table';
 const IndicatorTable = (props) => {
 	return (
         <Tr>
-            <Td>{`${props.indicator.type}(${props.indicator.type_api})`}</Td>
-            <Td>{`${props.indicator.value}(${props.indicator.value_api})`}</Td>
+            <Td>{`${props.indicator.globalindicator.type}(${props.indicator.globalindicator.type_api})`}</Td>
+            <Td>{`${props.indicator.globalindicator.value}(${props.indicator.globalindicator.value_api})`}</Td>
             <Td>
                 <a onClick={()=>props.IndicatorEnable(props.index)}>
                     <div className="button is-text">

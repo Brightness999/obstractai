@@ -45,6 +45,12 @@ def account(request):
     return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
 
 @api_view(['POST'])
+def emailchange(request):
+	CustomUser.objects.filter(id=request.data['id']).update(email=request.data['email'])
+	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
+	return Response(serializer.data)
+
+@api_view(['POST'])
 def apikeys(request):
 	apikeys = []
 	key = secrets.token_urlsafe(16)

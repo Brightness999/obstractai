@@ -6,6 +6,7 @@ import {
 		Route,
 		Link,
 		useParams,
+		useHistory,
 		useLocation
 } from "react-router-dom";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
@@ -40,13 +41,17 @@ const EmptyUserList = function() {
 };
 
 const UserList = function(props) {
+	const history = useHistory();
 	let action;
 	if(props.group_role == 2) action = 'Action'
 	else action = '';
 	return (
 		<section className="section app-card">
-			<div style={{marginBottom: 30+'px'}}>
+			<div>
 				<label className="title is-4">Manage Intel Group Users</label>
+				<button className="button is-outlined is-pulled-right mx-4" onClick={()=>history.goBack()}>
+					<span>Back</span>
+				</button>
 				{ props.group_role == 2 ? 
 						<Link to="/new" >
 							<button className="button is-primary is-pulled-right">
@@ -134,10 +139,11 @@ const User = (props) => {
 	const deleteUser = function (index) {
 		const action = getAction(API_ROOT, ["intelgrouprole", "delete"]);
 		const params = {id: users[index].id};
-		client.action(window.schema, action, params).then((result) => {
-			const newUsers = users.slice(0, index).concat(users.slice(index + 1));
-			setUsers(newUsers);
-		});
+		if(confirm('Are you sure to revoke invite?'))
+			client.action(window.schema, action, params).then((result) => {
+				const newUsers = users.slice(0, index).concat(users.slice(index + 1));
+				setUsers(newUsers);
+			});
 	};
 
 	const adminUser = function (role,ugr_id) {

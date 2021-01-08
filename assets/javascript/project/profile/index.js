@@ -26,12 +26,36 @@ const Loading = function() {
 const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
 
+    const changeEmail =() => {
+        let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+        if(email.match(mailformat)){
+            let params = {
+                id: props.profile.id,
+                email: email
+            }
+            fetch('/api/changingemail', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params)
+            }).then(res=>{return res.json()})
+            .then(res=>{
+                setEmail(res.email);
+            })
+        }
+    }
     return (
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
             <span>
-                <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>setEmail(e.target.value)} />
-                <button className="button is-primary ml-5">Edit</button>
+                <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
+                    setEmail(e.target.value);
+                    
+                }} />
+                <button className="button is-primary ml-5" onClick={()=>changeEmail()}>Edit</button>
             </span>
             <p className="px-4 pt-4"><a className="muted-link" href ="/accounts/password/change"><span>Reset password</span></a></p>
             <p className="px-4"><Link className="muted-link" to ="password/change"><span>Enable 2FA</span></Link></p>
@@ -312,7 +336,7 @@ const Account = (props) => {
     const [webhooks, setWebHooks] = useState([]);
 
     useEffect(() => {
-        fetch('../../api/account', {
+        fetch('/api/account', {
             method: 'get',
             headers: {
               'Content-Type': 'application/json',

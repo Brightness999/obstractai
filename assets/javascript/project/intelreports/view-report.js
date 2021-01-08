@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { Container, Grid, Tooltip } from "@material-ui/core";
 
 import Styles from "../styles";
 
 const ViewReport = (props) => {
 	console.log(props);
+	const history = useHistory();
 	let tags = [];
 	if(props.feed.tags){
 		if(props.feed.tags.indexOf(",") > -1)
@@ -100,6 +101,9 @@ const ViewReport = (props) => {
 						</span>
 					</Grid>
 				</Grid>
+			</section>
+			<section>
+				<button className="button is-dark is-pulled-left" onClick={()=>history.goBack()}>Back</button>
 			</section>
 			<section>
 				<Grid container>

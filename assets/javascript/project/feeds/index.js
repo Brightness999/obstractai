@@ -182,7 +182,8 @@ const Feeds = (props) => {
 		let params ={
 			category: category,
 			tags: tag,
-			confidence: confidence
+			confidence: confidence,
+			name: props.currentgroup
 		}
 		const action = getAction(API_ROOT, ["feeds", "search"]);
 		props.client.action(window.schema, action, params).then((result) => {

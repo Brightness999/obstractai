@@ -104,9 +104,7 @@ def reports(request):
 	for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).all():
 		serializer = FeedCategorySerializer(feed)
 		feeds.append(serializer.data)
-		# feedids.append(feed.id)
 		feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
-		print(myfeedids)
 	for channel in FeedChannels.objects.filter(feed_id__in=feedids).order_by('id').all():
 		serializer = FeedChannelSerializer(channel)
 		feedchannels.append(serializer.data)
@@ -114,29 +112,189 @@ def reports(request):
 		serializer = FeedItemSerializer(item)
 		feeditems.append(serializer.data)
 		itemids.append(item.id)
-	for indicator in Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all():
-		serializer = ItemIndicatorSerializer(indicator)
-		indicators.append(serializer.data)
-	for extraction in Extractions.objects.filter(intelgroup_id__in=groupids):
-		serializer = UserExtractionSerializer(extraction)
-		extractions.append(serializer.data)
-	for category in Categories.objects.order_by('id').all():
-		serializer = CategorySerializer(category)
-		categories.append(serializer.data)
-	for tag in Tags.objects.filter(Q(state='global') | Q(user_id=request.user.id)).order_by('id').all():
-		serializer = TagSerializer(tag)
-		tags.append(serializer.data)
-	for globalindicator in GlobalIndicators.objects.all():
-		serializer = GlobalIndicatorSerializer(globalindicator)
-		globalindicators.append(serializer.data)
+	indicators = Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all()
+	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
+	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
+	extraction_serializer = UserExtractionSerializer(extractions, many=True)
+	categories = Categories.objects.order_by('id').all()
+	category_serializer = CategorySerializer(categories, many=True)
+	tags = Tags.objects.filter(Q(state='global') | Q(user_id=request.user.id)).order_by('id').all()
+	tag_serializer = TagSerializer(tags, many=True)
+	globalindicators = GlobalIndicators.objects.order_by('id').all()
+	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
 
-	return Response({'feeds':feeds, 'feedchannels':feedchannels, 'feeditems':feeditems, 'indicators':indicators, 'extractions':extractions, 'categories':categories, 'tags':tags, 'globalindicators':globalindicators})
+	return Response({'feeds':feeds, 'feedchannels':feedchannels, 'feeditems':feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
 @api_view(['POST'])
 def searchreports(request):
-	# print(request.data)
-	# if request.data['category'] != '0'
-	return Response(request.data)
+	feeds = []
+	groupids = []
+	feedids = []
+	myfeedids = []
+	feedchannels = []
+	feeditems =[]
+	indicators = []
+	extractions = []
+	categories = []
+	itemids = []
+	tags = []
+	globalindicators = [];
+
+	if(request.data['classification'] != '0'):
+		temp = []
+		for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
+			temp.append(role.intelgroup_id)
+		word = Extractions.objects.filter(id=request.data['classification']).values()[0]['words_matched']
+		for extraction in Extractions.objects.filter(intelgroup_id__in=temp).filter(words_matched__contains=word):
+			groupids.append(extraction.intelgroup_id)
+	else:
+		for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
+			groupids.append(role.intelgroup_id)
+	if(request.data['category'] == '0'):
+		if(request.data['tag'] == '0'):
+			if(request.data['confidence'] == '0'):
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(id=request.data['feedname']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+			else:
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(confidence__gte=request.data['confidence']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(id=request.data['feedname']).filter(confidence__gte=request.data['confidence']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+		else:
+			if(request.data['confidence'] == '0'):
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(tags__contains=request.data['tag']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(tags__contains=request.data['tag']).filter(id=request.data['feedname']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+			else:
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).filter(id=request.data['feedname']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+	else:
+		if(request.data['tag'] == '0'):
+			if(request.data['confidence'] == '0'):
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).filter(id=request.data['feedname']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+			else:
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).filter(confidence__gte=request.data['confidence']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).filter(confidence__gte=request.data['confidence']).filter(id=request.data['feedname']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+		else:
+			if(request.data['confidence'] == '0'):
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).filter(id=request.data['feedname']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+			else:
+				if(request.data['feedname'] == '0'):
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				else:
+					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).filter(id=request.data['feedname']).all():
+						serializer = FeedCategorySerializer(feed)
+						feeds.append(serializer.data)
+						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+
+
+	for channel in FeedChannels.objects.filter(feed_id__in=feedids).order_by('id').all():
+		serializer = FeedChannelSerializer(channel)
+		feedchannels.append(serializer.data)
+	for item in FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all():
+		serializer = FeedItemSerializer(item)
+		feeditems.append(serializer.data)
+		itemids.append(item.id)
+	indicator_feeditem_ids = []
+	indicator_feed_ids = []
+	search_feeds = []
+	search_feedchannels = []
+	search_feeditems = []
+	if(request.data['indicator'] != '0'):
+		for indicator in Indicators.objects.filter(feeditem_id__in=itemids).filter(globalindicator_id=request.data['indicator']).order_by('id').all():
+			indicator_feeditem_ids.append(indicator.feeditem_id)
+		for feeditem in FeedItems.objects.filter(id__in=indicator_feeditem_ids).order_by('id').all():
+			flag = False
+			for indicator_feed_id in indicator_feed_ids:
+				if feeditem.feed_id == indicator_feed_id:
+					flag = True
+			if not flag:
+				indicator_feed_ids.append(feeditem.feed_id)
+		for indicator_feed_id in indicator_feed_ids:
+			for feed in feeds:
+				if feed['id'] == indicator_feed_id:
+					search_feeds.append(feed)
+		for channel in FeedChannels.objects.filter(feed_id__in=indicator_feed_ids).order_by('id').all():
+			serializer = FeedChannelSerializer(channel)
+			search_feedchannels.append(serializer.data)
+		for item in FeedItems.objects.filter(id__in=indicator_feeditem_ids).order_by('id').all():
+			serializer = FeedItemSerializer(item)
+			search_feeditems.append(serializer.data)
+	else:
+		search_feeds = feeds
+		search_feedchannels = feedchannels
+		search_feeditems = feeditems
+	search_serializer = FeedCategorySerializer(search_feeds, many=True)
+	indicators = Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all()
+	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
+	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
+	extraction_serializer = UserExtractionSerializer(extractions, many=True)
+	categories = Categories.objects.order_by('id').all()
+	category_serializer = CategorySerializer(categories, many=True)
+	tags = Tags.objects.filter(Q(state='global') | Q(user_id=request.user.id)).order_by('id').all()
+	tag_serializer = TagSerializer(tags, many=True)
+	globalindicators = GlobalIndicators.objects.order_by('id').all()
+	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
+
+	return Response({'feeds':search_serializer.data, 'feedchannels':search_feedchannels, 'feeditems':search_feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
 @api_view(['POST'])
 def feeds(request):

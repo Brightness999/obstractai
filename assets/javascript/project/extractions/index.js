@@ -3,10 +3,6 @@ import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, Grid, TextField, Tooltip } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
 import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
-import { Dropdown } from "semantic-ui-react";
-
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
 import Styles from "../styles";
 
 const Loading = () => {
@@ -14,6 +10,15 @@ const Loading = () => {
 		<div className='app-card has-text-centered'>
 			<div className="lds-ripple"><div></div><div></div></div>
 			<p className="heading has-text-primary">Loading...</p>
+		</div>
+	)
+}
+
+const AcceptInvite = () => {
+	return (
+		<div className='app-card has-text-centered'>
+			<div className="lds-ripple"><div></div><div></div></div>
+			<p className="subtitle is-3">! You have an invitation to {currentrole.intelgroup.name} pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
 		</div>
 	)
 }
@@ -37,7 +42,6 @@ const ExtractionList = (props) => {
 			enabled: 'Enable',
 			currentgroup: props.currentgroup
 		}
-		const action = getAction(API_ROOT, ['extractions', 'create']);
 		if(props.currentgroup == '') setGroupError(true);
 		if(type == '' || value == '' || words == '') setIsAlert(true);
 		if(type != '' && value != '' && words != '' && props.currentgroup != ''){
@@ -171,18 +175,29 @@ const ExtractionList = (props) => {
 const Extractions = (props) => {
 	const [extractionlist, setExtractionList] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [currentrole, setCurrentRole] = useState({})
 	const history = useHistory();
 
 	useEffect(() => {
 		if(props.currentgroup == '') history.push('/');
 		else{
-			const extraction_action = getAction(API_ROOT, ['extractions', 'list']);
-			props.client.action(window.schema, extraction_action).then((result) => {
-				setExtractionList(result.results);
+			let params = {currentgroup:props.currentgroup};
+			fetch('/api/extractionlist', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				setExtractionList(res.extractionlist);
+				setCurrentRole(res.currentrole);
 				setIsLoading(false);
-			});
+			})
 		}
-	}, []);
+	}, [props.currentgroup]);
 
 	const saveExtraction = (new_extraction) => {
 		let flag = false;
@@ -205,8 +220,23 @@ const Extractions = (props) => {
 	const ExtractionListView = () => {
 		if(isLoading){
 			return <Loading/>
-		} else {
-			return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} currentgroup={props.currentgroup} />
+		}
+		else {
+			if(currentrole.role ==0)
+				return (
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to {currentrole.intelgroup.name} pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+				)
+			if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of {currentrole.intelgroup.name}.</p>
+					</div>
+				)
+			if(currentrole.role ==2)
+				return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} currentgroup={props.currentgroup} />
 		}
 	}
 

@@ -9,7 +9,7 @@ import { API_ROOT } from "./const";
 const Welcome = (props) => {
 	return (
 		<div style={{paddingTop:100+'px'}}>
-			<h1 className="title is-size-2" style={{textAlign:'center'}}>Welcome to Cyobstract</h1>
+			<h1 className="title is-size-2 has-text-centered">Welcome to Cyobstract</h1>
 			{props.mygroups.map(mygroup=>{
 				if(mygroup.role == 0)
 					return <div className="section app-card has-text-centered" key={mygroup.id}>

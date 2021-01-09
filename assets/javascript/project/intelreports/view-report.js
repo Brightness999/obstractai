@@ -15,7 +15,7 @@ const ViewReport = (props) => {
 	}
 	const itemfeed = [];
 	props.feeds.forEach(feed => {
-		if(feed.uniqueid == feeditem.feed.uniqueid){
+		if(feed.uniqueid == props.feed.uniqueid){
 			itemfeed.push(feed);
 		}
 	});

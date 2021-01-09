@@ -94,16 +94,16 @@ const App = () => {
               <Feeds currentgroup={currentgroup} client={client}/>
             </Route>
             <Route path="/categories" >
-              <Categories client={client} />
+              <Categories client={client} currentgroup={currentgroup} />
             </Route>
             <Route path="/extractions">
               <Extractions client={client} currentgroup={currentgroup} />
             </Route>
             <Route path="/intelreports" >
-              <IntelReports client={client} />
+              <IntelReports client={client} currentgroup={currentgroup}/>
             </Route>
             <Route path="/globalindicators" >
-              <GlobalIndicators client={client} />
+              <GlobalIndicators client={client} currentgroup={currentgroup}/>
             </Route>
             <Route path="/whitelist" >
               <WhiteLists client={client} currentgroup={currentgroup} />

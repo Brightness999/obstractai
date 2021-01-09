@@ -95,12 +95,7 @@ def reports(request):
 	myfeedids = []
 	feedchannels = []
 	feeditems =[]
-	indicators = []
-	extractions = []
-	categories = []
 	itemids = []
-	tags = []
-	globalindicators = [];
 	for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
 		groupids.append(role.intelgroup_id)
 	for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids).all():
@@ -116,7 +111,7 @@ def reports(request):
 		itemids.append(item.id)
 	indicators = Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all()
 	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
-	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
+	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
 	extraction_serializer = UserExtractionSerializer(extractions, many=True)
 	categories = Categories.objects.order_by('id').all()
 	category_serializer = CategorySerializer(categories, many=True)
@@ -135,12 +130,7 @@ def searchreports(request):
 	myfeedids = []
 	feedchannels = []
 	feeditems =[]
-	indicators = []
-	extractions = []
-	categories = []
 	itemids = []
-	tags = []
-	globalindicators = [];
 
 	if(request.data['classification'] != '0'):
 		temp = []
@@ -287,7 +277,7 @@ def searchreports(request):
 	search_serializer = FeedCategorySerializer(search_feeds, many=True)
 	indicators = Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all()
 	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
-	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
+	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
 	extraction_serializer = UserExtractionSerializer(extractions, many=True)
 	categories = Categories.objects.order_by('id').all()
 	category_serializer = CategorySerializer(categories, many=True)
@@ -542,6 +532,8 @@ def feed(request):
 		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
 	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
 		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
+	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
+		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
 	feed_serializer = FeedCategorySerializer(feeds, many=True)
 	categories = Categories.objects.order_by('id').all()
 	category_serializer = CategorySerializer(categories, many=True)
@@ -564,6 +556,14 @@ def extractions(request):
 		return Response(serializer.data)
 
 @api_view(['POST'])
+def extractionlist(request):
+	extractions = Extractions.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+	extraction_serializer = UserExtractionSerializer(extractions, many=True)
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	role_serializer = UserGroupRoleSerializer(currentrole[0])
+	return Response({'extractionlist':extraction_serializer.data, 'currentrole':role_serializer.data})
+
+@api_view(['POST'])
 def whitelist(request):
 	feedids = [];
 	feeditemids = [];
@@ -577,7 +577,9 @@ def whitelist(request):
 	indicator_serializer = IndicatorGlobalSerializer(indicators, many=True)
 	whitelist_serializer = UserIndicatorWhitelistSerializer(whitelist, many=True)
 	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
-	return Response({'indicators': indicator_serializer.data, 'whitelist': whitelist_serializer.data, 'globalindicators': global_serializer.data})
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	serializer = UserGroupRoleSerializer(currentrole[0])
+	return Response({'indicators': indicator_serializer.data, 'whitelist': whitelist_serializer.data, 'globalindicators': global_serializer.data, 'currentrole': serializer.data})
 
 @api_view(['POST'])
 def indicators(request):
@@ -600,8 +602,25 @@ def invite(request):
 	if(len(data) == 0):
 			data=[{'role': 'success'}]
 	return Response(data)
+
 @api_view(['POST'])
 def currentrole(request):
 	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-	serializer = UserIntelGroupRolesSerializer(currentrole[0])
+	serializer = UserGroupRoleSerializer(currentrole[0])
 	return Response({'currentrole':serializer.data})
+
+@api_view(['POST'])
+def categorylist(request):
+	categorylist = Categories.objects.order_by('id').all()
+	category_serializer = CategorySerializer(categorylist, many=True)
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	serializer = UserGroupRoleSerializer(currentrole[0])
+	return Response({'currentrole':serializer.data, 'categorylist':category_serializer.data})
+
+@api_view(['POST'])
+def globalindicators(request):
+	globalindicators = GlobalIndicators.objects.order_by('id').all()
+	globalindicator_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	serializer = UserGroupRoleSerializer(currentrole[0])
+	return Response({'currentrole':serializer.data, 'globalindicators':globalindicator_serializer.data})

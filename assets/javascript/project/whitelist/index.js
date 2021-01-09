@@ -109,6 +109,7 @@ const WhiteLists = (props) => {
     const [whitelist, setWhitelist] = useState([]);
     const [indicators, setIndicators] = useState([]);
     const [globalindicators, setGlobalIndicators] = useState([]);
+    const [currentrole, setCurrentRole] = useState({});
     const history = useHistory();
 
     useEffect(() => {
@@ -130,6 +131,7 @@ const WhiteLists = (props) => {
                 setWhitelist(res.whitelist);
                 setIndicators(res.indicators);
                 setGlobalIndicators(res.globalindicators);
+                setCurrentRole(res.currentrole);
                 setIsLoading(false);
             })
         }
@@ -169,7 +171,21 @@ const WhiteLists = (props) => {
         if(isLoading)
             return <Loading/>
         else{
-            return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} indicators={indicators} />
+            if(currentrole.role ==0)
+				return (
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to {currentrole.intelgroup.name} pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+				)
+			if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of {currentrole.intelgroup.name}.</p>
+					</div>
+				)
+			if(currentrole.role ==2)
+                return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} indicators={indicators} />
         }
     }
 

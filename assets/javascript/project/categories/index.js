@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Route, Switch, Link } from "react-router-dom";
+import { Route, Switch, Link, useHistory } from "react-router-dom";
 import { Container, TextField, Grid } from "@material-ui/core";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 
@@ -96,6 +96,8 @@ const CategoryList = (props) => {
 const Categories = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [categorylist, setCategoryList] = useState([]);
+	const [currentrole, setCurrentRole] = useState({});
+	const history = useHistory();
 
 	useEffect(()=>{
 		const action = getAction(API_ROOT, ['categories', 'list']);
@@ -103,13 +105,45 @@ const Categories = (props) => {
 			setCategoryList(result.results);
 			setIsLoading(false);
 		});
-	},[]);
+		if(props.currentgroup == '') history.push('/');
+		else{
+			let params = {currentgroup:props.currentgroup};
+			fetch('/api/categorylist', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				setCategoryList(res.categorylist);
+				setCurrentRole(res.currentrole);
+				setIsLoading(false);
+			})
+		}
+	},[props.currentgroup]);
 
 	const CategoryListView = () => {
 		if(isLoading)
 			return <Loading/>;
 		else{
-			return <CategoryList client={props.client} categorylist={categorylist} saveCategory={saveCategory} deleteCategory={deleteCategory} />
+			if(currentrole.role ==0)
+				return (
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to {currentrole.intelgroup.name} pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+				)
+			if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of {currentrole.intelgroup.name}.</p>
+					</div>
+				)
+			if(currentrole.role ==2)
+				return <CategoryList client={props.client} categorylist={categorylist} saveCategory={saveCategory} deleteCategory={deleteCategory} />
 		}
 	}
 

@@ -100,7 +100,7 @@ const App = () => {
               <Extractions client={client} currentgroup={currentgroup} />
             </Route>
             <Route path="/intelreports" >
-              <IntelReports client={client} currentgroup={currentgroup}/>
+              <IntelReports client={client} currentgroup={currentgroup} mygroups={mygroups} />
             </Route>
             <Route path="/globalindicators" >
               <GlobalIndicators client={client} currentgroup={currentgroup}/>

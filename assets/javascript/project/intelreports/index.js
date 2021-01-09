@@ -164,11 +164,9 @@ const ReportList = (props) => {
 					});
 					const classifications = [];
 					props.classifications.forEach(classification => {
-						props.feeds.forEach(feed => {
-							if(feed.uniqueid == feeditem.feed.uniqueid){
-								classifications.push(classification);
-							}
-						});
+						if(classification.intelgroup_id == feeditem.feed.intelgroup_id){
+							classifications.push(classification);
+						}
 					});
 					const itemfeed = [];
 					props.feeds.forEach(feed => {
@@ -263,7 +261,7 @@ const IntelReports = (props) => {
 			return <Loading/>
 		}
 		else {
-			return <ReportList categories={categories} tags={tags} feeds={feeds} client={props.client}
+			return <ReportList categories={categories} tags={tags} feeds={feeds} client={props.client} mygroups={props.mygroups}
 				classifications={classifications} indicators={indicators} feeditems={feeditems} searchReport={searchReport}
 				feedchannels={feedchannels} confidences={confidences} globalindicators={globalindicators} />
 		}

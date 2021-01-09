@@ -89,6 +89,9 @@ class CommentSerializer(serializers.Serializer):
     userids = serializers.ListField(
         child = serializers.IntegerField()
     )
+    emails = serializers.ListField(
+        child = serializers.CharField()
+    )
 
 class UsersInvitationSerializer(serializers.Serializer):
     group_id = serializers.IntegerField()

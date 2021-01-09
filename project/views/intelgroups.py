@@ -1,4 +1,7 @@
 import urllib
+import xmltodict
+import pprint
+import json
 
 from urllib.parse import urlencode
 from django.contrib import messages
@@ -12,9 +15,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-import xmltodict
-import pprint
-import json
+from django.core.mail import send_mail
 from cyobstract import extract
 
 from ..models import IntelGroups, UserIntelGroupRoles
@@ -33,6 +34,9 @@ class IntelGroupViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['POST'])
     def newgroup(self, request):
+        print(request.data)
+        for email in request.data['emails']:
+            send_mail('Subject here', 'Here is the message.', 'kardzavaryan@gmail.com', [email], fail_silently=False)
         name = ''
         if(request.data['name'] == ''):
             name = 'Intel Group' + str(IntelGroups.objects.last().id+1)

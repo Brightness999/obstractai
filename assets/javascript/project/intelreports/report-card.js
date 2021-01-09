@@ -14,7 +14,7 @@ const ReportCard = function (props) {
 		else tags.push(props.feed[0].tags);
 	}
 	return (
-		<section className="section app-card" style={Styles.FeedStoreCard}>
+		<section className="section app-card" >
 			<div className="columns">
 				<div className="column is-one-thirds">
 					<Grid container>
@@ -44,7 +44,7 @@ const ReportCard = function (props) {
 							</Grid>
 							<div>
 								<span>
-									<button className="button is-outlined" style={Styles.FeedStoreCategoryButton}>
+									<button className="button is-info is-rounded mx-2" >
 									<span>{props.feed[0].category ? props.feed[0].category.name : ""}</span>
 									</button>
 									{

@@ -7,8 +7,6 @@ import Alert from '@material-ui/lab/Alert';
 import IndicatorTable from "./indicator-table";
 import { getAction } from "../../api";
 import { API_ROOT } from "../const";
-import Styles from "../styles";
-
 
 const Loading = () => {
 	return (
@@ -64,7 +62,7 @@ const IndicatorList = (props) => {
         <section className="section">
             <h1 className="title is-3">All Indicators</h1>
             <div className="section">
-                <button className="button is-outlined" style={Styles.CategoryAddButton} onClick={()=>setIsAdd(true)} >
+                <button className="button is-link is-large" onClick={()=>setIsAdd(true)} >
                     <span>Add Indicator</span>
                 </button>
             </div>
@@ -102,19 +100,13 @@ const IndicatorList = (props) => {
 
 }
 
-const Indicators = () => {
-    let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-    const client = new coreapi.Client({auth: auth});
+const GlobalIndicators = (props) => {
     const [isLoading, setIsLoading] = useState(true);
     const [indicators, setIndicators] = useState([]);
 
     useEffect(() => {
         const action = getAction(API_ROOT, ['globalindicators', 'list']);
-        client.action(window.schema, action).then((result) => {
-            console.log(result.results);
+        props.client.action(window.schema, action).then((result) => {
             setIndicators(result.results);
             setIsLoading(false);
         });
@@ -139,7 +131,7 @@ const Indicators = () => {
         if(isLoading)
             return <Loading/>
         else
-            return <IndicatorList client={client} indicators={indicators} saveIndicator={saveIndicator} />
+            return <IndicatorList client={props.client} indicators={indicators} saveIndicator={saveIndicator} />
     }
 
     return(
@@ -151,4 +143,4 @@ const Indicators = () => {
     );
 }
 
-export default Indicators
+export default GlobalIndicators

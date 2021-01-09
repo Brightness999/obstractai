@@ -14,29 +14,23 @@
         <div class="navbar-start">
           <!--add additional links here if you want-->
           {% if user.is_authenticated %}
-          <div class="navbar-item has-dropdown is-hoverable">
-            <a class="navbar-link">
-              <!-- <img class="avatar is-hidden-touch" src="{{ user.avatar_url}}"> -->
-              <span>Intel</span>
-            </a>
-            <div class="navbar-dropdown is-right">
-              <a class="navbar-item" href="/home/intelgroups" >
-                <span>Intel Groups</span>
+            <a class="navbar-item" href="#" >
+              <span>Member Actions:</span>
+            </a>  
+            <div class="navbar-item has-dropdown is-hoverable">
+              <a class="navbar-link">
+                <span>View intel</span>
               </a>
-              <a class="navbar-item" href="/home/intelreports" >
-                <span>Intel Reports</span>
-              </a>
+              <div class="navbar-dropdown is-left">
+                <a class="navbar-item" href="/home/intelgroups" >
+                  <span>Intel Groups</span>
+                </a>
+                <a class="navbar-item" href="/home/intelreports" >
+                  <span>Intel Reports</span>
+                </a>
+              </div>
             </div>
-          </div>
-          <a class="navbar-item" href="/home/feeds" >
-            <span>Feeds</span>
-          </a>
-          <a class="navbar-item" href="/home/categories" >
-            <span>Categories</span>
-          </a>
-          <a class="navbar-item" href="/home/extractions" >
-            <span>Extractions</span>
-          </a>
+            
           {% endif %}
         </div>
         <div class="navbar-end">

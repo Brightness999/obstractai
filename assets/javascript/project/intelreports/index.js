@@ -4,8 +4,6 @@ import { Container, TextField, Grid } from "@material-ui/core";
 
 import ReportCard from "./report-card";
 import ViewReport from "./view-report";
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
 
 const Loading = () => {
 	return (
@@ -278,12 +276,12 @@ const IntelReports = (props) => {
 		};
 	}
 
-	const renderViewReport = (props) => {
+	const renderViewReport = (data) => {
 		if(isLoading){
 			return <Loading/>;
 		} 
 		else {
-			const feeditem_id = props.match.params.id;
+			const feeditem_id = data.match.params.id;
 			const feeditem = getFeedById(feeditem_id);
 			return(
 				<ViewReport client={props.client} {...feeditem} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} />

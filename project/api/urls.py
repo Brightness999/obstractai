@@ -17,5 +17,7 @@ urlpatterns = [
     path(r'extractions', views.extractions, name='extractions'),
     path(r'whitelist', views.whitelist, name='whitelist'),
     path(r'indicators', views.indicators, name='indicators'),
+    path(r'invite', views.invite, name='invite'),
+    path(r'currentrole', views.currentrole, name='currentrole'),
 
 ]

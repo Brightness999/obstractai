@@ -24,11 +24,6 @@ const CategoryList = (props) => {
 	const [index, setIndex] = useState('');
 
 	const changeCategory = () => {
-		let auth = new coreapi.auth.SessionAuthentication({
-			csrfCookieName: 'csrftoken',
-			csrfHeaderName: 'X-CSRFToken'
-		});
-		const client = new coreapi.Client({auth: auth});
 		let params = {
 			name: name
 		}
@@ -40,7 +35,7 @@ const CategoryList = (props) => {
 		else
 			action = getAction(API_ROOT, ['categories', 'create']);
 		if(name.trim() != ''){
-			client.action(window.schema, action, params).then((result)=>{
+			props.client.action(window.schema, action, params).then((result)=>{
 				props.saveCategory(result);
 				setBtnText('Add Category');
 				setIsEdit(false);
@@ -63,7 +58,7 @@ const CategoryList = (props) => {
 				<div className="section">
 					<Grid container>
 						<Grid item xs={4}>
-							<TextField id="outlined-basic" value={name} label="Category Name" variant="outlined" onChange={(event)=>setName(event.target.value)} />
+							<TextField id="outlined-basic1" value={name} label="Category Name" variant="outlined" onChange={(event)=>setName(event.target.value)} />
 						</Grid>
 						<Grid item xs={2}>
 							<button className="button is-outlined" style={btntext == 'Add Category'? Styles.CategoryAddButton : Styles.CategorySaveButton} onClick={changeCategory}>
@@ -98,18 +93,13 @@ const CategoryList = (props) => {
 
 }
 
-const Categories = () => {
-	let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-	const client = new coreapi.Client({auth: auth});
+const Categories = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [categorylist, setCategoryList] = useState([]);
 
 	useEffect(()=>{
 		const action = getAction(API_ROOT, ['categories', 'list']);
-		client.action(window.schema, action).then((result)=>{
+		props.client.action(window.schema, action).then((result)=>{
 			setCategoryList(result.results);
 			setIsLoading(false);
 		});
@@ -119,7 +109,7 @@ const Categories = () => {
 		if(isLoading)
 			return <Loading/>;
 		else{
-			return <CategoryList categorylist={categorylist} saveCategory={saveCategory} deleteCategory={deleteCategory} />
+			return <CategoryList client={props.client} categorylist={categorylist} saveCategory={saveCategory} deleteCategory={deleteCategory} />
 		}
 	}
 
@@ -143,7 +133,7 @@ const Categories = () => {
 	const deleteCategory = (index) => {
 		const action = getAction(API_ROOT, ['categories', 'delete']);
 		let params = {id: categorylist[index].id};
-		client.action(window.schema, action, params).then((result) => {
+		props.client.action(window.schema, action, params).then((result) => {
 			const newCategoryList = categorylist.splice(0, index).concat(categorylist.splice(index+1));
 			setCategoryList(newCategoryList);
 		});

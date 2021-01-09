@@ -5,7 +5,6 @@ import {
     TextField, Image, Container
 } from '@material-ui/core';
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
-// import { WithContext as ReactTags } from 'react-tag-input/dist-modules/components/ReactTags';
 import Alert from '@material-ui/lab/Alert';
 
 import { getAction } from "../../api";
@@ -25,6 +24,7 @@ const Loading = function() {
 
 const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const changeEmail =() => {
         let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
@@ -44,12 +44,14 @@ const Profile = (props) => {
             }).then(res=>{return res.json()})
             .then(res=>{
                 setEmail(res.email);
+                setIsSuccess(true);
             })
         }
     }
     return (
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
+            {isSuccess && <Alert severity="success" className="column is-one-third" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
                     setEmail(e.target.value);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, useHistory, Link } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 import { Table, Thead, Tbody, Tr, Th, Td } from "react-super-responsive-table";
 import Alert from '@material-ui/lab/Alert';
@@ -103,14 +103,29 @@ const IndicatorList = (props) => {
 const GlobalIndicators = (props) => {
     const [isLoading, setIsLoading] = useState(true);
     const [indicators, setIndicators] = useState([]);
+    const [currentrole, setCurrentRole] = useState({});
+    const history = useHistory();
 
     useEffect(() => {
-        const action = getAction(API_ROOT, ['globalindicators', 'list']);
-        props.client.action(window.schema, action).then((result) => {
-            setIndicators(result.results);
-            setIsLoading(false);
-        });
-    },[]);
+        if(props.currentgroup == '') history.push('/');
+		else{
+			let params = {currentgroup:props.currentgroup};
+			fetch('/api/globalindicators', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				setIndicators(res.globalindicators);
+				setCurrentRole(res.currentrole);
+				setIsLoading(false);
+			})
+		}
+    },[props.currentgroup]);
 
     const saveIndicator = (newIndicator) =>{
         let flag = false;
@@ -130,8 +145,23 @@ const GlobalIndicators = (props) => {
     const IndicatorListView = () => {
         if(isLoading)
             return <Loading/>
-        else
-            return <IndicatorList client={props.client} indicators={indicators} saveIndicator={saveIndicator} />
+        else{
+            if(currentrole.role ==0)
+				return (
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to {currentrole.intelgroup.name} pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+				)
+			if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of {currentrole.intelgroup.name}.</p>
+					</div>
+				)
+			if(currentrole.role ==2)
+                return <IndicatorList client={props.client} indicators={indicators} saveIndicator={saveIndicator} />
+        }
     }
 
     return(

@@ -15,9 +15,12 @@ urlpatterns = [
     path(r'feeds', views.feeds, name='feeds'),
     path(r'feed', views.feed, name='feed'),
     path(r'extractions', views.extractions, name='extractions'),
+    path(r'extractionlist', views.extractionlist, name='extractionlist'),
     path(r'whitelist', views.whitelist, name='whitelist'),
     path(r'indicators', views.indicators, name='indicators'),
     path(r'invite', views.invite, name='invite'),
     path(r'currentrole', views.currentrole, name='currentrole'),
+    path(r'categorylist', views.categorylist, name='categorylist'),
+    path(r'globalindicators', views.globalindicators, name='globalindicators'),
 
 ]

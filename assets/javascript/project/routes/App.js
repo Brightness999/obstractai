@@ -12,14 +12,13 @@ import Feeds from '../feeds';
 import Categories from '../categories';
 import Extractions from '../extractions';
 import IntelReports from '../intelreports';
-import Indicators from '../indicators';
+import GlobalIndicators from '../indicators';
 import WhiteLists from '../whitelist';
 import Plan from '../plans';
 import CurrentPlan from '../plans/current-plan';
 import { useScrollTrigger } from '@material-ui/core';
 import GetFullText from '../cyobstract/getfulltext';
 import Account from '../profile';
-import { isExists } from 'date-fns';
 
 
 const Loading = () => {
@@ -83,7 +82,7 @@ const App = () => {
       <Provider store={store}>
         <BrowserRouter basename='/home/'>
           <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
-          <MenuBar currentgroup={currentgroup} />
+          <MenuBar currentgroup={currentgroup} client={client} />
           <Switch>
             <Route exact path="/">
               <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
@@ -94,14 +93,18 @@ const App = () => {
             <Route path="/feeds">
               <Feeds currentgroup={currentgroup} client={client}/>
             </Route>
-            <Route path="/categories" component={Categories} />
+            <Route path="/categories" >
+              <Categories client={client} />
+            </Route>
             <Route path="/extractions">
               <Extractions client={client} currentgroup={currentgroup} />
             </Route>
             <Route path="/intelreports" >
               <IntelReports client={client} />
             </Route>
-            <Route path="/globalindicators" component={Indicators} />
+            <Route path="/globalindicators" >
+              <GlobalIndicators client={client} />
+            </Route>
             <Route path="/whitelist" >
               <WhiteLists client={client} currentgroup={currentgroup} />
             </Route>

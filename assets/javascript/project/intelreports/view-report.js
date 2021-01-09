@@ -102,8 +102,8 @@ const ViewReport = (props) => {
 					</Grid>
 				</Grid>
 			</section>
-			<section>
-				<button className="button is-dark is-pulled-left" onClick={()=>history.goBack()}>Back</button>
+			<section className="section">
+				<button className="button is-light is-pulled-left" onClick={()=>history.goBack()}>Back</button>
 			</section>
 			<section>
 				<Grid container>

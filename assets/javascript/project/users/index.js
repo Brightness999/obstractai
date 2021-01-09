@@ -76,7 +76,6 @@ const UserList = function(props) {
 				<Tbody>
 				{
 					props.users.map((user, index) => {
-						// https://stackoverflow.com/a/27009534/8207
 						return <UserTable key={user.id} index={index} myId={props.myId} group_role={props.group_role}
 							{...user} delete={(index) => props.deleteUser(index)}
 							adminUser={(role, ugr_id) => props.adminUser(role, ugr_id)}
@@ -103,11 +102,6 @@ const Loading = function() {
 
 const User = (props) => {
 	const group_id = useParams().id;
-	let auth = new coreapi.auth.SessionAuthentication({
-		csrfCookieName: 'csrftoken',
-		csrfHeaderName: 'X-CSRFToken'
-	});
-	const client = new coreapi.Client({auth: auth});
 	const [isLoading, setIsLoading] = useState(true);
 	const [users, setUsers] = useState([]);
 	const [myId, setMyId] = useState([]);
@@ -117,7 +111,7 @@ const User = (props) => {
 	}
 	useEffect(() => {
 		const action = getAction(API_ROOT, ["users", "manage"]);
-		client.action(window.schema, action, params).then((result) => {
+		props.client.action(window.schema, action, params).then((result) => {
 			setUsers(result[2]);
 			setMyId(result[1]);
 			setGroupRole(result[0]);
@@ -140,7 +134,7 @@ const User = (props) => {
 		const action = getAction(API_ROOT, ["intelgrouprole", "delete"]);
 		const params = {id: users[index].id};
 		if(confirm('Are you sure to revoke invite?'))
-			client.action(window.schema, action, params).then((result) => {
+			props.client.action(window.schema, action, params).then((result) => {
 				const newUsers = users.slice(0, index).concat(users.slice(index + 1));
 				setUsers(newUsers);
 			});
@@ -153,7 +147,7 @@ const User = (props) => {
 		let params = {
 			'role': ugr_id
 		}
-		client.action(window.schema, action,params).then((result) => {
+		props.client.action(window.schema, action,params).then((result) => {
 			setUsers(result[2]);
 			setMyId(result[1]);
 			setGroupRole(result[0]);
@@ -173,10 +167,10 @@ const User = (props) => {
   };
 	
 	return (
-	<Router basename='/home/intelgroups/manage'>
+	<Router basename={`/home/intelgroups/manage/${group_id}`}>
 	  <Switch>
 		<Route path="/new">
-		  <UpdateUser client={client} userSaved={handleUserSaved} group_id={group_id} />
+		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={group_id} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}

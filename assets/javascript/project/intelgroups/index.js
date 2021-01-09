@@ -205,7 +205,7 @@ const IntelGroup = (props) => {
 	return (
 	  	<Switch  >
 			<Route path="/intelgroups/manage/:id">
-				<User/>
+				<User client={props.client} />
 			</Route>
 			<Route path="/intelgroups/new">
 				<UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} />

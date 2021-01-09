@@ -47,6 +47,7 @@
       padding: 6px 0 0 6px;
       border: 1px solid #D1D1D1;
       border-radius: 1px;
+      z-index: 1;
     
       /* shared font styles */
       font-size: 1em;

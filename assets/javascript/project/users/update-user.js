@@ -1,28 +1,34 @@
 import React, {useEffect, useState} from "react";
 import {Link, useHistory} from "react-router-dom";
+import ReactTags from 'react-tag-autocomplete';
 
-import { Dropdown } from "semantic-ui-react";
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
 
 
 const UpdateUser = function(props) {
-  const client = props.client;
-  const [id, setId] = useState(null);
-  const [userids, setUserIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [allusers, setAllUsers] = useState([]);
-  const [errors, setErrors] = useState({});
-  const editMode = Boolean(id);
+  const [tags, setTags] = useState([]);
   const history = useHistory();
-  const userOptions = allusers.map((user, index) => ({
-    key: index,
-    value: user.id,
-    text: user.email
-  }))
+  const userOptions = allusers.map((user)=>({
+    id: user.id,
+    name: user.email
+  }));
+  const reacttag= React.createRef();
+  const onDelete= (i)=> {
+      var temp = tags.slice(0)
+      temp.splice(i, 1)
+      setTags(temp)
+    }
+  
+  const onAddition = (tag)=> {
+    var temp = [].concat(tags, tag)
+    setTags(temp)
+  }
   useEffect(() => {
     const customer_action = getAction(API_ROOT, ["customers", "list"]);
-    client.action(window.schema, customer_action).then((result) => {
+    props.client.action(window.schema, customer_action).then((result) => {
       setAllUsers(result.results);
       setIsLoading(false);
     });
@@ -36,38 +42,42 @@ const UpdateUser = function(props) {
       </div>
     )
   }
-
   
   const inviteUser = function() {
+    const userids = [];
+    const emails = [];
+    tags.forEach(tag => {
+      if(Boolean(tag.id)) {
+        userids.push(tag.id)
+      }
+      else {
+        emails.push(tag.name)
+      }
+    });
     let params = {
       group_id: props.group_id,
-      userids: userids
+      userids: userids,
+      emails: emails
     };
     if(userids.length > 0){
-      const action = getAction(API_ROOT, ["user", "invitation"]);
-      client.action(window.schema, action, params).then((result) => {
-        if(result.role != 'success')
-          props.userSaved(result);
-        history.push('/'+props.group_id);
-      }).catch((error) => {
-        console.log("Error: ", error);
-        setErrors(error.content);
-      });
+      fetch('/api/invite', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': props.client.transports[0].auth.csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(params)
+      }).then(res=> {return res.json()})
+      .then(res=>{
+        if(!Boolean(res[0].role)){
+          props.userSaved(res);
+        } 
+        history.push(`/${props.group_id}`);
+      })
     }
   };
 
-  const renderErrors = function(errors) {
-    if (errors) {
-      return (
-        <p className="help is-danger">
-          { errors.map((error, i) => {
-            return <span key={i}>{error}</span>
-          })}
-        </p>
-      );
-    }
-    return '';
-  };
   if(isLoading){
     return <Loading/>
   }
@@ -76,23 +86,19 @@ const UpdateUser = function(props) {
       <h2 className="subtitle">User Details</h2>
       <div className="field">
         <label className="label">Email</label>
-        <Dropdown
-          placeholder='Select Users'
-          fluid
-          multiple
-          search
-          selection
-          options={userOptions}
-          onChange={(e, {value}) => {
-            setUserIds(value);
-          }}
+        <ReactTags
+          ref={reacttag}
+          tags={tags}
+          suggestions={userOptions}
+          onDelete={onDelete}
+          onAddition={onAddition}
+          allowNew={true}
         />
-        {renderErrors(errors.email)}
       </div>
       
       <div className="field is-grouped">
         <div className="control">
-          <button type='button' className={`button is-primary ${editMode ? 'is-outlined' : ''}`}
+          <button type='button' className="button is-primary"
                   onClick={() => inviteUser()}>
               <span className="icon is-small">
                 <i className="fa fa-plus"></i>
@@ -101,7 +107,7 @@ const UpdateUser = function(props) {
           </button>
         </div>
         <div className="control">
-            <button className="button is-text" onClick={()=>{props.group_id == 'new' ? history.goBack() : history.push(`/${props.group_id}`)}}>
+            <button className="button is-text" onClick={()=>history.goBack()}>
               <span>Cancel</span>
             </button>
         </div>

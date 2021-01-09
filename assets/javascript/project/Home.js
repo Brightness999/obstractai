@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useHistory } from "react-router-dom";
 import { Dropdown } from "semantic-ui-react";
+import ReactTags from 'react-tag-autocomplete';
 
 import { getAction } from "../api";
 import { API_ROOT } from "./const";
@@ -24,33 +25,50 @@ const AddIntelgroup = (props) => {
 
 	const [name, setName] = useState('');
   	const [description, setDescription] = useState('');
-	const [userids, setUserIds] = useState([]);
 	const [isRefuse, setIsRefuse] = useState(false);
+	const [tags, setTags] = useState([]);
 	const history = useHistory();
 
-	
-
-	const userOptions = props.users.map((user, index) => ({
-		key: index,
-		value: user.id,
-		text: user.email
+	const userOptions = props.users.map((user)=>({
+		id: user.id,
+		name: user.email
 	}));
 
+	const reacttag= React.createRef();
+	const onDelete= (i)=> {
+		var temp = tags.slice(0)
+		temp.splice(i, 1)
+		setTags(temp)
+	}
+	  
+	const onAddition = (tag)=> {
+		var temp = [].concat(tags, tag)
+		setTags(temp)
+	}
+
 	const saveIntelgroup = function() {
+		const userids = [];
+		const emails = [];
+		tags.forEach(tag => {
+			if(Boolean(tag.id)) {
+				userids.push(tag.id)
+			}
+			else {
+				emails.push(tag.name)
+			}
+		});
 		let params = {
 		  name: name,
 		  description: description,
 		  userids: userids,
+		  emails: emails
 		};
 		const action = getAction(API_ROOT, ["intelgroup", "newgroup"]);
 		if((name != '' && description != '' && userids != []) || isRefuse){
 		  props.client.action(window.schema, action, params).then((result) => {
 			props.intelgroupSave(result);
 			history.push('/intelgroups');
-		  }).catch((error) => {
-			console.log("Error: ", error);
-			setErrors(error.content);
-		  });
+		  })
 		}
 	};
 
@@ -76,16 +94,13 @@ const AddIntelgroup = (props) => {
 			<div className="field">
 				<div className="control">
 				<label className="label">Invite Users</label>
-				<Dropdown
-					placeholder='Select Users'
-					fluid
-					multiple
-					search
-					selection
-					options={userOptions}
-					onChange={(e,{value}) => {
-					setUserIds(value);
-					}}
+				<ReactTags
+					ref={reacttag}
+					tags={tags}
+					suggestions={userOptions}
+					onDelete={onDelete}
+					onAddition={onAddition}
+					allowNew={true}
 				/>
 				</div>
 			</div>

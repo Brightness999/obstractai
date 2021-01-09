@@ -224,10 +224,23 @@ MEDIA_URL = '/media/'
 # Email setup
 
 # use in development
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # use in production
 # see https://github.com/anymail/django-anymail for more details/examples
 # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+
+
+
+# SENDGRID_API_KEY = os.getenv('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')
+
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_HOST_USER = 'kardzavaryan@gmail.com' # this is exactly the value 'apikey'
+# EMAIL_HOST_PASSWORD = 'KarenSendGrid1994'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+
+
 
 # Django sites
 
@@ -278,3 +291,5 @@ STRIPE_LIVE_MODE = False  # Change to True in production
 # Get it from the section in the Stripe dashboard where you added the webhook endpoint
 # or from the stripe CLI when testing
 DJSTRIPE_WEBHOOK_SECRET = "whsec_xxx"
+
+

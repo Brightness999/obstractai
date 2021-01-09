@@ -13,10 +13,12 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from cyobstract import extract
+from django.core.mail import send_mail
+
 
 from apps.users.models import CustomUser
 from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists
-from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer
+from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer
 
 def home(request):
         return render(request, 'project/index.html')
@@ -536,7 +538,10 @@ def feeds(request):
 
 @api_view(['POST'])
 def feed(request):
-	feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
+		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
+		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
 	feed_serializer = FeedCategorySerializer(feeds, many=True)
 	categories = Categories.objects.order_by('id').all()
 	category_serializer = CategorySerializer(categories, many=True)
@@ -576,7 +581,27 @@ def whitelist(request):
 
 @api_view(['POST'])
 def indicators(request):
-	print(request.data)
 	Indicators.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
 	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
+
+@api_view(['POST'])
+def invite(request):
+	for email in request.data[emails]:
+		send_mail('Subject here', 'Here is the message.', 'kardzavaryan@gmail.com', [email], fail_silently=False)
+	data = [];
+	for userid in request.data['userids']:
+		existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()
+		if len(existing_user) == 0:
+			UserIntelGroupRoles.objects.create(intelgroup_id=request.data['group_id'], user_id=userid, role=0)
+			user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid, role=0).all()
+			serializer = UserIntelGroupRolesSerializer(user[0])
+			data.append(serializer.data)
+	if(len(data) == 0):
+			data=[{'role': 'success'}]
+	return Response(data)
+@api_view(['POST'])
+def currentrole(request):
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	serializer = UserIntelGroupRolesSerializer(currentrole[0])
+	return Response({'currentrole':serializer.data})

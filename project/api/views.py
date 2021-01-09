@@ -589,7 +589,7 @@ def indicators(request):
 
 @api_view(['POST'])
 def invite(request):
-	for email in request.data[emails]:
+	for email in request.data['emails']:
 		send_mail('Subject here', 'Here is the message.', 'kardzavaryan@gmail.com', [email], fail_silently=False)
 	data = [];
 	for userid in request.data['userids']:

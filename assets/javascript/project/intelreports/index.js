@@ -282,7 +282,7 @@ const IntelReports = (props) => {
 			const feeditem_id = data.match.params.id;
 			const feeditem = getFeedById(feeditem_id);
 			return(
-				<ViewReport client={props.client} {...feeditem} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} />
+				<ViewReport client={props.client} {...feeditem} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} feeds={feeds} />
 			)
 		}
 	}

@@ -13,9 +13,15 @@ const ViewReport = (props) => {
 		tags = props.feed.tags.split(',');
 		else tags.push(props.feed.tags);
 	}
+	const itemfeed = [];
+	props.feeds.forEach(feed => {
+		if(feed.uniqueid == feeditem.feed.uniqueid){
+			itemfeed.push(feed);
+		}
+	});
 	const classifications = [];
 	props.classifications.forEach(classification => {
-		if(classification.intelgroup_id == props.feed.intelgroup_id){
+		if(classification.intelgroup_id == itemfeed[0].intelgroup_id){
 			classifications.push(classification);
 		}
 	});

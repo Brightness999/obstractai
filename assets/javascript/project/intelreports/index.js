@@ -162,16 +162,16 @@ const ReportList = (props) => {
 							indicators.push(indicator)
 						}
 					});
-					const classifications = [];
-					props.classifications.forEach(classification => {
-						if(classification.intelgroup_id == feeditem.feed.intelgroup_id){
-							classifications.push(classification);
-						}
-					});
 					const itemfeed = [];
 					props.feeds.forEach(feed => {
 						if(feed.uniqueid == feeditem.feed.uniqueid){
 							itemfeed.push(feed);
+						}
+					});
+					const classifications = [];
+					props.classifications.forEach(classification => {
+						if(classification.intelgroup_id == itemfeed[0].intelgroup_id){
+							classifications.push(classification);
 						}
 					});
 					return <ReportCard index={index} key={feeditem.id} feeditem={feeditem} feed={itemfeed} indicators={indicators} classifications={classifications} />;

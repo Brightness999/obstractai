@@ -152,6 +152,23 @@ const APIKeys = (props) => {
         else setIsAlert(true);
     }
 
+    const deleteAPIKey = (index) =>{
+        let params = {id:props.apikeys[index].id};
+        if(confirm('Are you sure to delete this APIKey?'))
+            fetch('/api/apikeys', {
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params),
+            }).then((res)=>{return res.json()})
+            .then((res)=>{
+                setAPIKeys(res);
+            });
+    }
+
     return (
         <section className="semisection">
             <h1 className="title is-5">Your API keys</h1>
@@ -215,7 +232,7 @@ const APIKeys = (props) => {
                 </Thead>
                 <Tbody>
                     {apikeys.map((apikey, index)=>{
-                        return <APIKeyTable index={index} key={apikey.id} apikey={apikey} />
+                        return <APIKeyTable index={index} key={apikey.id} apikey={apikey} deleteAPIKey={(index)=>deleteAPIKey(index)} />
                             
                     })}
                 </Tbody>

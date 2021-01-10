@@ -15,7 +15,6 @@ import UpdateFeed from "./update-feed";
 import FeedCard from "./feed-card";
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
-import Styles from '../styles';
 
 const Loading = () => {
 	return (
@@ -55,8 +54,8 @@ const FeedList = (props) => {
 						<span>
 							<TextField
 								id="outlined-select-currency-native"
-								style={Styles.FeedStoreFilterField}
 								select
+								className="mx-2"
 								value={confidence}
 								onChange={(event) => setConfidence(event.target.value)}
 								SelectProps={{
@@ -73,8 +72,8 @@ const FeedList = (props) => {
 							</TextField>
 							<TextField
 								id="outlined-select-currency-native"
-								style={Styles.FeedStoreFilterField}
 								select
+								className="mx-2"
 								value={category}
 								onChange={(event) => setCategory(event.target.value)}
 								SelectProps={{
@@ -91,8 +90,8 @@ const FeedList = (props) => {
 							</TextField>
 							<TextField
 								id="outlined-select-currency-native"
-								style={Styles.FeedStoreFilterField}
 								select
+								className="mx-2"
 								value={tag}
 								onChange={(event) => setTag(event.target.value)}
 								SelectProps={{
@@ -111,7 +110,7 @@ const FeedList = (props) => {
 					</Grid>
 					<Grid item xs={3}>
 						<span>
-							<button className="button is-outlined" style={Styles.FeedStoreFilterButton} onClick={search} >
+							<button className="button is-success is-rounded mx-2" onClick={search} >
 								Filter
 							</button>
 							

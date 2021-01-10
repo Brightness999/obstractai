@@ -33,7 +33,7 @@ const FeedCard = function (props) {
       <div className="columns">
         <div className="column is-one-thirds">
           <Grid container>
-            <Grid item xs={10}>
+            <Grid item xs={12} md={10}>
               <div>
                 <span> Name: </span>
                 <span> {props.feed? props.feed.name : ""} </span>
@@ -48,13 +48,13 @@ const FeedCard = function (props) {
               </div>
               <div>
                 <span>
-                  <button className="button is-outlined" style={Styles.FeedStoreCategoryButton}>
+                  <button className="button is-primary is-rounded mx-1" >
                     <span>{props.feed.category ? props.feed.category.name : ""}</span>
                   </button>
                   {
                     tags.map((tag, index) => {
                       return (
-                        <button key={index} className="button is-outlined" style={Styles.FeedStoreTagButton}>
+                        <button key={index} className="button is-info is-rounded mx-1" >
                           <span>{tag}</span>
                         </button>
                       );
@@ -63,7 +63,7 @@ const FeedCard = function (props) {
                 </span>
               </div>
             </Grid>
-            <Grid item xs={2}>
+            <Grid item xs={12} md={2} >
               <Link to="/feeds" >
                 {props.feed.manage_enabled == 'true' && props.currentrole.role == 2 &&
                 <button className={props.feed.manage_enabled=='true' ? "button is-fullwidth is-success" : "button is-fullwidth is-outlined"} onClick={enableFeed}>
@@ -78,7 +78,7 @@ const FeedCard = function (props) {
                   <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
                 </button>}
               </Link>
-              <Link to={`/feeds/edit/${props.feed.id}`} style={Styles.FeedStoreLink}>
+              <Link to={`/feeds/edit/${props.feed.id}`} className="button is-text">
                 <span>{props.currentrole.role == 2? "Custom settings and enable" : "See in feed list"}</span>
               </Link>
             </Grid>

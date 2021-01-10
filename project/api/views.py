@@ -17,11 +17,51 @@ from django.core.mail import send_mail
 
 
 from apps.users.models import CustomUser
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists
-from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer
+from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys
+from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer
 
-def home(request):
-        return render(request, 'project/index.html')
+def apifeeds(request):
+	print(request.GET.get('key'))
+	groupid = 0
+	userid = 0
+	for apikey in APIKeys.objects.all():
+		if apikey.value == request.GET.get('key'):
+			groupid = apikey.intelgroup_id
+			userid = apikey.user_id
+	if groupid == 0 and userid == 0:
+		return render(request, 'project/feeds.html', {'feeds':'This is invalid apikey.'})
+	feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
+	feed_serializer = GroupCategoryFeedSerializer(feeds, many=True)
+	return render(request, 'project/feeds.html', {'request':json.dumps(feed_serializer.data)})
+
+def apireports(request):
+	groupid = 0
+	userid = 0
+	for apikey in APIKeys.objects.all():
+		if apikey.value == request.GET.get('key'):
+			groupid = apikey.intelgroup_id
+			userid = apikey.user_id
+	if groupid == 0 and userid == 0:
+		return render(request, 'project/feeds.html', {'feeds':'This is invalid apikey.'})
+	feedids = []
+	for feed in Feeds.objects.filter(intelgroup_id=groupid):
+		feedids.append(feed.id)
+	feeditems = FeedItems.objects.filter(feed_id__in=feedids).all()
+	item_serializer = FeedItemSerializer(feeditems, many=True)
+	return render(request, 'project/reports.html', {'reports':json.dumps(item_serializer.data)})
+
+def apigroups(request):
+	groupid = 0
+	userid = 0
+	for apikey in APIKeys.objects.all():
+		if apikey.value == request.GET.get('key'):
+			groupid = apikey.intelgroup_id
+			userid = apikey.user_id
+	if groupid == 0 and userid == 0:
+		return render(request, 'project/feeds.html', {'feeds':'This is invalid apikey.'})
+	groups = UserIntelGroupRoles.objects.filter(intelgroup_id=groupid, user_id=userid).all()
+	group_serializer = GroupRoleSerializer(groups[0])
+	return render(request, 'project/intel_groups.html', {'groups':json.dumps(group_serializer.data)})
 
 @api_view(['GET'])
 def account(request):
@@ -52,16 +92,22 @@ def emailchange(request):
 	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 def apikeys(request):
-	apikeys = []
-	key = secrets.token_urlsafe(16)
-	APIKeys.objects.create(name=request.data['name'], intelgroup_id=request.data['intelgroup_id'], value=key, user_id=request.user.id)
-	for apikey in APIKeys.objects.filter(user_id=request.user.id).all():
-		serializer = GroupAPIkeySerializer(apikey)
-		apikeys.append(serializer.data)
-		
-	return Response(apikeys)
+	if request.method == 'POST':
+		apikeys = []
+		key = secrets.token_urlsafe(16)
+		APIKeys.objects.create(name=request.data['name'], intelgroup_id=request.data['intelgroup_id'], value=key, user_id=request.user.id)
+		for apikey in APIKeys.objects.filter(user_id=request.user.id).all():
+			serializer = GroupAPIkeySerializer(apikey)
+			apikeys.append(serializer.data)
+			
+		return Response(apikeys)
+	if request.method == 'DELETE':
+		APIKeys.objects.filter(id=request.data['id']).delete()
+		apikeys = APIKeys.objects.filter(user_id=request.user.id).all()
+		apikey_serializer = GroupAPIkeySerializer(apikeys, many=True)
+		return Response(apikey_serializer.data)
 
 @api_view(['POST', 'PUT', 'DELETE'])
 def webhooks(request):
@@ -520,7 +566,7 @@ def feeds(request):
 					elif(item == 'source'):
 						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=items[item])
 	groupids = []
-	for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all():
+	for role in UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['intelgroup_id']).order_by('id').all():
 		groupids.append(role.intelgroup_id)
 	queryset = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
 	serializer = FeedCategorySerializer(queryset, many=True)

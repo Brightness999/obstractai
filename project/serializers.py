@@ -36,6 +36,12 @@ class UserGroupRoleSerializer(serializers.ModelSerializer):
         model = UserIntelGroupRoles
         fields = ('id', 'user_id', 'intelgroup_id', 'role', 'user', 'intelgroup')
 
+class GroupRoleSerializer(serializers.ModelSerializer):
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    class Meta:
+        model = UserIntelGroupRoles
+        fields = ('id', 'role', 'intelgroup_id', 'intelgroup')
+
 class PlanSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -61,6 +67,13 @@ class FeedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feeds
         fields = ('__all__' )
+
+class GroupCategoryFeedSerializer(serializers.ModelSerializer):
+    intelgroup = IntelGroupSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+    class Meta:
+        model = Feeds
+        fields = ('__all__')
 
 
 class CustomUserSerializer(serializers.ModelSerializer):

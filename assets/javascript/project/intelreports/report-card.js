@@ -1,8 +1,6 @@
 import React from "react";
 import {Link} from "react-router-dom";
-import {
-  Grid
-} from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 
 import Styles from "../styles";
 
@@ -50,14 +48,14 @@ const ReportCard = function (props) {
 									{
 									tags.map((tag, index) => {
 										return (
-										<button key={index} className="button is-outlined" style={Styles.FeedStoreTagButton}>
+										<button key={index} className="button is-warning is-rounded mx-2" >
 											<span>{tag}</span>
 										</button>
 										);
 									})
 									}
 									<Link to={`/intelreports/${props.feeditem.id}`}>
-										<button className="button is-outlined" style={Styles.ReportFeedNameButton}>
+										<button className="button is-link is-rounded is-text mx-2">
 											<span>{props.feed[0] ? props.feed[0].name : ""}</span>
 										</button>
 									</Link>
@@ -70,7 +68,7 @@ const ReportCard = function (props) {
 									<span>Confidence:</span>
 								</Grid>
 								<Grid item xs={9} className="py-2">
-									<button className="button is-outlined" style={Styles.ReportConfidenceButton}>
+									<button className="button is-primary is-rounded">
 										<span>{props.feed[0].confidence}</span>
 									</button>
 								</Grid>
@@ -81,7 +79,7 @@ const ReportCard = function (props) {
 								</Grid>
 								<Grid item xs={9} className="py-2">
 									{props.classifications.map((classification, index)=>{
-										return <button key={index} className="button is-outlined" style={Styles.ReportObservableButton}>
+										return <button key={index} className="button is-warning is-rounded mx-1 my-1">
 											<span>{classification.words_matched}</span>
 										</button>
 									})}
@@ -93,7 +91,7 @@ const ReportCard = function (props) {
 								</Grid>
 								<Grid item xs={9} className="py-2">
 									{props.indicators.map((indicator, index)=>{
-										return <button key={index} className="button is-outlined" style={Styles.ReportIndicatorButton}>
+										return <button key={index} className="button is-success is-rounded mx-1	my-1" >
 											<span>{indicator.globalindicator.value}</span>
 										</button>
 									})}

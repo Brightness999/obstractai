@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useHistory } from "react-router-dom";
-import { Container, Grid, Tooltip } from "@material-ui/core";
-
-import Styles from "../styles";
+import { Container, Grid } from "@material-ui/core";
 
 const ViewReport = (props) => {
 	console.log(props);
@@ -90,18 +88,18 @@ const ViewReport = (props) => {
 					</Grid>
 					<Grid item xs={9}>
 						<span>
-							<button className="button is-outlined" style={Styles.FeedStoreCategoryButton}>
+							<button className="button is-info is-rounded mx-2">
 								<span>{props.feed.category.name}</span>
 							</button>
 							{tags.map((tag, index)=>{
-								return <button key={index} className="button is-outlined" style={Styles.FeedStoreTagButton}>
+								return <button key={index} className="button is-warning is-rounded mx-2" >
 									<span>{tag}</span>
 								</button>
 							})}
-							<button className="button is-outlined" style={Styles.ReportFeedNameButton}>
+							<button className="button is-danger is-rounded mx-2" >
 								<span>{props.feed.name}</span>
 							</button>
-							<button className="button is-outlined ml-4" style={Styles.ReportConfidenceButton}>
+							<button className="button is-primary is-rounded mx-2" >
 								<span>{props.feed.confidence}</span>
 							</button>
 						</span>
@@ -109,7 +107,7 @@ const ViewReport = (props) => {
 				</Grid>
 			</section>
 			<section className="section">
-				<button className="button is-light is-pulled-left" onClick={()=>history.goBack()}>Back</button>
+				<button className="button is-info is-pulled-left" onClick={()=>history.goBack()}>Back</button>
 			</section>
 			<section>
 				<Grid container>
@@ -123,7 +121,7 @@ const ViewReport = (props) => {
 									<span>Confidence:</span>
 								</Grid>
 								<Grid item xs={9} className="py-2">
-									<button className="button is-outlined" style={Styles.ReportConfidenceButton}>
+									<button className="button is-primary is-rounded" >
 										<span>{props.feed.confidence}</span>
 									</button>
 								</Grid>
@@ -134,7 +132,7 @@ const ViewReport = (props) => {
 								</Grid>
 								<Grid item xs={9}>
 									{classifications.map((classification, index)=>{
-										return <button key={index} className="button is-outlined" style={Styles.ReportObservableButton}>
+										return <button key={index} className="button is-warning is-rounded mx-1 my-1" >
 											<span>{classification.words_matched}</span>
 										</button>
 									})}
@@ -146,7 +144,7 @@ const ViewReport = (props) => {
 								</Grid>
 								<Grid item xs={9} className="py-2">
 									{indicators.map((indicator, index)=>{
-										return <button key={index} className="button is-outlined" style={Styles.ReportIndicatorButton}>
+										return <button key={index} className="button is-success is-rounded mx-1	my-1" >
 											<span>{indicator.globalindicator.value}</span>
 										</button>
 									})}

@@ -105,7 +105,6 @@ const IntelGroup = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [intelgroups, setIntelgroups] = useState([]);
 	const [users, setUsers] = useState([]);
-	const [isAlert, setIsAlert] = useState(false);
 	
 	useEffect(() => {
 		const intelgroup_action = getAction(API_ROOT, ["intelgroups", "list"]);
@@ -153,22 +152,6 @@ const IntelGroup = (props) => {
         });
 	}
 
-	const deleteIntelGroup = function (index) {
-		if(confirm("Are you sure you want to delete?")){
-			const action = getAction(API_ROOT, ['intelgroups', 'leave']);
-			const params = {'role': intelgroups[index].id};
-			props.client.action(window.schema, action, params).then((result) => {
-				if(result[0].message){
-					setIsAlert(true);
-				}
-				else{
-					setIntelgroups(result);
-					props.deleteIntelGroup(result);
-				}
-			});
-		}
-	};
-
 	const saveIntelgroup = (data) => {setIntelgroups(data);}
 
 	const getDefaultView = () => {
@@ -178,7 +161,7 @@ const IntelGroup = (props) => {
 		if (intelgroups.length === 0) {
 			return <EmptyIntelgroupList/>;
 		} else {
-			return <IntelgroupList client={props.client} intelgroups={intelgroups} saveIntelgroup={saveIntelgroup} invitation={invitation} deleteIntelGroup={deleteIntelGroup} rejectInvite={rejectInvite} />
+			return <IntelgroupList client={props.client} intelgroups={intelgroups} saveIntelgroup={saveIntelgroup} invitation={invitation} rejectInvite={rejectInvite} />
 		}
 	};
 

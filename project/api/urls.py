@@ -5,7 +5,9 @@ from . import views
 
 app_name = 'api'
 urlpatterns = [
-    path(r'test', views.home, name='home'),
+    path(r'v1/feeds', views.apifeeds, name='apifeeds'),
+    path(r'v1/reports', views.apireports, name='apireports'),
+    path(r'v1/intel_group', views.apigroups, name='apigroups'),
     path(r'account', views.account, name='account'),
     path(r'changingemail', views.emailchange, name='email'),
     path(r'apikeys', views.apikeys, name='apikeys'),

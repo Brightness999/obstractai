@@ -94,7 +94,7 @@ const UpdateFeed = (props) => {
 	
 	return (
 		<Container>
-			<h1 className="title is-3" style={Styles.FeedAddTitle}>Add Custom Feed</h1>
+			<h1 className="title is-3 pt-1" >Add Custom Feed</h1>
 			<section className="section app-card">
 				<div className="columns">
 					{props.currentrole.role==2&&
@@ -105,7 +105,6 @@ const UpdateFeed = (props) => {
 								id="outlined-full-width1"
 								label="URL"
 								disabled={true}
-								style={Styles.TextField}
 								placeholder="http://rss.cnn.com/rss/edition.rss"
 								fullWidth
 								margin="normal"
@@ -119,7 +118,6 @@ const UpdateFeed = (props) => {
 							<TextField
 								id="outlined-full-width1"
 								label="URL"
-								style={Styles.TextField}
 								placeholder="http://rss.cnn.com/rss/edition.rss"
 								fullWidth
 								margin="normal"
@@ -134,7 +132,6 @@ const UpdateFeed = (props) => {
 							<TextField
 								id="outlined-full-width2"
 								label="Name"
-								style={Styles.TextField}
 								placeholder="write a name of feed"
 								fullWidth
 								margin="normal"
@@ -149,7 +146,6 @@ const UpdateFeed = (props) => {
 							<TextField
 								id="outlined-full-width3"
 								label="Description"
-								style={Styles.TextField}
 								placeholder="write about description of feed"
 								fullWidth
 								margin="normal"
@@ -163,9 +159,9 @@ const UpdateFeed = (props) => {
 							{descriptionError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<TextField
 								id="outlined-select-currency-native"
-								style={Styles.TextField}
 								fullWidth
 								select
+								className="mt-4 mb-2"
 								label="Category"
 								value={category}
 								onChange={(event) => {setCategory(event.target.value); setCategoryError(false);}}
@@ -185,7 +181,6 @@ const UpdateFeed = (props) => {
 							<TextField
 								id="outlined-full-width5"
 								label="Tags"
-								style={Styles.TextField}
 								placeholder="Tags Field, e.g. "
 								fullWidth
 								margin="normal"
@@ -199,9 +194,9 @@ const UpdateFeed = (props) => {
 							{tagError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<TextField
 								id="outlined-select-currency-native"
-								style={Styles.TextField}
 								fullWidth
 								select
+								className="mt-4"
 								label="Confidence"
 								value={confidence}
 								onChange={(event) => setConfidence(event.target.value)}
@@ -227,7 +222,6 @@ const UpdateFeed = (props) => {
 								id="outlined-full-width1"
 								label="URL"
 								disabled={true}
-								style={Styles.TextField}
 								placeholder="http://rss.cnn.com/rss/edition.rss"
 								fullWidth
 								margin="normal"
@@ -243,7 +237,6 @@ const UpdateFeed = (props) => {
 								id="outlined-full-width2"
 								label="Name"
 								disabled={true}
-								style={Styles.TextField}
 								placeholder="write a name of feed"
 								fullWidth
 								margin="normal"
@@ -259,7 +252,6 @@ const UpdateFeed = (props) => {
 								id="outlined-full-width3"
 								label="Description"
 								disabled={true}
-								style={Styles.TextField}
 								placeholder="write about description of feed"
 								fullWidth
 								margin="normal"
@@ -273,10 +265,10 @@ const UpdateFeed = (props) => {
 							{descriptionError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<TextField
 								id="outlined-select-currency-native"
-								style={Styles.TextField}
 								disabled={true}
 								fullWidth
 								select
+								className="mt-4 mb-2"
 								label="Category"
 								value={category}
 								onChange={(event) => {setCategory(event.target.value); setCategoryError(false);}}
@@ -297,7 +289,6 @@ const UpdateFeed = (props) => {
 								id="outlined-full-width5"
 								label="Tags"
 								disabled={true}
-								style={Styles.TextField}
 								placeholder="Tags Field, e.g. "
 								fullWidth
 								margin="normal"
@@ -311,10 +302,10 @@ const UpdateFeed = (props) => {
 							{tagError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<TextField
 								id="outlined-select-currency-native"
-								style={Styles.TextField}
 								fullWidth
 								disabled={true}
 								select
+								className="mt-4"
 								label="Confidence"
 								value={confidence}
 								onChange={(event) => setConfidence(event.target.value)}

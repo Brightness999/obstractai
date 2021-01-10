@@ -58,7 +58,7 @@ const IntelgroupList = function(props) {
 
 	return (
 		<section className="section app-card">
-			<h1 className="subtitle">All Intel Groups</h1>
+			<h1 className="title is-3">All Intel Groups</h1>
 			{isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>You can't leave the group. Before leaving group, you must make other people admin.</Alert>}
 			<Table className="table is-striped is-fullwidth has-vcentered-cells">
 				<Thead>

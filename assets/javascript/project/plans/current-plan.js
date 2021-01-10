@@ -31,7 +31,6 @@ const EmptyPlan = function() {
 			<p>
 			  <Link to="/new">
 				<button className="button is-primary">
-				  <span className="icon is-small"><i className="fa fa-plus"></i></span>
 				  <span>Register Plan</span>
 				</button>
 			  </Link>

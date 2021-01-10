@@ -107,9 +107,6 @@ const AddIntelgroup = (props) => {
 			<div className="field is-grouped">
 				<div className="control">
 				<button type='button' className="button is-primary" onClick={() => saveIntelgroup()}>
-					<span className="icon is-small">
-						<i className="fa fa-plus"></i>
-					</span>
 					<span>Create intel group</span>
 				</button>
 				</div>

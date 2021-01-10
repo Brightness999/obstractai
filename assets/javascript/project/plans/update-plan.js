@@ -151,9 +151,6 @@ const UpdatePlan = function(props) {
         <div className="control">
           <button type='button' className={`button is-primary ${editMode ? 'is-outlined' : ''}`}
                   onClick={() => savePlan()}>
-              <span className="icon is-small">
-                <i className={`fa ${editMode ? 'fa-check' : 'fa-plus'}`}></i>
-              </span>
             <span>{editMode ? 'Save Employee' : 'Add Employee'}</span>
           </button>
         </div>

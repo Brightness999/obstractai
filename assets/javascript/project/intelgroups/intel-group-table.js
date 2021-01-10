@@ -17,13 +17,11 @@ const IntelGroupTable = function (props) {
             <>
               <Link to={`/intelgroups/manage/${props.intelgroup_id}`} >
                 <div className="button is-primary is-outlined">
-                  <span className="icon is-small"><i className="fa fa-eye" /></span>
                   <span>Manage</span>
                 </div>
               </Link>
               <Link to={`/intelgroups/${props.intelgroup_id}`} className="mx-4" >
                 <div className="button is-primary is-outlined">
-                  <span className="icon is-small"><i className="fa fa-edit" /></span>
                   <span>Edit</span>
                 </div>
               </Link>
@@ -38,7 +36,6 @@ const IntelGroupTable = function (props) {
           if(props.role == 1) return(
             <Link to={`/intelgroups/manage/${props.intelgroup_id}`} style={{'marginRight': '1em'}}>
               <div className="button is-primary is-outlined">
-                <span className="icon is-small"><i className="fa fa-eye" /></span>
                 <span>View</span>
               </div>
             </Link>
@@ -49,7 +46,6 @@ const IntelGroupTable = function (props) {
                 <span>Accept</span>
               </div>
             </a>
-
           );
         })()}
         <Dialog

@@ -100,9 +100,6 @@ const UpdateUser = function(props) {
         <div className="control">
           <button type='button' className="button is-primary"
                   onClick={() => inviteUser()}>
-              <span className="icon is-small">
-                <i className="fa fa-plus"></i>
-              </span>
             <span>Invite</span>
           </button>
         </div>

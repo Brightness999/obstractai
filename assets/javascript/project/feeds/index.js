@@ -122,9 +122,6 @@ const FeedList = (props) => {
 			<section className="section" >
 				<Link to="/feeds/new">
 					<button className="button is-medium is-link is-rounded">
-						<span className="icon is-small">
-							<i className="fa fa-plus"></i>
-						</span>
 						<span>Create custom feed</span>
 					</button>
 				</Link>

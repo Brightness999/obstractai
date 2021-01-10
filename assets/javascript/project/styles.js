@@ -6,24 +6,11 @@ const Styles = {
 	FeedAddTitle: {
 		paddingTop: 40
 	},
-	TextField: {
-		margin: 8
-	},
 	FeedStoreCard: {
 		borderRadius: 20
 	},
 	FeedStoreFilterText: {
 		paddingRight: 20
-	},
-	FeedStoreFilterField: {
-		// marginTop: -14,
-		paddingLeft: 10
-	},
-	FeedStoreFilterButton: {
-		background: '#02f0f0',
-		borderRadius: 10,
-		marginRight: 10,
-		marginLeft: '.5rem'
 	},
 	FeedStoreCreateButton: {
 		background: '#02f0f0',
@@ -44,51 +31,9 @@ const Styles = {
 		borderRadius: 10,
 		width: 100+'%'
 	},
-	FeedStoreLink: {
-		textDecoration: 'underline'
-	},
-	FeedStoreCategoryButton: {
-		background: '#02f0f0',
-		borderRadius: 10,
-		marginRight: 10
-	},
-	FeedStoreTagButton: {
-		background: '#c0f002',
-		borderRadius: 10,
-		marginRight: 10
-	},
-	CategoryAddButton: {
-		padding: 27,
-		background: '#02f0f0',
-		borderRadius: 10,
-		fontSize: 16
-	},
-	CategorySaveButton: {
-		padding: 27,
-		background: '#03aac1',
-	},
-	CategoryEditButtond: {
-		// background: '#02f0f0'
-	},
-	SectionStyle: {
-		paddingTop: 1+'rem',
-		paddingRight: 1.5+'rem',
-		paddingBottom: 1+'rem',
-		paddingLeft: 1.5+'rem'
-	},
 	LinkStyle: {
 		textDecoration:'underline',
 		marginLeft: '.5rem'
-	},
-	HelpButton: {
-		borderRadius: 50+'%',
-		fontSize: 10,
-		background: '#ffaaaa'
-	},
-	ExtractionAddButton: {
-		background: '#02f0f0',
-		borderRadius: 10,
-		float: 'right'
 	},
 	ReportFeedNameButton: {
 		background: '#efe928',

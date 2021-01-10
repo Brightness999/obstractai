@@ -3,22 +3,12 @@ import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, Grid, TextField, Tooltip } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
 import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
-import Styles from "../styles";
 
 const Loading = () => {
 	return (
 		<div className='app-card has-text-centered'>
 			<div className="lds-ripple"><div></div><div></div></div>
 			<p className="heading has-text-primary">Loading...</p>
-		</div>
-	)
-}
-
-const AcceptInvite = () => {
-	return (
-		<div className='app-card has-text-centered'>
-			<div className="lds-ripple"><div></div><div></div></div>
-			<p className="subtitle is-3">! You have an invitation to {currentrole.intelgroup.name} pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
 		</div>
 	)
 }
@@ -92,18 +82,18 @@ const ExtractionList = (props) => {
 
 	return (
 		<Container>
-			<section className="section" style={Styles.SectionStyle}>
+			<section className="section" >
 				{isConfrim && <Alert severity="info" onClose={()=>setIsConfirm(false)}>Please confirm your email. Click here to resend confirmation link.</Alert>}
-				{isInvitation && <Alert severity="info" onClose={()=>setIsInvitation(false)}>You have an invitation to Intel Group XXX pending. <Link to="#" style={Styles.LinkStyle}>Click here to accept.</Link></Alert>}
+				{isInvitation && <Alert severity="info" onClose={()=>setIsInvitation(false)}>You have an invitation to Intel Group XXX pending. <Link className="has-text-danger" to="#">Click here to accept.</Link></Alert>}
 			</section>
-			<section className="section" style={Styles.SectionStyle}>
+			<section className="section">
 				<h1 className="title is-3">Manage Observable extractions</h1>
 				<Grid container>
 					<Grid item xs={9}>
 						<label className="title is-5">Custom extractions</label>
 					</Grid>
 					<Grid item xs={3}>
-						<button className="button is-outlined" onClick={()=>setIsAdd(true)} style={Styles.ExtractionAddButton}>
+						<button className="button is-link is-rounded is-medium has-pulled-right" onClick={()=>setIsAdd(true)} >
 							Add extraction
 						</button>
 					</Grid>
@@ -116,7 +106,7 @@ const ExtractionList = (props) => {
 							<Th>Observable Type</Th>
 							<Th>Observable Value</Th>
 							<Th>Words to match on</Th>
-							<Th></Th>
+							<Th>Actions</Th>
 						</Tr>
 					</Thead>
 					<Tbody>
@@ -140,15 +130,15 @@ const ExtractionList = (props) => {
 					</Tbody>
 				</Table>
 			</section>
-			<section className="section" style={Styles.SectionStyle}>
+			<section className="section">
 				<label className="title is-5">Global extractions</label>
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>
-							<Th>Observable Types<Tooltip title="Observable type" arrow ><button className="button is-outlined" style={Styles.HelpButton}>?</button></Tooltip></Th>
-							<Th>Observable Value<button className="button is-outlined" style={Styles.HelpButton}>?</button></Th>
-							<Th>Words to match on<button className="button is-outlined" style={Styles.HelpButton}>?</button></Th>
-							<Th></Th>
+							<Th>Observable Types<Tooltip title="Observable type" arrow ><button className="button is-warning is-rounded is-size-7">?</button></Tooltip></Th>
+							<Th>Observable Value<button className="button is-warning is-rounded is-size-7" >?</button></Th>
+							<Th>Words to match on<button className="button is-warning is-rounded is-size-7" >?</button></Th>
+							<Th>Actions</Th>
 						</Tr>
 					</Thead>
 					<Tbody>
@@ -226,7 +216,7 @@ const Extractions = (props) => {
 				return (
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/intelgroups" >Click here to accept.</Link></p>
 					</div>
 				)
 			if(currentrole.role == 1)

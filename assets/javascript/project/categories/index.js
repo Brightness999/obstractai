@@ -6,7 +6,6 @@ import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 import CategoryTable from "./category-table";
 import { getAction } from "../../api";
 import { API_ROOT } from "../const";
-import Styles from "../styles";
 
 const Loading = () => {
 	return (
@@ -61,12 +60,11 @@ const CategoryList = (props) => {
 							<TextField id="outlined-basic1" value={name} label="Category Name" variant="outlined" onChange={(event)=>setName(event.target.value)} />
 						</Grid>
 						<Grid item xs={2}>
-							<button className="button is-outlined" style={btntext == 'Add Category'? Styles.CategoryAddButton : Styles.CategorySaveButton} onClick={changeCategory}>
-								<span>{btntext}</span>
-							</button>
+							{btntext == 'Add Category' && <button className="button is-link is-large" onClick={changeCategory}><span>{btntext}</span></button>}
+							{btntext == 'Save' && <button className="button is-success is-large" onClick={changeCategory}><span>{btntext}</span></button>}
 						</Grid>
 						<Grid item xs={2}>
-							{btntext == 'Save' && <button className="button is-outlined" style={{padding:27+'px'}} onClick={()=>{setBtnText('Add Category'); setIsEdit(false); setName('');}}><span>Cancel</span></button>}
+							{btntext == 'Save' && <button className="button is-outlined is-large" onClick={()=>{setBtnText('Add Category'); setIsEdit(false); setName('');}}><span>Cancel</span></button>}
 						</Grid>
 					</Grid>
 				</div>
@@ -100,11 +98,6 @@ const Categories = (props) => {
 	const history = useHistory();
 
 	useEffect(()=>{
-		const action = getAction(API_ROOT, ['categories', 'list']);
-		props.client.action(window.schema, action).then((result)=>{
-			setCategoryList(result.results);
-			setIsLoading(false);
-		});
 		if(props.currentgroup == '') history.push('/');
 		else{
 			let params = {currentgroup:props.currentgroup};

@@ -33,7 +33,6 @@ const EmptyPlanList = function() {
 		  <p>
 			<Link to="/plans/new">
 			  <button className="button is-primary">
-				<span className="icon is-small"><i className="fa fa-plus"></i></span>
 				<span>Create Plan</span>
 			  </button>
 			</Link>
@@ -75,9 +74,6 @@ const PlanList = function(props) {
 			</table>
 			<Link to="/plans/new">
 				<button className="button is-primary is-outlined">
-					<span className="icon is-small">
-						<i className="fa fa-plus"></i>
-					</span>
 					<span>Add Plan</span>
 				</button>
 			</Link>

@@ -29,7 +29,6 @@ const EmptyUserList = function() {
 		  <p>
 			<Link to="/new">
 			  <button className="button is-primary">
-				<span className="icon is-small"><i className="fa fa-plus"></i></span>
 				<span>Create User</span>
 			  </button>
 			</Link>
@@ -55,9 +54,6 @@ const UserList = function(props) {
 				{ props.group_role == 2 ? 
 						<Link to="/new" >
 							<button className="button is-primary is-pulled-right">
-								<span className="icon is-small">
-									<i className="fa fa-plus"></i>
-								</span>
 								<span>Invite Users</span>
 							</button>
 						</Link>

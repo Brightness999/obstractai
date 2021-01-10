@@ -57,13 +57,13 @@ const TopNavBar = (props) => {
 							</a>
 							<div className="navbar-dropdown is-right">
 								<a className="navbar-item" href="/home/account" >
-								<span className="icon"><i className="fa fa-user"></i></span><span>Profile</span>
+								<span>Profile</span>
 								</a>
 								<a className="navbar-item" href="/accounts/password/change">
-								<span className="icon"><i className="fa fa-unlock-alt"></i></span><span>Change Password</span>
+								<span>Change Password</span>
 								</a>
 								<a className="navbar-item" href="/accounts/logout" >
-								<span className="icon"><i className="fa fa-sign-out"></i></span><span>Sign out</span>
+								<span>Sign out</span>
 								</a>
 							</div>
 						</div>

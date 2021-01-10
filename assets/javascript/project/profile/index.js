@@ -173,9 +173,6 @@ const APIKeys = (props) => {
         <section className="semisection">
             <h1 className="title is-5">Your API keys</h1>
             <button className="button is-success" onClick={()=>setOpen(true)}>
-                <span className="icon is-small">
-                    <i className="fa fa-plus"></i>
-                </span>
                 <span>Create new key</span>
             </button>
             <Dialog
@@ -276,9 +273,6 @@ const WebHooks = (props) => {
         <section className="semisection">
             <h1 className="title is-5">Your webhooks</h1>
             <button className="button is-success" onClick={()=>setOpen(true)}>
-                <span className="icon is-small">
-                    <i className="fa fa-plus"></i>
-                </span>
                 <span>Create new webhook</span>
             </button>
             <Dialog

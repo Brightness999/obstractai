@@ -16,7 +16,6 @@ const PlanTable = function (props) {
       <td className="has-text-right">
         <Link to={`/plans/edit/${props.id}`}>
           <div className="button is-primary is-outlined">
-            <span className="icon is-small"><i className="fa fa-edit" /></span>
             <span>Edit</span>
           </div>
         </Link>

@@ -29,7 +29,6 @@ const EmptyIntelgroupList = function() {
 		  <p>
 			<Link to="/intelgroups/new">
 			  <button className="button is-primary">
-				<span className="icon is-small"><i className="fa fa-plus"></i></span>
 				<span>Create Intel Group</span>
 			  </button>
 			</Link>
@@ -82,9 +81,6 @@ const IntelgroupList = function(props) {
 			</Table>
 			<Link to="/intelgroups/new">
 				<button className="button is-primary is-outlined">
-					<span className="icon is-small">
-						<i className="fa fa-plus"></i>
-					</span>
 					<span>Add Intel Group</span>
 				</button>
 			</Link>

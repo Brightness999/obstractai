@@ -26,7 +26,7 @@ SECRET_KEY = 'mTMhZsVDjurGMIIswFuMKjxiBjomVaFEddqLmpCk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ '178.62.35.174', '.obstractai.com']
+ALLOWED_HOSTS = [ '178.62.35.174', 'sherlock.obstractai.com']
 
 
 # Application definition

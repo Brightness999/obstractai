@@ -1,5 +1,8 @@
 import re
 import urllib
+import xmltodict
+import pprint
+import json
 
 from urllib.parse import urlencode
 from django.contrib import messages
@@ -12,10 +15,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-import xmltodict
-import pprint
-import json
 from cyobstract import extract
+from datetime import datetime
 
 from ..models import Feeds, FeedChannels, FeedItems, Indicators, GlobalIndicators, UserIntelGroupRoles
 from ..serializers import FeedCategorySerializer, FeedSerializer
@@ -32,7 +33,7 @@ class FeedViewSet(viewsets.ModelViewSet):
         feeds = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
         return feeds
     def partial_update(self,request, pk):
-        Feeds.objects.filter(pk=pk).update(url=request.data['url'], category_id=request.data['category'], description=request.data['description'], name=request.data['name'], tags=request.data['tags'], manage_enabled=request.data['manage_enabled'])
+        Feeds.objects.filter(pk=pk).update(url=request.data['url'], category_id=request.data['category'], description=request.data['description'], name=request.data['name'], tags=request.data['tags'], manage_enabled=request.data['manage_enabled'], confidence=request.data['confidence'], updated_at=datetime.now())
         feeds = Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(pk=pk).values()[0]['intelgroup_id']).order_by('id').all()
         serializer = FeedCategorySerializer(feeds, many=True)
         return Response(serializer.data)

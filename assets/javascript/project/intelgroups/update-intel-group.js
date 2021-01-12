@@ -54,7 +54,7 @@ const UpdateIntelGroup = function(props) {
     } else {
       action = getAction(API_ROOT, ["intelgroup", "newgroup"]);
     }
-    if(name != '' && description != '' && userids != []){
+    if(name != '' && description != '' && (userids != []) || emails != []){
       props.client.action(window.schema, action, params).then((result) => {
         props.intelgroupSaved(result);
         history.push('/intelgroups');

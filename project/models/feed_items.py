@@ -18,3 +18,4 @@ class FeedItems(BaseModel):
     guid = models.TextField(default='', null=True)
     source = models.TextField(default='', null=True)
     feed = models.ForeignKey(Feeds, on_delete=models.CASCADE, null=True)
+

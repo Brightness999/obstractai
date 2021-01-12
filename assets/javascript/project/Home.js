@@ -64,7 +64,7 @@ const AddIntelgroup = (props) => {
 		  emails: emails
 		};
 		const action = getAction(API_ROOT, ["intelgroup", "newgroup"]);
-		if((name != '' && description != '' && userids != []) || isRefuse){
+		if((name != '' && description != '' && (userids != [] || emails != [])) || isRefuse){
 		  props.client.action(window.schema, action, params).then((result) => {
 			props.intelgroupSave(result);
 			history.push('/intelgroups');

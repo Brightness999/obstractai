@@ -354,7 +354,6 @@ const Account = (props) => {
             headers: {
               'Content-Type': 'application/json',
               'accept': 'application/json',
-            //   'X-CSRFToken': client.transports[0].auth.csrfToken,
             },
             credentials: 'same-origin',
         }).then((response)=> { return response.json();})

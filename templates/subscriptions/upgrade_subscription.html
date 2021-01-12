@@ -141,6 +141,7 @@
       }).then(function(response) {
         return response.json();
       }).then(function(result) {
+        console.log(result);
         if (result.error) {
           handleError(result.error.message);
           submissionPending = false;

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 import json
 
-from .models import IntelGroups, Plans, UserIntelGroupRoles, Categories, Tags, Feeds, Extractions, Indicators, Whitelists, APIKeys, WebHooks, FeedChannels, FeedItems, GlobalIndicators
+from .models import IntelGroups, Plans, UserIntelGroupRoles, Categories, Tags, Feeds, Extractions, Indicators, Whitelists, APIKeys, WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes
 from apps.users.models import CustomUser
 
 
@@ -15,7 +15,7 @@ class IntelGroupSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'email','last_login')
+        fields = ('__all__')
 
 class UserIntelGroupRolesSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
@@ -207,3 +207,10 @@ class UserIndicatorWhitelistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Whitelists
         fields = ('id', 'value', 'indicator_id', 'user_id', 'enabled', 'user', 'indicator')
+
+class UserGroupAttributeSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    class Meta:
+        model = GlobalAttributes
+        fields = ('__all__')

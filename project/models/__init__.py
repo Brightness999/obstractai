@@ -13,3 +13,4 @@ from .tags import Tags
 from .apikeys import APIKeys
 from .webhooks import WebHooks
 from .gobalindicators import GlobalIndicators
+from .globalattributes import GlobalAttributes

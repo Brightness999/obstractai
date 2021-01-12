@@ -78,14 +78,12 @@ urlpatterns = [
     # path('', include('project.urls')),
     path('home/', include('project.urls')),
     path('api/', include('project.api.urls')),
-    # path('home/<path:path>', include('project.urls')),
-    # path('intelgroups/<path:path>', include('project.urls')),
     path('', include('apps.web.urls')),
     path('pegasus/', include('pegasus.apps.examples.urls')),
     path('celery-progress/', include('celery_progress.urls')),
     # API docs
     # these are needed for schema.js
-    path('docs/', include_docs_urls(title='API Docs')),
+    path('api/docs/', include_docs_urls(title='API Docs')),
     path('schemajs/', schemajs_view, name='api_schemajs'),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
 

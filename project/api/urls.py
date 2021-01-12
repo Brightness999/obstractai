@@ -15,7 +15,7 @@ urlpatterns = [
     path(r'reports', views.reports, name='reports'),
     path(r'searchreports', views.searchreports, name='searchreports'),
     path(r'feeds', views.feeds, name='feeds'),
-    path(r'feed', views.feed, name='feed'),
+    path(r'feedlist', views.feedlist, name='feedlist'),
     path(r'extractions', views.extractions, name='extractions'),
     path(r'extractionlist', views.extractionlist, name='extractionlist'),
     path(r'whitelist', views.whitelist, name='whitelist'),
@@ -24,5 +24,6 @@ urlpatterns = [
     path(r'currentrole', views.currentrole, name='currentrole'),
     path(r'categorylist', views.categorylist, name='categorylist'),
     path(r'globalindicators', views.globalindicators, name='globalindicators'),
+    path(r'globalattributes', views.globalattributes, name='globalattributes'),
 
 ]

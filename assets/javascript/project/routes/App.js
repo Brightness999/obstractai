@@ -19,6 +19,7 @@ import CurrentPlan from '../plans/current-plan';
 import { useScrollTrigger } from '@material-ui/core';
 import GetFullText from '../cyobstract/getfulltext';
 import Account from '../profile';
+import GlobalAttributes from '../globalattributes';
 
 
 const Loading = () => {
@@ -107,6 +108,9 @@ const App = () => {
             </Route>
             <Route path="/whitelist" >
               <WhiteLists client={client} currentgroup={currentgroup} />
+            </Route>
+            <Route path="/globalattributes" >
+              <GlobalAttributes client={client} currentgroup={currentgroup} />
             </Route>
             {/* <Route path="/plans" component={Plan} /> */}
             {/* <Route path="/manageplan" component={CurrentPlan} /> */}

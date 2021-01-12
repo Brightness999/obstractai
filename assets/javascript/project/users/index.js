@@ -65,7 +65,7 @@ const UserList = function(props) {
 					<Tr>
 						<Th>Email</Th>
 						<Th>Role</Th>
-						<Th>Last access(UI and API)</Th>
+						<Th>Last access</Th>
 						<Th>{ action }</Th>
 					</Tr>
 				</Thead>

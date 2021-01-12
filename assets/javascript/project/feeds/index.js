@@ -155,7 +155,7 @@ const Feeds = (props) => {
 			let params = {
 				currentgroup: props.currentgroup
 			}
-			fetch('/api/feed', {
+			fetch('/api/feedlist', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',

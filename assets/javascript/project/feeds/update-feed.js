@@ -44,9 +44,7 @@ const UpdateFeed = (props) => {
 		let action;
 		if(props.id){
 			params['id'] = props.id;
-			if(props.manage_enabled=='false')
-				params['manage_enabled'] = 'true';
-			else params['manage_enabled'] = 'false';
+			params['manage_enabled'] = 'true';
 		}
 		else{
 			params['intelgroup_id'] = props.currentgroup;

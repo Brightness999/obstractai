@@ -44,7 +44,7 @@ const UserTable = function (props) {
 			<Tr>
 				<Td>{ props.user.email + you}</Td>
 				<Td>{ role }</Td>
-				<Td>{ props.user.last_login.slice(0, 10) }</Td>
+				<Td>{ Boolean(props.user.last_login) && props.user.last_login.slice(0, 10) }</Td>
 			</Tr>
 		);
 	

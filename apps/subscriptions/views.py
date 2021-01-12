@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_POST
 from djstripe.enums import PlanInterval
-from djstripe.models import Product, Plan
+from djstripe.models import Product, Plan, Subscription
 from djstripe import settings as djstripe_settings
 from rest_framework.response import Response
 from rest_framework.views import APIView

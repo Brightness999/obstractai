@@ -59,7 +59,7 @@ const UpdateUser = function(props) {
       userids: userids,
       emails: emails
     };
-    if(userids.length > 0){
+    if(userids.length > 0 || emails.length>0){
       fetch('/api/invite', {
         method: 'post',
         headers: {

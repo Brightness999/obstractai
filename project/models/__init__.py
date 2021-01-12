@@ -1,5 +1,5 @@
 from .intelgroups import IntelGroups
-from .attributes import Atrributes
+from .attributes import Attributes
 from .extractions import Extractions
 from .feed_channels import FeedChannels
 from .feeds import Feeds

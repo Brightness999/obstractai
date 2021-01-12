@@ -19,8 +19,8 @@ from itertools import chain
 from datetime import datetime
 
 from apps.users.models import CustomUser
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes
-from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, UserGroupAttributeSerializer
+from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes
+from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer
 
 @csrf_exempt
 def apifeeds(request):
@@ -329,7 +329,7 @@ def apireports(request):
 		userid = apikey.user_id
 	if groupid == 0 and userid == 0:
 		return render(request, 'project/reports.html', {'reports':'This is invalid apikey.'})
-	# if not 'attributes' in body:
+	if not 'attributes' in body:
 		if not 'uuids' in body:
 			for role in UserIntelGroupRoles.objects.filter(user_id=userid):
 				groupids.append(role.intelgroup_id)
@@ -337,6 +337,15 @@ def apireports(request):
 			for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']):
 				groupids.append(group.id)
 	# else:
+	# 	if not 'uuids' in body:
+	# 		attributelist = list(body['attributes'])
+	# 		for globalattribute in GlobalAttributes.objects.filter().order_by('id').all():
+	# 		print(attributelist)
+	# 		for attribute in attributelist:
+	# 			print(attribute)
+	# 			print(body['attributes'][attribute])
+			
+			
 		
 	if not 'feedids' in body:
 		if not 'created_at' in body:
@@ -483,8 +492,8 @@ def reports(request):
 		itemids.append(item.id)
 	indicators = Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all()
 	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
-	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
-	extraction_serializer = UserExtractionSerializer(extractions, many=True)
+	extractions = Attributes.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
+	extraction_serializer = UserGroupAttributeSerializer(extractions, many=True)
 	categories = Categories.objects.order_by('id').all()
 	category_serializer = CategorySerializer(categories, many=True)
 	tags = Tags.objects.filter(Q(state='global') | Q(user_id=request.user.id)).order_by('id').all()
@@ -508,8 +517,8 @@ def searchreports(request):
 		temp = []
 		for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
 			temp.append(role.intelgroup_id)
-		word = Extractions.objects.filter(id=request.data['classification']).values()[0]['words_matched']
-		for extraction in Extractions.objects.filter(intelgroup_id__in=temp).filter(words_matched__contains=word):
+		word = Attributes.objects.filter(id=request.data['classification']).values()[0]['words_matched']
+		for extraction in Attributes.objects.filter(intelgroup_id__in=temp).filter(words_matched__contains=word):
 			groupids.append(extraction.intelgroup_id)
 	else:
 		for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
@@ -648,8 +657,8 @@ def searchreports(request):
 	search_serializer = FeedCategorySerializer(search_feeds, many=True)
 	indicators = Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all()
 	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
-	extractions = Extractions.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
-	extraction_serializer = UserExtractionSerializer(extractions, many=True)
+	extractions = Attributes.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
+	extraction_serializer = UserGroupAttributeSerializer(extractions, many=True)
 	categories = Categories.objects.order_by('id').all()
 	category_serializer = CategorySerializer(categories, many=True)
 	tags = Tags.objects.filter(Q(state='global') | Q(user_id=request.user.id)).order_by('id').all()
@@ -915,24 +924,26 @@ def feedlist(request):
 	return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data})
 
 @api_view(['POST', 'PUT'])
-def extractions(request):
+def attributes(request):
 	if request.method == 'POST':
-		Extractions.objects.create(types=request.data['types'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup']);
-		create_data = Extractions.objects.filter(user_id=request.user.id).last()
-		serializer = UserExtractionSerializer(create_data)
-		return Response(serializer.data)
+		if 'attribute' in request.data:
+			Attributes.objects.create(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup']);
+			create_data = Attributes.objects.filter(user_id=request.user.id).last()
+			serializer = UserGroupAttributeSerializer(create_data)
+			return Response(serializer.data)
+		else:
+			attributes = Attributes.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+			attribute_serializer = UserGroupAttributeSerializer(attributes, many=True)
+			globalattributes = GlobalAttributes.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+			global_serializer = UserGroupGlobalAttributeSerializer(globalattributes, many=True)
+			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+			role_serializer = UserGroupRoleSerializer(currentrole[0])
+			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':global_serializer.data})		
+			
 	elif request.method == 'PUT':
-		Extractions.objects.filter(id=request.data['extraction_id']).update(enabled=request.data['enabled'])
-		serializer = UserExtractionSerializer(Extractions.objects.filter(id=request.data['extraction_id']).values()[0])
+		Attributes.objects.filter(id=request.data['extraction_id']).update(enabled=request.data['enabled'])
+		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['extraction_id']).values()[0])
 		return Response(serializer.data)
-
-@api_view(['POST'])
-def extractionlist(request):
-	extractions = Extractions.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-	extraction_serializer = UserExtractionSerializer(extractions, many=True)
-	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-	role_serializer = UserGroupRoleSerializer(currentrole[0])
-	return Response({'extractionlist':extraction_serializer.data, 'currentrole':role_serializer.data})
 
 @api_view(['POST'])
 def whitelist(request):
@@ -996,31 +1007,25 @@ def globalindicators(request):
 	serializer = UserGroupRoleSerializer(currentrole[0])
 	return Response({'currentrole':serializer.data, 'globalindicators':globalindicator_serializer.data})
 
-@api_view(['POST'])
-def attributelist(request):
-	attributelist = GlobalAttributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).order_by('id').all()
-	attribute_serializer = UserGroupAttributeSerializer(attributelist, many=True)
-	return Response({'globalattributes':attribute_serializer.data})
-
 @api_view(['POST', 'PUT'])
 def globalattributes(request):
 	if request.method == 'POST':
 		if not 'attribute' in request.data:
 			if request.data['currentgroup'] == '':
 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id).order_by('id').all()
-				attribute_serializer = UserGroupAttributeSerializer(attributelist, many=True)
+				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
 			else:
 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).order_by('id').all()
-				attribute_serializer = UserGroupAttributeSerializer(attributelist, many=True)
+				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
 			return Response({'globalattributes':attribute_serializer.data})
 		else:
 			GlobalAttributes.objects.create(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 			attribute = GlobalAttributes.objects.filter(user_id=request.user.id).last()
-			attribute_serializer = UserGroupAttributeSerializer(attribute)
+			attribute_serializer = UserGroupGlobalAttributeSerializer(attribute)
 			return Response(attribute_serializer.data)
 	if request.method == 'PUT':
 		GlobalAttributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 		attribute = GlobalAttributes.objects.filter(id=request.data['id']).all()
-		attribute_serializer = UserGroupAttributeSerializer(attribute[0])
+		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
 		return Response(attribute_serializer.data)
 

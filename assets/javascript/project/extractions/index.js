@@ -26,7 +26,7 @@ const ExtractionList = (props) => {
 	
 	const saveExtraction = () => {
 		let params = {
-			types: type,
+			attribute: type,
 			value: value,
 			words_matched: words,
 			enabled: 'Enable',
@@ -39,7 +39,7 @@ const ExtractionList = (props) => {
 			setType('');
 			setValue('');
 			setWords('');
-			fetch('/api/extractions', {
+			fetch('/api/attributes', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ const ExtractionList = (props) => {
 			extraction_id: props.extractionlist[index].id,
 			enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
 		}
-		fetch('/api/extractions',{
+		fetch('/api/attributes',{
 			method: 'put',
 			headers: {
 				'Content-Type': 'application/json',
@@ -114,15 +114,15 @@ const ExtractionList = (props) => {
 								<Td><TextField placeholder="Type" onChange={(event)=>setType(event.target.value)}/></Td>
 								<Td><TextField placeholder="Value" onChange={(event)=>setValue(event.target.value)}/></Td>
 								<Td><TextField placeholder="Words to match on" onChange={(event)=>setWords(event.target.value)}/></Td>
-								<Td><button className="button is-outlined" onClick={saveExtraction}>Save</button>
+								<Td><button className="button is-outlined mx-2" onClick={saveExtraction}>Save</button>
 									<button className="button is-outlined" onClick={cancelExtraction}>Cancel</button>
 								</Td>
 							</Tr>
 						}
 						{props.extractionlist.map((extraction, index)=>{
 							return <Tr index={index} key={extraction.id}>
-								<Td>{extraction.types}</Td>
-								<Td>{extraction.value}</Td>
+								<Td>{extraction.attribute+'('+extraction.api_attribute+')'}</Td>
+								<Td>{extraction.value+'('+extraction.api_value+')'}</Td>
 								<Td>{extraction.words_matched}</Td>
 								<Td><a className="button is-text" onClick={()=>changeStatus(index)}>{extraction.enabled}</a></Td>
 							</Tr>
@@ -135,25 +135,21 @@ const ExtractionList = (props) => {
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>
-							<Th>Observable Types<Tooltip title="Observable type" arrow ><button className="button is-warning is-rounded is-size-7">?</button></Tooltip></Th>
-							<Th>Observable Value<button className="button is-warning is-rounded is-size-7" >?</button></Th>
-							<Th>Words to match on<button className="button is-warning is-rounded is-size-7" >?</button></Th>
+							<Th>Observable Type<Tooltip title="Observable type" arrow ><button className="button is-warning is-rounded is-size-7">?</button></Tooltip></Th>
+							<Th>Observable Value<Tooltip title="Observable value" arrow ><button className="button is-warning is-rounded is-size-7" >?</button></Tooltip></Th>
+							<Th>Words to match on<Tooltip title="words matched" arrow ><button className="button is-warning is-rounded is-size-7" >?</button></Tooltip></Th>
 							<Th>Actions</Th>
 						</Tr>
 					</Thead>
 					<Tbody>
-						<Tr>
-							<Td>Threat type (threat_type)</Td>
-							<Td>Malware (malware)</Td>
-							<Td>malware</Td>
-							<Td><Link to="#">Disable</Link></Td>
-						</Tr>
-						<Tr>
-							<Td>Country (country)</Td>
-							<Td>United Kingdom (united_kingdom)</Td>
-							<Td>United Kingdom, UK</Td>
-							<Td><Link to="#">Disable</Link></Td>
-						</Tr>
+						{props.globalattributes.map((attribute, index)=>{
+							return <Tr index={index} key={attribute.id}>
+								<Td>{attribute.attribute+'('+attribute.attribute.split(' ').join('_').toLowerCase()+')'}</Td>
+								<Td>{attribute.value+'('+attribute.value.split(' ').join('_').toLowerCase()+')'}</Td>
+								<Td>{attribute.words_matched}</Td>
+								<Td><a className="button is-text" onClick={()=>{}}>{attribute.enabled}</a></Td>
+							</Tr>
+						})}
 					</Tbody>
 				</Table>
 			</section>
@@ -164,6 +160,7 @@ const ExtractionList = (props) => {
 
 const Extractions = (props) => {
 	const [extractionlist, setExtractionList] = useState([]);
+	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [currentrole, setCurrentRole] = useState({})
 	const history = useHistory();
@@ -172,7 +169,7 @@ const Extractions = (props) => {
 		if(props.currentgroup == '') history.push('/');
 		else{
 			let params = {currentgroup:props.currentgroup};
-			fetch('/api/extractionlist', {
+			fetch('/api/attributes', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -182,7 +179,8 @@ const Extractions = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				setExtractionList(res.extractionlist);
+				setExtractionList(res.attributes);
+				setGlobalAttributes(res.globalattributes);
 				setCurrentRole(res.currentrole);
 				setIsLoading(false);
 			})
@@ -226,7 +224,7 @@ const Extractions = (props) => {
 					</div>
 				)
 			if(currentrole.role ==2)
-				return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} currentgroup={props.currentgroup} />
+				return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} currentgroup={props.currentgroup} globalattributes={globalattributes} />
 		}
 	}
 

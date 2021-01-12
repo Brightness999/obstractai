@@ -2,13 +2,17 @@ from django.conf import settings
 from django.db import models
 
 from apps.utils.models import BaseModel
+from .intelgroups import IntelGroups
 
 
-class Atrributes(BaseModel):
-    attribute = models.CharField(max_length=100)
-    api_attribute = models.CharField(max_length=100)
-    value_assigned = models.CharField(max_length=100)
-    api_value = models.CharField(max_length=100)
-    words_matched = models.CharField(max_length=100)
-    user_id = models.PositiveIntegerField()
+class Attributes(BaseModel):
+    attribute = models.CharField(max_length=100, default='')
+    api_attribute = models.CharField(max_length=100, default='')
+    value = models.CharField(max_length=100, default='')
+    api_value = models.CharField(max_length=100, default='')
+    words_matched = models.CharField(max_length=100, default='')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
+    intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
+    enabled = models.CharField(max_length=100, default='Enable')
+    
     

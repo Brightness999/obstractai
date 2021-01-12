@@ -170,7 +170,7 @@ const ReportList = (props) => {
 					});
 					const classifications = [];
 					props.classifications.forEach(classification => {
-						if(classification.intelgroup_id == itemfeed[0].intelgroup_id){
+						if(classification.intelgroup.id == itemfeed[0].intelgroup_id){
 							classifications.push(classification);
 						}
 					});

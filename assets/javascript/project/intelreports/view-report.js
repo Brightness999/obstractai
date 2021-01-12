@@ -19,7 +19,7 @@ const ViewReport = (props) => {
 	});
 	const classifications = [];
 	props.classifications.forEach(classification => {
-		if(classification.intelgroup_id == itemfeed[0].intelgroup_id){
+		if(classification.intelgroup.id == itemfeed[0].intelgroup_id){
 			classifications.push(classification);
 		}
 	});
@@ -39,7 +39,7 @@ const ViewReport = (props) => {
 	useEffect(()=>{
 		let str=currentitem[0].description;
 		indicators.forEach(indicator => {
-			if(indicator.globalindicator.value == 'URL' || indicator.globalindicator.value == 'Email Address'){
+			if(indicator.globalindicator.value == 'URL' || indicator.globalindicator.value == 'Email Address' || indicator.globalindicator.value == 'FQDN'){
 				let items = indicator.value.split(',');
 				items.forEach(item => {
 					let astartreg = /<a/gi, alastreg = /a>/gi, result, astart = [], alast = [];
@@ -57,7 +57,7 @@ const ViewReport = (props) => {
 						if(index>astart[i] && index<alast[i]){
 							target = str.substring(astart[i], alast[i]+2);
 							let target1 = target.substring(0,2) + " style='background:#faeb42;'" + target.substr(2);
-							str = str.replace(target, `<Tooltip title="${indicator.globalindicator.value_api}=${url}" arrow>${target1}</Tooltip>`)
+							str = str.replace(target, `<Tooltip title="${indicator.globalindicator.value}=${url}" arrow>${target1}</Tooltip>`)
 						}
 					}
 				});

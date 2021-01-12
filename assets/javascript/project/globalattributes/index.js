@@ -108,9 +108,6 @@ const AttributeList = (props) => {
 		.then(res=>{
 			props.saveAttribute(res);
 		})
-        console.log(attribute);
-        console.log(value);
-        console.log(words);
     }
 
 	return (

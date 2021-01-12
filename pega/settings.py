@@ -234,7 +234,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 SENDGRID_API_KEY = os.getenv('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')
 
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'kardzavaryan@gmail.com' # this is exactly the value 'apikey'
 EMAIL_HOST_PASSWORD = 'KarenSendGrid1994'
 EMAIL_PORT = 587

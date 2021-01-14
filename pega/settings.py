@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -228,21 +229,13 @@ MEDIA_URL = '/media/'
 # Email setup
 
 # use in development
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# print(EMAIL_BACKEND)
 # use in production
 # see https://github.com/anymail/django-anymail for more details/examples
 # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
 
-
-SENDGRID_API_KEY = os.getenv('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')
-
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'kardzavaryan@gmail.com' # this is exactly the value 'apikey'
-EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
 
 
 

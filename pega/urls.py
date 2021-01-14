@@ -64,7 +64,10 @@ from django.urls import path, include
 from rest_framework.documentation import include_docs_urls, get_schemajs_view
 from rest_framework import routers
 from project import views
+from rest_framework_swagger.views import get_swagger_view
+from django.conf.urls import url
 
+schema_view = get_swagger_view(title='Pastebin API')
 schemajs_view = get_schemajs_view(title="API")
 
 

@@ -336,16 +336,33 @@ def apireports(request):
 		else:
 			for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']):
 				groupids.append(group.id)
-	# else:
-	# 	if not 'uuids' in body:
-	# 		attributelist = list(body['attributes'])
-	# 		for globalattribute in GlobalAttributes.objects.filter().order_by('id').all():
-	# 		print(attributelist)
-	# 		for attribute in attributelist:
-	# 			print(attribute)
-	# 			print(body['attributes'][attribute])
-			
-			
+	else:
+		if not 'uuids' in body:
+			attributelist = list(body['attributes'])
+			tempids = []
+			for api_attribute in attributelist:
+				for globalattribute in GlobalAttributes.objects.filter(api_attribute=api_attribute.strip(), words_matched__contains=body['attributes'][api_attribute].strip()).order_by('id').all():
+					tempids.append(globalattribute.intelgroup_id)
+			for tempid in tempids:
+				flag = True
+				for groupid in groupids:
+					if tempid == groupid:
+						flag = False
+				if flag:
+					groupids.append(tempid)
+		else:
+			attributelist = list(body['attributes'])
+			apitempids = []
+			uuidtempids = []
+			for api_attribute in attributelist:
+				for globalattribute in GlobalAttributes.objects.filter(api_attribute=api_attribute.strip(), words_matched__contains=body['attributes'][api_attribute].strip()).order_by('id').all():
+					apitempids.append(globalattribute.intelgroup_id)
+			for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']).all():
+				uuidtempids.append(group.id)
+			for uuidtempid in uuidtempids:
+				for apitempid in apitempids:
+					if uuidtempid == apitempid:
+						groupids.append(uuidtempid)
 		
 	if not 'feedids' in body:
 		if not 'created_at' in body:
@@ -377,10 +394,29 @@ def apireports(request):
 			else:
 				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, uniqueid__in=feedids, created_at__date=body['created_at'], updated_at__date=body['created_at']):
 					feedids.append(feed.id)
-		
+	if not 'indicators' in body:
+		feeditems = FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all()
+	else:
+		tempitemids = []
+		itemids = []
+		for feeditem in FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all():
+			tempitemids.append(feeditem.id)
+		indicators = Indicators.objects.filter(feeditem_id__in=tempitemids).order_by('id').all()
+		serializer = IndicatorGlobalSerializer(indicators, many=True)
+		for s in serializer.data:
+			for indicator in body['indicators']:
+				if s['globalindicator']['value_api'] == indicator:
+					itemids.append(s['feeditem_id'])
+		newitemids = []
+		for itemid in itemids:
+			flag = True
+			for newitemid in newitemids:
+				if newitemid == itemid:
+					flag = False
+			if flag:
+				newitemids.append(itemid)
+		feeditems = FeedItems.objects.filter(id__in=newitemids).order_by('id').all()
 
-	feeditems = FeedItems.objects.filter(feed_id__in=feedids).order_by('id')
-	print(feeditems)
 	item_serializer = FeedItemSerializer(feeditems, many=True)
 	return render(request, 'project/reports.html', {'reports':json.dumps(item_serializer.data)})
 
@@ -673,12 +709,15 @@ def feeds(request):
 	data=request.data
 	tags = data['tags'].split(',')
 	groupid= request.data['intelgroup_id']
+	print(groupid)
 	isUrlExist = False
 	isEqualGroup = False
 	for feed in Feeds.objects.all():
 		if(data['url'] in feed.url):
 			isUrlExist = True
-			if feed.intelgroup_id == groupid:
+			print(feed.intelgroup_id)
+			if feed.intelgroup_id == int(groupid):
+				print(feed.intelgroup_id)
 				isEqualGroup = True
 				Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], updated_at=datetime.now())
 				for tag in tags:
@@ -687,6 +726,8 @@ def feeds(request):
 						if tag.strip() == existingtag.name:
 							flag = True
 					if not flag:
+						if CustomUser.objects.filter(id=request.user.id).all()[0].is_staff:
+							print('dfd')
 						Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 	if isUrlExist and not isEqualGroup:
 		Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
@@ -696,6 +737,7 @@ def feeds(request):
 				if tag.strip() == existingtag.name:
 					flag = True
 			if not flag:
+				print(CustomUser.objects.filter(id=request.user.id).get('is_staff').is_staff)
 				Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 		isUrlExist = True
 	if not isUrlExist:
@@ -706,6 +748,8 @@ def feeds(request):
 				if tag.strip() == existingtag.name:
 					flag = True
 			if not flag:
+				if CustomUser.objects.filter(id=request.user.id).get('is_staff').is_staff:
+					print('df')
 				Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 		ftr = "http://ftr-premium.fivefilters.org/"
 		encode = urllib.parse.quote_plus(data['url'])
@@ -1019,7 +1063,7 @@ def globalattributes(request):
 				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
 			return Response({'globalattributes':attribute_serializer.data})
 		else:
-			GlobalAttributes.objects.create(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
+			GlobalAttributes.objects.create(attribute=request.data['attribute'], api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 			attribute = GlobalAttributes.objects.filter(user_id=request.user.id).last()
 			attribute_serializer = UserGroupGlobalAttributeSerializer(attribute)
 			return Response(attribute_serializer.data)

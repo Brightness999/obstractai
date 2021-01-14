@@ -70,7 +70,11 @@ PROJECT_APPS = [
 
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS
+SWAGGER_APPS = [
+    'rest_framework_swagger'
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -224,8 +228,8 @@ MEDIA_URL = '/media/'
 # Email setup
 
 # use in development
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # use in production
 # see https://github.com/anymail/django-anymail for more details/examples
 # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
@@ -236,7 +240,7 @@ SENDGRID_API_KEY = os.getenv('SG.DXxRe3kdR6-q3B21wYUgfg.vDy9xUTDSEqncbzKUxVxvSkB
 
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'kardzavaryan@gmail.com' # this is exactly the value 'apikey'
-EMAIL_HOST_PASSWORD = 'KarenSendGrid1994'
+EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 

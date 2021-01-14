@@ -26,9 +26,9 @@ const ExtractionList = (props) => {
 	
 	const saveExtraction = () => {
 		let params = {
-			attribute: type,
-			value: value,
-			words_matched: words,
+			attribute: type.trim(),
+			value: value.trim(),
+			words_matched: words.trim(),
 			enabled: 'Enable',
 			currentgroup: props.currentgroup
 		}
@@ -144,8 +144,8 @@ const ExtractionList = (props) => {
 					<Tbody>
 						{props.globalattributes.map((attribute, index)=>{
 							return <Tr index={index} key={attribute.id}>
-								<Td>{attribute.attribute+'('+attribute.attribute.split(' ').join('_').toLowerCase()+')'}</Td>
-								<Td>{attribute.value+'('+attribute.value.split(' ').join('_').toLowerCase()+')'}</Td>
+								<Td>{attribute.attribute+'('+attribute.api_attribute+')'}</Td>
+								<Td>{attribute.value+'('+attribute.api_value+')'}</Td>
 								<Td>{attribute.words_matched}</Td>
 								<Td><a className="button is-text" onClick={()=>{}}>{attribute.enabled}</a></Td>
 							</Tr>

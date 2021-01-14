@@ -28,9 +28,9 @@ const AttributeList = (props) => {
 	const saveAttribute = () => {
         console.log('dfd');
 		let params = {
-			attribute: attribute,
-			value: value,
-			words_matched: words,
+			attribute: attribute.trim(),
+			value: value.trim(),
+			words_matched: words.trim(),
 			enabled: 'Enable',
 			currentgroup: props.currentgroup
 		}

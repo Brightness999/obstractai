@@ -1,6 +1,9 @@
 import React, {useState} from "react";
 import { Link, useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
+import { Tooltip, TextField, Grid } from "@material-ui/core";
+import HelpIcon from '@material-ui/icons/Help';
+import { yellow } from '@material-ui/core/colors';
 
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
@@ -67,37 +70,51 @@ const UpdateIntelGroup = function(props) {
       <h2 className="subtitle">Intel Group Details</h2>
       <div className="field column is-two-thirds">
         <label className="label">Name</label>
-        <div className="control">
-          <input className="input" type="text" placeholder="Name"
-                onChange={(event) => setName(event.target.value)} value={name} required={true}>
-          </input>
-        </div>
-      </div>
-      <div className="field column is-two-thirds">
-        <div className="control">
-          <label className="label">Description</label>
-          <span>
-          <input className="input" type="text" placeholder="Description"
-                onChange={(event) => setDescription(event.target.value)} value={description} required={true}>
-          </input>
-          </span>
-        </div>
-      </div>
+        <TextField
+          placeholder="write a name of feed"
+          className="column is-three-quarters"
+          margin="normal"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          variant="outlined"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+      
+        <label className="label">Description</label>
+        <TextField
+          placeholder="write about description of feed"
+          className="column is-three-quarters"
+          margin="normal"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          variant="outlined"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
       {!editMode &&
-      <div className="field column is-two-thirds">
-        <div className="control" style={{zIndex:1}}>
-          <label className="label">Invite Users</label>
-          <ReactTags
-            ref={reacttag}
-            tags={tags}
-            suggestions={userOptions}
-            onDelete={onDelete}
-            onAddition={onAddition}
-            allowNew={true}
-          />
+        <div style={{zIndex:1}}>
+          <label className="label mb-5">Invite Users</label>
+          <Grid container>
+            <Grid item xs={9}>
+              <ReactTags
+                ref={reacttag}
+                tags={tags}
+                suggestions={userOptions}
+                onDelete={onDelete}
+                onAddition={onAddition}
+                allowNew={true}
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <Tooltip title="Users you want to invite" arrow><HelpIcon className="mt-2" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+            </Grid>
+          </Grid>
         </div>
-      </div>
       }
+      </div>
       <div className="field is-grouped">
         <div className="control">
           <button type='button' className={`button is-primary ${editMode ? 'is-outlined' : ''}`}

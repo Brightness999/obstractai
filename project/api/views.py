@@ -730,7 +730,7 @@ def feeds(request):
 						if tag.strip() == existingtag.name:
 							flag = True
 					if not flag:
-						if CustomUser.objects.filter(id=request.user.id).all()[0].is_staff:
+						if request.user.is_staff:
 							Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
 						else:
 							Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
@@ -742,7 +742,7 @@ def feeds(request):
 				if tag.strip() == existingtag.name:
 					flag = True
 			if not flag:
-				if CustomUser.objects.filter(id=request.user.id).all()[0].is_staff:
+				if request.user.is_staff:
 					Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
 				else:
 					Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
@@ -755,7 +755,7 @@ def feeds(request):
 				if tag.strip() == existingtag.name:
 					flag = True
 			if not flag:
-				if CustomUser.objects.filter(id=request.user.id).all()[0].is_staff:
+				if request.user.is_staff:
 					Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
 				else:
 					Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)

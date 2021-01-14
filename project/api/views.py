@@ -2,6 +2,7 @@ import secrets
 import urllib
 import xmltodict
 import json
+import os
 
 from urllib.parse import urlencode
 from django.contrib import messages
@@ -17,7 +18,10 @@ from django.core.mail import send_mail
 from django.views.decorators.csrf import csrf_exempt
 from itertools import chain
 from datetime import datetime
-
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from dotenv import load_dotenv
+load_dotenv()
 from apps.users.models import CustomUser
 from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes
 from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer
@@ -727,8 +731,9 @@ def feeds(request):
 							flag = True
 					if not flag:
 						if CustomUser.objects.filter(id=request.user.id).all()[0].is_staff:
-							print('dfd')
-						Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
+							Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
+						else:
+							Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 	if isUrlExist and not isEqualGroup:
 		Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
 		for tag in tags:
@@ -737,8 +742,10 @@ def feeds(request):
 				if tag.strip() == existingtag.name:
 					flag = True
 			if not flag:
-				print(CustomUser.objects.filter(id=request.user.id).get('is_staff').is_staff)
-				Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
+				if CustomUser.objects.filter(id=request.user.id).all()[0].is_staff:
+					Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
+				else:
+					Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 		isUrlExist = True
 	if not isUrlExist:
 		Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])
@@ -748,9 +755,10 @@ def feeds(request):
 				if tag.strip() == existingtag.name:
 					flag = True
 			if not flag:
-				if CustomUser.objects.filter(id=request.user.id).get('is_staff').is_staff:
-					print('df')
-				Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
+				if CustomUser.objects.filter(id=request.user.id).all()[0].is_staff:
+					Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
+				else:
+					Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 		ftr = "http://ftr-premium.fivefilters.org/"
 		encode = urllib.parse.quote_plus(data['url'])
 		req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key=KSF8GH22GZRKA8")
@@ -1015,8 +1023,17 @@ def indicators(request):
 
 @api_view(['POST'])
 def invite(request):
-	for email in request.data['emails']:
-		send_mail('Subject here', 'Here is the message.', 'kardzavaryan@gmail.com', [email], fail_silently=False)
+	message = Mail(
+		from_email='kardzavaryan@gmail.com',
+		to_emails=request.data['emails'],
+		subject='Cyobstract',
+		html_content='<strong>Please register in Cyobstract.</strong><p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>')
+	try:
+		sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+		response = sg.send(message)
+		print(response.status_code)
+	except Exception as e:
+		print(str(e))
 	data = [];
 	for userid in request.data['userids']:
 		existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()

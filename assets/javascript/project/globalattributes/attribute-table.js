@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Container, Grid, TextField, Dialog, DialogActions, DialogContent, DialogTitle } from "@material-ui/core";
-import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
+import { TextField, Dialog, DialogActions, DialogContent, DialogTitle } from "@material-ui/core";
+import { Tr, Td } from "react-super-responsive-table";
 import Alert from '@material-ui/lab/Alert';
 
 const AttributeTable = (props) => {

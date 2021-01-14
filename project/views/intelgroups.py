@@ -42,8 +42,18 @@ class IntelGroupViewSet(viewsets.ModelViewSet):
         message = Mail(
             from_email='kardzavaryan@gmail.com',
             to_emails=request.data['emails'],
-            subject='Cyobstract',
-            html_content='<strong>Please register in Cyobstract.</strong><p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>')
+            subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+            html_content=f'''<strong>From:</strong><span>sherlock@mg.cyobstract.com</span><br/>
+            <strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
+            <strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
+            <strong>Title:</strong><span>You've been invited to join the {groupname} Intel Group on Cyobstract</span><br/>
+            <p>Hello!</p>
+            <p>kardzavaryan@gmail.com has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
+            <p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
+            <p>To confirm or reject this invitation, click the link below.</p>
+            <p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
+            <p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
+            <p>Sherlock and the Cyobstract Team</p>''')
         try:
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
             response = sg.send(message)

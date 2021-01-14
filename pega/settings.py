@@ -58,6 +58,12 @@ THIRD_PARTY_APPS = [
     'djstripe',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+}
+
 PEGASUS_APPS = [
     'pegasus.apps.examples.apps.PegasusExamplesConfig',
 ]
@@ -72,7 +78,7 @@ PROJECT_APPS = [
 ]
 
 SWAGGER_APPS = [
-    'rest_framework_swagger'
+    'rest_framework_swagger',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS

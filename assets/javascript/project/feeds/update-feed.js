@@ -3,13 +3,15 @@ import { Link, useHistory, useLocation } from 'react-router-dom';
 import {
 	Container,
 	TextField,
-	Button
+	Button,
+	Tooltip,
 } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
+import HelpIcon from '@material-ui/icons/HelpOutline';
+import { yellow } from '@material-ui/core/colors';
 
 import {getAction} from "../../api";
 import {API_ROOT} from "../const";
-import Styles from '../styles';
 
 const UpdateFeed = (props) => {
 	const [url, setUrl] = useState(props.url || '');
@@ -100,11 +102,10 @@ const UpdateFeed = (props) => {
 							{groupError && <Alert severity="error" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
 							{Boolean(props.id)?
 							<TextField
-								id="outlined-full-width1"
 								label="URL"
 								disabled={true}
 								placeholder="http://rss.cnn.com/rss/edition.rss"
-								fullWidth
+								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -113,11 +114,10 @@ const UpdateFeed = (props) => {
 								value={url}
 								onChange={(event) => {setUrl(event.target.value); setUrlError(false);}}
 							/>:
-							<TextField
-								id="outlined-full-width1"
+							<><TextField
 								label="URL"
 								placeholder="http://rss.cnn.com/rss/edition.rss"
-								fullWidth
+								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -125,13 +125,12 @@ const UpdateFeed = (props) => {
 								variant="outlined"
 								value={url}
 								onChange={(event) => {setUrl(event.target.value); setUrlError(false);}}
-							/>}
+							/><Tooltip title="If RSS type. URL of the RSS feed, must be RSS." arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
 							{urlError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<TextField
-								id="outlined-full-width2"
 								label="Name"
 								placeholder="write a name of feed"
-								fullWidth
+								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -139,13 +138,13 @@ const UpdateFeed = (props) => {
 								variant="outlined"
 								value={name}
 								onChange={(event) => {setName(event.target.value); setNameError(false);}}
-							/>
+							/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
 							{nameError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-full-width3"
 								label="Description"
 								placeholder="write about description of feed"
-								fullWidth
+								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -153,13 +152,12 @@ const UpdateFeed = (props) => {
 								variant="outlined"
 								value={description}
 								onChange={(event) => {setDescription(event.target.value); setDescriptionError(false);}}
-							/>
+							/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{descriptionError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-select-currency-native"
-								fullWidth
 								select
-								className="mt-4 mb-2"
+								className="mt-4 mb-2 column is-four-fifths"
 								label="Category"
 								value={category}
 								onChange={(event) => {setCategory(event.target.value); setCategoryError(false);}}
@@ -174,13 +172,13 @@ const UpdateFeed = (props) => {
 										{category.name}
 									</option>
 								))}
-							</TextField>
+							</TextField><Tooltip title="User can select from fixed list set by admin" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{categoryError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-full-width5"
 								label="Tags"
 								placeholder="Tags Field, e.g. "
-								fullWidth
+								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -188,13 +186,12 @@ const UpdateFeed = (props) => {
 								variant="outlined"
 								value={tags}
 								onChange={(event) => {setTags(event.target.value); setTagError(false);}}
-							/>
+							/><Tooltip title="User can assign 0 or more tags (manual entry, auto identify existing tags, letters, numbers and - only)" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{tagError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-select-currency-native"
-								fullWidth
 								select
-								className="mt-4"
+								className="mt-4 column is-four-fifths"
 								label="Confidence"
 								value={confidence}
 								onChange={(event) => setConfidence(event.target.value)}
@@ -209,19 +206,18 @@ const UpdateFeed = (props) => {
 										{confidence}
 									</option>
 								))}
-							</TextField>
+							</TextField><Tooltip title="Value between 1 and 100 for how reliable is source" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 						</div>
 						
 					}
 					{props.currentrole.role==1&&
 						<div className="column is-two-thirds">
 							{groupError && <Alert severity="error" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
-							<TextField
-								id="outlined-full-width1"
+							<><TextField
 								label="URL"
 								disabled={true}
 								placeholder="http://rss.cnn.com/rss/edition.rss"
-								fullWidth
+								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -229,14 +225,13 @@ const UpdateFeed = (props) => {
 								variant="outlined"
 								value={url}
 								onChange={(event) => {setUrl(event.target.value); setUrlError(false);}}
-							/>
+							/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{urlError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
-								id="outlined-full-width2"
+							<><TextField
 								label="Name"
 								disabled={true}
 								placeholder="write a name of feed"
-								fullWidth
+								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -244,14 +239,14 @@ const UpdateFeed = (props) => {
 								variant="outlined"
 								value={name}
 								onChange={(event) => {setName(event.target.value); setNameError(false);}}
-							/>
+							/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{nameError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-full-width3"
 								label="Description"
 								disabled={true}
 								placeholder="write about description of feed"
-								fullWidth
+								class="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{
 									shrink: true,
@@ -259,14 +254,13 @@ const UpdateFeed = (props) => {
 								variant="outlined"
 								value={description}
 								onChange={(event) => {setDescription(event.target.value); setDescriptionError(false);}}
-							/>
+							/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{descriptionError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-select-currency-native"
 								disabled={true}
-								fullWidth
 								select
-								className="mt-4 mb-2"
+								className="mt-4 mb-2 column is-four-fifths"
 								label="Category"
 								value={category}
 								onChange={(event) => {setCategory(event.target.value); setCategoryError(false);}}
@@ -281,29 +275,28 @@ const UpdateFeed = (props) => {
 										{category.name}
 									</option>
 								))}
-							</TextField>
+							</TextField><Tooltip title="User can select from a fixed list set by admin" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{categoryError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-full-width5"
 								label="Tags"
 								disabled={true}
 								placeholder="Tags Field, e.g. "
-								fullWidth
 								margin="normal"
+								className="column is-four-fifths"
 								InputLabelProps={{
 									shrink: true,
 								}}
 								variant="outlined"
 								value={tags}
 								onChange={(event) => {setTags(event.target.value); setTagError(false);}}
-							/>
+							/><Tooltip title="User can assign 0 or more tags (manual entry, auto identify existing tags, letters, numbers and - only)" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{tagError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<TextField
+							<><TextField
 								id="outlined-select-currency-native"
-								fullWidth
 								disabled={true}
 								select
-								className="mt-4"
+								className="mt-4 column is-four-fifths"
 								label="Confidence"
 								value={confidence}
 								onChange={(event) => setConfidence(event.target.value)}
@@ -318,7 +311,7 @@ const UpdateFeed = (props) => {
 										{confidence}
 									</option>
 								))}
-							</TextField>
+							</TextField><Tooltip title="Value between 1 and 100 for how reliable is source" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 						</div>
 					}
 				</div>

@@ -65,9 +65,10 @@ from rest_framework.documentation import include_docs_urls, get_schemajs_view
 from rest_framework import routers
 from project import views
 from django.conf.urls import url
-from rest_framework_swagger.views import get_swagger_view
+# from rest_framework_swagger.views import get_swagger_view
+from project.api.swagger import get_swagger_view
 
-schema_view = get_swagger_view(title='Pastebin API')
+schema_view = get_swagger_view(title='API')
 schemajs_view = get_schemajs_view(title="API")
 
 
@@ -79,7 +80,7 @@ urlpatterns = [
 
 
     # path('', include('project.urls')),
-    url(r'swagger', schema_view),
+    url(r'api/docs', schema_view),
     path('home/', include('project.urls')),
     path('api/', include('project.api.urls')),
     path('', include('apps.web.urls')),
@@ -87,7 +88,7 @@ urlpatterns = [
     path('celery-progress/', include('celery_progress.urls')),
     # API docs
     # these are needed for schema.js
-    path('api/docs/', include_docs_urls(title='API Docs')),
+    path('docs/', include_docs_urls(title='API Docs')),
     path('schemajs/', schemajs_view, name='api_schemajs'),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
 

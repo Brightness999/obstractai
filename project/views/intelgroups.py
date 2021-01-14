@@ -2,6 +2,7 @@ import urllib
 import xmltodict
 import pprint
 import json
+import os
 
 from urllib.parse import urlencode
 from django.contrib import messages
@@ -17,6 +18,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.mail import send_mail
 from cyobstract import extract
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from dotenv import load_dotenv
+load_dotenv()
 
 from ..models import IntelGroups, UserIntelGroupRoles
 from ..serializers import IntelGroupSerializer, UserIntelGroupRolesSerializer, RoleGroupSerializer,GroupPlanSerializer, CommentSerializer
@@ -34,9 +39,17 @@ class IntelGroupViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['POST'])
     def newgroup(self, request):
-        print(request.data)
-        for email in request.data['emails']:
-            send_mail('Subject here', 'Here is the message.', 'kardzavaryan@gmail.com', [email], fail_silently=False)
+        message = Mail(
+            from_email='kardzavaryan@gmail.com',
+            to_emails=request.data['emails'],
+            subject='Cyobstract',
+            html_content='<strong>Please register in Cyobstract.</strong><p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>')
+        try:
+            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            response = sg.send(message)
+            print(response.status_code)
+        except Exception as e:
+            print(str(e))
         name = ''
         if(request.data['name'] == ''):
             name = 'Intel Group' + str(IntelGroups.objects.last().id+1)

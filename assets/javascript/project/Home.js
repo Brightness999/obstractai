@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useHistory } from "react-router-dom";
-import { Dropdown } from "semantic-ui-react";
 import ReactTags from 'react-tag-autocomplete';
+import { Tooltip, TextField, Grid } from "@material-ui/core";
+import HelpIcon from '@material-ui/icons/Help';
+import { yellow } from '@material-ui/core/colors';
 
 import { getAction } from "../api";
 import { API_ROOT } from "./const";
@@ -75,34 +77,47 @@ const AddIntelgroup = (props) => {
 	return (
 		<section className="section app-card">
 			<h2 className="subtitle">Intel Group Details</h2>
-			<div className="field">
-				<label className="label">Name</label>
-				<div className="control">
-				<input className="input" type="text" placeholder="Name"
-						onChange={(event) => setName(event.target.value)} value={name} required={true}>
-				</input>
-				</div>
-			</div>
-			<div className="field">
-				<div className="control">
-				<label className="label">Description</label>
-				<input className="input" type="text" placeholder="Description"
-						onChange={(event) => setDescription(event.target.value)} value={description} required={true}>
-				</input>
-				</div>
-			</div>
-			<div className="field">
-				<div className="control">
-				<label className="label">Invite Users</label>
-				<ReactTags
+			<label className="label">Name</label>
+			<TextField
+				placeholder="write a name of feed"
+				className="column is-three-quarters"
+				margin="normal"
+				InputLabelProps={{
+					shrink: true,
+				}}
+				variant="outlined"
+				value={name}
+				onChange={(event) => setName(event.target.value)}
+			/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+			<label className="label">Description</label>
+			<TextField
+				placeholder="write about description of feed"
+				className="column is-three-quarters"
+				margin="normal"
+				InputLabelProps={{
+					shrink: true,
+				}}
+				variant="outlined"
+				value={description}
+				onChange={(event) => setDescription(event.target.value)}
+			/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+			<div className="mb-4" style={{zIndex:1}}>
+				<label className="label mb-5">Invite Users</label>
+				<Grid container>
+				<Grid item xs={9}>
+					<ReactTags
 					ref={reacttag}
 					tags={tags}
 					suggestions={userOptions}
 					onDelete={onDelete}
 					onAddition={onAddition}
 					allowNew={true}
-				/>
-				</div>
+					/>
+				</Grid>
+				<Grid item xs={3}>
+					<Tooltip title="Users you want to invite" arrow><HelpIcon className="mt-2" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+				</Grid>
+				</Grid>
 			</div>
 			<div className="field is-grouped">
 				<div className="control">
@@ -111,7 +126,7 @@ const AddIntelgroup = (props) => {
 				</button>
 				</div>
 				<div className="control">
-					<button className="button is-text" onClick={()=>{setIsRefuse(true); saveIntelgroup()}}>
+					<button className="button is-text" onClick={()=>{setIsRefuse(true); saveIntelgroup();}}>
 						<span>Cancel</span>
 					</button>
 				</div>

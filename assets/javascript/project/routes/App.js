@@ -22,6 +22,7 @@ import Account from '../profile';
 import GlobalAttributes from '../globalattributes';
 import Layout from './Layout';
 import Pending from '../staff/pending';
+import StaffFeeds from '../staff/feeds';
 
 
 const Loading = () => {
@@ -125,7 +126,7 @@ const App = () => {
             {/* <Route path="/manageplan" component={CurrentPlan} /> */}
             {/* <Route path="/getfulltext" component={GetFullText} /> */}
             <Route path="/account" >
-              <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} />
+              <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} />
             </Route>
             <Route path="/pending">
               <Pending />
@@ -141,6 +142,9 @@ const App = () => {
             </Route>
             <Route path="/globalindicators" >
               <GlobalIndicators client={client} currentgroup={currentgroup}/>
+            </Route>
+            <Route path="/feeds">
+              <StaffFeeds currentgroup={currentgroup} client={client}/>
             </Route>
           </Switch>
           </>

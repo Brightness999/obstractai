@@ -63,7 +63,7 @@ const FeedList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option>Confidence</option>
+								<option value="">Confidence</option>
 								{props.confidences.map((confidence) => (
 									<option key={confidence} value={confidence}>
 										{confidence}
@@ -179,12 +179,20 @@ const Feeds = (props) => {
 			category: category,
 			tags: tag,
 			confidence: confidence,
-			name: props.currentgroup
+			currentgroup: props.currentgroup
 		}
-		const action = getAction(API_ROOT, ["feeds", "search"]);
-		props.client.action(window.schema, action, params).then((result) => {
-			saveFeed(result);
-		});
+		fetch('/api/searchfeeds', {
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>{
+			saveFeed(res);
+		})
 	}
 
 	const FeedListView = () => {

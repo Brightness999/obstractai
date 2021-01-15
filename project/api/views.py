@@ -720,184 +720,110 @@ def searchreports(request):
 
 	return Response({'feeds':search_serializer.data, 'feedchannels':search_feedchannels, 'feeditems':search_feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
-@api_view(['POST'])
+@api_view(['POST', 'PUT'])
 def feeds(request):
-	data=request.data
-	tags = data['tags'].split(',')
-	groupid= request.data['intelgroup_id']
-	isUrlExist = False
-	isEqualGroup = False
-	for feed in Feeds.objects.all():
-		if(data['url'] in feed.url):
-			isUrlExist = True
-			print(feed.intelgroup_id)
-			if feed.intelgroup_id == int(groupid):
+	if request.method == 'POST':
+		data=request.data
+		tags = data['tags'].split(',')
+		groupid= request.data['intelgroup_id']
+		isUrlExist = False
+		isEqualGroup = False
+		for feed in Feeds.objects.all():
+			if(data['url'] in feed.url):
+				isUrlExist = True
 				print(feed.intelgroup_id)
-				isEqualGroup = True
-				Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], updated_at=datetime.now())
-				for tag in tags:
-					flag = False
-					for existingtag in Tags.objects.all():
-						if tag.strip() == existingtag.name:
-							flag = True
-					if not flag:
-						if request.user.is_staff:
-							Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
-						else:
-							Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
-	if isUrlExist and not isEqualGroup:
-		Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
-		for tag in tags:
-			flag = False
-			for existingtag in Tags.objects.all():
-				if tag.strip() == existingtag.name:
-					flag = True
-			if not flag:
-				if request.user.is_staff:
-					Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
-				else:
-					Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
-		isUrlExist = True
-	if not isUrlExist:
-		Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])
-		for tag in tags:
-			flag = False
-			for existingtag in Tags.objects.all():
-				if tag.strip() == existingtag.name:
-					flag = True
-			if not flag:
-				if request.user.is_staff:
-					Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
-				else:
-					Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
-		ftr = "http://ftr-premium.fivefilters.org/"
-		encode = urllib.parse.quote_plus(data['url'])
-		req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key=KSF8GH22GZRKA8")
-		contents = urllib.request.urlopen(req).read()
-		FeedChannels.objects.create(feed_id=Feeds.objects.last().id)
-		for item in xmltodict.parse(contents)['rss']['channel']:
-			if(item == 'title'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(title=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'link'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(link=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'description'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(description=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'language'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(language=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'copyright'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(copyright=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'managingeditor'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(managingeditor=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'webmaster'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(webmaster=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'pubdate'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(pubdate=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'category'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(category=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'lastbuilddate'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(lastbuilddate=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'generator'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(generator=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'docs'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(docs=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'cloud'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(cloud=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'ttl'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(ttl=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'image'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(image=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'textinput'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(textinput=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'skiphours'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(skiphours=xmltodict.parse(contents)['rss']['channel'][item])
-			elif(item == 'skipdays'):
-				FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(skipdays=xmltodict.parse(contents)['rss']['channel'][item])
-		
-		if type(xmltodict.parse(contents)['rss']['channel']['item']) is not list:
-			FeedItems.objects.create(feed_id=Feeds.objects.last().id)
-			for item in xmltodict.parse(contents)['rss']['channel']['item']:
+				if feed.intelgroup_id == int(groupid):
+					print(feed.intelgroup_id)
+					isEqualGroup = True
+					Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], updated_at=datetime.now())
+					for tag in tags:
+						flag = False
+						for existingtag in Tags.objects.all():
+							if tag.strip() == existingtag.name:
+								flag = True
+						if not flag:
+							if request.user.is_staff:
+								Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
+							else:
+								Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
+		if isUrlExist and not isEqualGroup:
+			Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
+			for tag in tags:
+				flag = False
+				for existingtag in Tags.objects.all():
+					if tag.strip() == existingtag.name:
+						flag = True
+				if not flag:
+					if request.user.is_staff:
+						Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
+					else:
+						Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
+			isUrlExist = True
+		if not isUrlExist:
+			Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])
+			for tag in tags:
+				flag = False
+				for existingtag in Tags.objects.all():
+					if tag.strip() == existingtag.name:
+						flag = True
+				if not flag:
+					if request.user.is_staff:
+						Tags.objects.create(name=tag.strip(), state='global', user_id=request.user.id)
+					else:
+						Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
+			ftr = "http://ftr-premium.fivefilters.org/"
+			encode = urllib.parse.quote_plus(data['url'])
+			req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key=KSF8GH22GZRKA8")
+			contents = urllib.request.urlopen(req).read()
+			FeedChannels.objects.create(feed_id=Feeds.objects.last().id)
+			for item in xmltodict.parse(contents)['rss']['channel']:
 				if(item == 'title'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=xmltodict.parse(contents)['rss']['channel']['item'][item])
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(title=xmltodict.parse(contents)['rss']['channel'][item])
 				elif(item == 'link'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(link=xmltodict.parse(contents)['rss']['channel']['item'][item])
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(link=xmltodict.parse(contents)['rss']['channel'][item])
 				elif(item == 'description'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(description=xmltodict.parse(contents)['rss']['channel']['item'][item])
-					text = json.dumps(xmltodict.parse(contents)['rss']['channel']['item'][item])
-					results = extract.extract_observables(text)
-					for result in results:
-						if result == 'ipv4addr' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'ipv4cidr' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'ipv4range' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'ipv6addr' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'ipv6cidr' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'ipv6range' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'md5' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'sha1' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'sha256' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'ssdeep' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'fqdn' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'url' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'useragent' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'email' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'filename' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'filepath' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'regkey' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'asn' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'asnown' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'country' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'isp' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'cve' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'malware' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-						elif result == 'attacktype' and len(results[result])>0:
-							Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-				elif(item == 'author'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=xmltodict.parse(contents)['rss']['channel']['item'][item])
-				elif(item == 'category'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(category=xmltodict.parse(contents)['rss']['channel']['item'][item])
-				elif(item == 'comments'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(comments=xmltodict.parse(contents)['rss']['channel']['item'][item])
-				elif(item == 'enclosure'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(enclosure=xmltodict.parse(contents)['rss']['channel']['item'][item])
-				elif(item == 'guid'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(guid=xmltodict.parse(contents)['rss']['channel']['item'][item])
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(description=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'language'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(language=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'copyright'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(copyright=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'managingeditor'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(managingeditor=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'webmaster'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(webmaster=xmltodict.parse(contents)['rss']['channel'][item])
 				elif(item == 'pubdate'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(pubdate=xmltodict.parse(contents)['rss']['channel']['item'][item])
-				elif(item == 'source'):
-					FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=xmltodict.parse(contents)['rss']['channel']['item'][item])
-		if type(xmltodict.parse(contents)['rss']['channel']['item']) is list:
-			for items in xmltodict.parse(contents)['rss']['channel']['item']:
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(pubdate=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'category'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(category=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'lastbuilddate'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(lastbuilddate=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'generator'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(generator=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'docs'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(docs=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'cloud'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(cloud=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'ttl'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(ttl=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'image'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(image=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'textinput'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(textinput=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'skiphours'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(skiphours=xmltodict.parse(contents)['rss']['channel'][item])
+				elif(item == 'skipdays'):
+					FeedChannels.objects.filter(id=FeedChannels.objects.last().id).update(skipdays=xmltodict.parse(contents)['rss']['channel'][item])
+			
+			if type(xmltodict.parse(contents)['rss']['channel']['item']) is not list:
 				FeedItems.objects.create(feed_id=Feeds.objects.last().id)
-				for item in items:
+				for item in xmltodict.parse(contents)['rss']['channel']['item']:
 					if(item == 'title'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'link'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(link=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(link=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'description'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(description=items[item])
-						text = json.dumps(items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(description=xmltodict.parse(contents)['rss']['channel']['item'][item])
+						text = json.dumps(xmltodict.parse(contents)['rss']['channel']['item'][item])
 						results = extract.extract_observables(text)
 						for result in results:
 							if result == 'ipv4addr' and len(results[result])>0:
@@ -949,42 +875,269 @@ def feeds(request):
 							elif result == 'attacktype' and len(results[result])>0:
 								Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 					elif(item == 'author'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'category'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(category=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(category=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'comments'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(comments=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(comments=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'enclosure'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(enclosure=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(enclosure=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'guid'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(guid=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(guid=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'pubdate'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(pubdate=items[item])
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(pubdate=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'source'):
-						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=items[item])
-	groupids = []
-	for role in UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['intelgroup_id']).order_by('id').all():
-		groupids.append(role.intelgroup_id)
-	queryset = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
-	serializer = FeedCategorySerializer(queryset, many=True)
-	return Response(serializer.data)
+						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=xmltodict.parse(contents)['rss']['channel']['item'][item])
+			if type(xmltodict.parse(contents)['rss']['channel']['item']) is list:
+				for items in xmltodict.parse(contents)['rss']['channel']['item']:
+					FeedItems.objects.create(feed_id=Feeds.objects.last().id)
+					for item in items:
+						if(item == 'title'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=items[item])
+						elif(item == 'link'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(link=items[item])
+						elif(item == 'description'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(description=items[item])
+							text = json.dumps(items[item])
+							results = extract.extract_observables(text)
+							for result in results:
+								if result == 'ipv4addr' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'ipv4cidr' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'ipv4range' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'ipv6addr' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'ipv6cidr' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'ipv6range' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'md5' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'sha1' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'sha256' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'ssdeep' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'fqdn' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'url' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'useragent' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'email' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'filename' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'filepath' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'regkey' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'asn' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'asnown' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'country' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'isp' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'cve' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'malware' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								elif result == 'attacktype' and len(results[result])>0:
+									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+						elif(item == 'author'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=items[item])
+						elif(item == 'category'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(category=items[item])
+						elif(item == 'comments'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(comments=items[item])
+						elif(item == 'enclosure'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(enclosure=items[item])
+						elif(item == 'guid'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(guid=items[item])
+						elif(item == 'pubdate'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(pubdate=items[item])
+						elif(item == 'source'):
+							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=items[item])
+		groupids = []
+		for role in UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['intelgroup_id']).order_by('id').all():
+			groupids.append(role.intelgroup_id)
+		queryset = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
+		serializer = FeedCategorySerializer(queryset, many=True)
+		return Response(serializer.data)
+	if request.method == 'PUT':
+		data = request.data
+		Feeds.objects.filter(id=data['id']).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled=data['manage_enabled'], confidence=data['confidence'], updated_at=datetime.now())
+		serializer = FeedCategorySerializer(Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(id=request.data['id']).values()[0]['intelgroup_id']).order_by('id').all(), many=True)
+		return Response(serializer.data)
 
 @api_view(['POST'])
 def feedlist(request):
-	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
-		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
-		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
-		feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-	feed_serializer = FeedCategorySerializer(feeds, many=True)
-	categories = Categories.objects.order_by('id').all()
-	category_serializer = CategorySerializer(categories, many=True)
-	tags = Tags.objects.order_by('id').all()
-	tag_serializer = TagSerializer(tags, many=True)
-	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-	role_serializer = UserGroupRoleSerializer(currentrole[0])
-	return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data})
+	if not request.user.is_staff:
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
+		feed_serializer = FeedCategorySerializer(feeds, many=True)
+		categories = Categories.objects.order_by('id').all()
+		category_serializer = CategorySerializer(categories, many=True)
+		tags = Tags.objects.order_by('id').all()
+		tag_serializer = TagSerializer(tags, many=True)
+		currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+		role_serializer = UserGroupRoleSerializer(currentrole[0])
+		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data})
+	if request.user.is_staff:
+		if request.data['currentgroup'] == '':
+			feeds = Feeds.objects.order_by('id').all()
+		else:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+		feed_serializer = FeedCategorySerializer(feeds, many=True)
+		categories = Categories.objects.order_by('id').all()
+		category_serializer = CategorySerializer(categories, many=True)
+		tags = Tags.objects.order_by('id').all()
+		tag_serializer = TagSerializer(tags, many=True)
+		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data})
+
+@api_view(['POST'])
+def searchfeeds(request):
+	data = []
+	if not request.user.is_staff:
+		currentgroup = int(request.data['currentgroup'])
+		if(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=currentgroup).last().role == 2):
+			if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=currentgroup).order_by('id').all()
+			if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=currentgroup, category_id = request.data['category']).order_by('id').all()
+			if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				feedlist = Feeds.objects.filter(intelgroup_id=currentgroup).all()
+				for feed in feedlist:
+					if(request.data['tags'] in feed.tags):
+						data.append(feed)
+			if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
+				print('sdfsd')
+				print(request.data)
+				data = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence']).order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
+				temp = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence']).order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				temp = Feeds.objects.filter(intelgroup_id=currentgroup, category_id = request.data['category']).order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
+				print('sdf')
+				temp = Feeds.objects.filter(intelgroup_id=currentgroup,  category_id = request.data['category'], confidence__gte=request.data['confidence']).order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			serializer = FeedCategorySerializer(data, many=True)
+			return Response(serializer.data)
+		if(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=currentgroup).last().role == 1):
+			if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=currentgroup, manage_enabled='true').order_by('id').all()
+			if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=currentgroup, category_id = request.data['category'], manage_enabled='true').order_by('id').all()
+			if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				feedlist = Feeds.objects.filter(intelgroup_id=currentgroup, manage_enabled='true').all()
+				for feed in feedlist:
+					if(request.data['tags'] in feed.tags):
+						data.append(feed)
+			if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], manage_enabled='true').order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], manage_enabled='true', category_id=request.data['category']).order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
+				temp = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], manage_enabled='true').order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				temp = Feeds.objects.filter(intelgroup_id=currentgroup, category_id = request.data['category'], manage_enabled='true').order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
+				temp = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], manage_enabled='true', category_id = request.data['category'])
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			serializer = FeedCategorySerializer(data, many=True)
+			return Response(serializer.data)
+	if request.user.is_staff:
+		if request.data['currentgroup'] != '':
+			if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+			if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=request.data['currentgroup'], category_id = request.data['category']).order_by('id').all()
+			if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				feedlist = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).all()
+				for feed in feedlist:
+					if(request.data['tags'] in feed.tags):
+						data.append(feed)
+			if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=request.data['currentgroup'], confidence__gte=request.data['confidence']).order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
+				data = Feeds.objects.filter(intelgroup_id=request.data['currentgroup'], confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
+				temp = Feeds.objects.filter(intelgroup_id=request.data['currentgroup'], confidence__gte=request.data['confidence']).order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				temp = Feeds.objects.filter(intelgroup_id=request.data['currentgroup'], category_id = request.data['category']).order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
+				temp = Feeds.objects.filter(intelgroup_id=request.data['currentgroup'], confidence__gte=request.data['confidence'], category_id = request.data['category'])
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			serializer = FeedCategorySerializer(data, many=True)
+			return Response(serializer.data)
+		else:
+			if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.order_by('id').all()
+			if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+				data = Feeds.objects.order_by('id').filter(category_id = request.data['category']).all()
+			if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				feedlist = Feeds.objects.all()
+				for feed in feedlist:
+					if(request.data['tags'] in feed.tags):
+						data.append(feed)
+			if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
+				data = Feeds.objects.filter(confidence__gte=request.data['confidence']).order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
+				data = Feeds.objects.filter(confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all()
+			if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
+				temp = Feeds.objects.filter(confidence__gte=request.data['confidence']).order_by('id').all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+				temp = Feeds.objects.order_by('id').filter(category_id = request.data['category']).all()
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
+				temp = Feeds.objects.filter(confidence__gte=request.data['confidence'], category_id = request.data['category'])
+				for t in temp:
+					if(request.data['tags'] in t.tags):
+						data.append(t)
+			serializer = FeedCategorySerializer(data, many=True)
+			return Response(serializer.data)
+
 
 @api_view(['POST', 'PUT'])
 def attributes(request):
@@ -1131,6 +1284,39 @@ def home(request):
 	userinfo = CustomUserSerializer(CustomUser.objects.filter(id=request.user.id).all()[0])
 	intelgroups = IntelGroupSerializer(IntelGroups.objects.order_by('id').all(), many=True)
 	return Response({'mygroups':groups.data, 'users':users.data, 'userinfo':userinfo.data, 'intelgroups':intelgroups.data})
+
+@api_view(['POST'])
+def leavegroup(request):
+	result = []
+	role = UserIntelGroupRoles.objects.filter(id=request.data['role']).all()
+	if role[0].role == 1:
+		UserIntelGroupRoles.objects.filter(id=request.data['role']).delete()
+		groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
+		for group in groups:
+			serializer = RoleGroupSerializer(group)
+			result.append(serializer.data)
+	if role[0].role == 2:
+		intelgroup_id = UserIntelGroupRoles.objects.filter(id=request.data['role']).all()[0].intelgroup_id
+		users = UserIntelGroupRoles.objects.filter(intelgroup_id=intelgroup_id, role=2).all()
+		if(len(users)==1):
+			return Response({'message':True})
+		else:
+			UserIntelGroupRoles.objects.filter(id=request.data['role']).delete()
+			groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
+			for group in groups:
+				serializer = RoleGroupSerializer(group)
+				result.append(serializer.data)
+
+	return Response(result)
+
+@api_view(['GET'])
+def deleteaccount(request):
+	groups = UserIntelGroupRoles.objects.filter(user_id=request.user.id).all()
+	if len(groups)>0:
+		return Response({'message':True})
+	else:
+		CustomUser.objects.filter(id=request.user.id).delete()
+		return Response({'delete':True})
 
 class ads(generics.CreateAPIView):
 	serializer_class = CustomUserSerializer

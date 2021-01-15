@@ -26,9 +26,9 @@ const TopNavBar = (props) => {
 					</a>
 				</div>
 				<div className="navbar-menu" id="nav-menu">
-					<div className="navbar-start">
+					{/* <div className="navbar-start">
 						<TextField id="outlined-basic" placeholder="Search for intelligence" variant="outlined" />
-					</div>
+					</div> */}
 					<div className="navbar-end">
 						{!props.userinfo.is_staff &&
 						<TextField

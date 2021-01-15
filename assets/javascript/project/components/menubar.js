@@ -71,7 +71,7 @@ const MenuBar = (props) => {
                         {/* <Link to="/categories/" className="navbar-item">Categories</Link> */}
                         <Link to="/globalattributes/" className="navbar-item">Extractions</Link>
                         <Link to="/globalindicators/" className="navbar-item">Indicators</Link>
-                        <a href={`/subscriptions/intelgroup/${currentgroup}`} className="navbar-item">Plan</a>
+                        {/* <a href={`/subscriptions/intelgroup/${currentgroup}`} className="navbar-item">Plan</a> */}
                     </div>
                 </div>
             </div>

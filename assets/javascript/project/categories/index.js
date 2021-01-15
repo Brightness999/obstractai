@@ -58,12 +58,6 @@ const CategoryList = (props) => {
 		{
 			action = getAction(API_ROOT, ['categories', 'create']);
 			if(name.trim() != ''){
-				// props.client.action(window.schema, action, params).then((result)=>{
-				// 	props.saveCategory(result);
-				// 	setBtnText('Add Category');
-				// 	setIsEdit(false);
-				// 	setName('');
-				// });
 				fetch('/api/categories',{
 					method: 'post',
 					headers: {

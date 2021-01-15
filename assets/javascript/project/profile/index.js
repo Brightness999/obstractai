@@ -25,6 +25,7 @@ const Loading = function() {
 const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [isAlert, setIsAlert] = useState(false);
 
     const changeEmail =() => {
         let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
@@ -48,16 +49,35 @@ const Profile = (props) => {
             })
         }
     }
+
+    const deleteAccount = () => {
+        window.location.href="/accounts/logout";
+        if(confirm("Are you sure to leave Cyobstract?"))
+            fetch('/api/deleteaccount', {
+                method: 'get', 
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin',
+            }).then(res=>{res.json()})
+            .then(res=>{
+                if(Boolean(res.message)){
+                    setIsAlert(true);
+                }
+            })
+    }
+
     return (
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
             {isSuccess && <Alert severity="success" className="column is-one-third" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
+            {isAlert && <Alert severity="danger" className="column is-one-third" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
                     setEmail(e.target.value);
-                    
                 }} />
                 <button className="button is-primary ml-5" onClick={()=>changeEmail()}>Edit</button>
+                {props.intelgroups.length == 0 && <button className="button is-outlined is-pulled-right is-large" onClick={()=>deleteAccount()}>Delete Account</button>}
             </span>
             <p className="px-4 pt-4"><a className="muted-link" href ="/accounts/password/change"><span>Reset password</span></a></p>
             <p className="px-4"><Link className="muted-link" to ="password/change"><span>Enable 2FA</span></Link></p>
@@ -91,16 +111,26 @@ const Intelgroups = (props) => {
         const action = getAction(API_ROOT, ['intelgroups', 'leave']);
         const params = {'role': intelgroups[index].id};
         if(confirm('Are you sure to leave this group?'))
-        props.client.action(window.schema, action, params).then((result) => {
-            if(result[0].message){
-                setMessage("You can't leave the group. Before leaving group, you must make other people admin.")
-                setIsAlert(true);
-            }
-            else{
-                setIntelgroups(result);
-                props.deleteIntelGroup(result);
-            }
-        });
+            fetch('/api/leavegroup', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params)
+            }).then(res=>{return res.json()})
+            .then(res=>{
+                if(Boolean(res.message)){
+                    setMessage("You can't leave the group. Before leaving group, you must make other people admin.")
+                    setIsAlert(true);
+                }
+                else{
+                    setIntelgroups(res);
+                    props.deleteIntelGroup(res);
+                    props.saveIntelgroups(res);
+                }
+            })
     }
 
     return (
@@ -366,14 +396,18 @@ const Account = (props) => {
         });
     },[]);
 
+    const saveIntelgroups = (intelgroups) => {
+        setIntelGroups(intelgroups);
+    }
+
     const AccountView = () => {
         if(isLoading)
             return <Loading/>
         else
             return (
                 <Container>
-                    <Profile profile={profile} client={props.client} />
-                    <Intelgroups intelgroups={intelgroups} client={props.client} deleteIntelGroup={props.deleteIntelGroup} />
+                    <Profile profile={profile} client={props.client} intelgroups={intelgroups} mygroups={props.mygroups}  />
+                    <Intelgroups intelgroups={intelgroups} client={props.client} deleteIntelGroup={props.deleteIntelGroup} saveIntelgroups={saveIntelgroups} />
                     <APIKeys apikeys={apikeys} client={props.client} intelgroups={intelgroups} />
                     <WebHooks webhooks={webhooks} client={props.client} intelgroups={intelgroups} />
                 </Container>

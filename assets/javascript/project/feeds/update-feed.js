@@ -51,6 +51,7 @@ const UpdateFeed = (props) => {
 		else{
 			params['intelgroup_id'] = props.currentgroup;
 			params['manage_enabled'] = 'false';
+			if(props.currentgroup == '') setGroupError(true);
 		}
 		
 		if(url.trim() == '') setUrlError(true);
@@ -58,9 +59,8 @@ const UpdateFeed = (props) => {
 		if(description.trim() == '') setDescriptionError(true);
 		if(category == '') setCategoryError(true);
 		if(tags.trim() == '') setTagError(true);
-		if(props.currentgroup == '') setGroupError(true);
 
-		if(url && name && description && category && tags && props.currentgroup != ''){
+		if(url && name && description && category && tags ){
 			if(Boolean(props.id)){
 				action = getAction(API_ROOT, ["feeds", "partial_update"]);
 				props.client.action(window.schema, action, params).then(result=>{
@@ -69,7 +69,7 @@ const UpdateFeed = (props) => {
 				})
 			}
 			else{
-				if(confirm("Did you really confirm?"))
+				if(props.currentgroup != '')
 					fetch('/api/feeds', {
 						method: 'post',
 						headers: {

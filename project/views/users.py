@@ -26,7 +26,6 @@ class UserViewSet(viewsets.ModelViewSet):
 	serializer_class = UserIntelGroupRolesSerializer
 
 	def get_queryset(self):
-		print(self.request)
 		admin_group_id = UserIntelGroupRoles.objects.all().filter(user_id=self.request.user.id).filter(role=2)[0].intelgroup_id
 		users = UserIntelGroupRoles.objects.filter(intelgroup_id=admin_group_id).select_related('user').all()
 

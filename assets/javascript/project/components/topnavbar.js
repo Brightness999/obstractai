@@ -6,12 +6,12 @@ const TopNavBar = (props) => {
 	const [intelgroup, setIntelGroup] = useState('');
 
 	useEffect(()=>{
-		props.mygroups.map((group, index) => ({
-			key: index, value: group.intelgroup.id, text: group.intelgroup.name
-		}));
+		// props.mygroups.map((group, index) => ({
+		// 	key: index, value: group.intelgroup.id, text: group.intelgroup.name
+		// }));
 	},[props.mygroups]);
 
-
+	
 	return (
 		<nav className="navbar" role="navigation" aria-label="main navigation">
 			<div className="container">
@@ -30,6 +30,7 @@ const TopNavBar = (props) => {
 						<TextField id="outlined-basic" placeholder="Search for intelligence" variant="outlined" />
 					</div>
 					<div className="navbar-end">
+						{!props.userinfo.is_staff &&
 						<TextField
 							id="outlined-select-currency-native"
 							fullWidth
@@ -50,7 +51,29 @@ const TopNavBar = (props) => {
 									{mygroup.intelgroup.name}
 								</option>
 							))}
-						</TextField>
+						</TextField>}
+						{props.userinfo.is_staff &&
+						<TextField
+							id="outlined-select-currency-native"
+							fullWidth
+							select
+							value={intelgroup}
+							onChange={(event) => {
+								setIntelGroup(event.target.value); 
+								if(event.target.value != "")
+									props.currentIntelgroup(event.target.value);}}
+							SelectProps={{
+								native: true,
+							}}
+							variant="outlined"
+						>
+							<option value="" className="has-text-light">IntelGroup Name</option>
+							{props.mygroups.map((mygroup) => (
+								<option key={mygroup.id} value={mygroup.id}>
+									{mygroup.name}
+								</option>
+							))}
+						</TextField>}
 						<div className="navbar-item has-dropdown is-hoverable">
 							<a className="navbar-link">
 								<span className="is-show-desktop">My Account</span>

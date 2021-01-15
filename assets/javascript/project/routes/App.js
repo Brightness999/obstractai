@@ -21,6 +21,7 @@ import GetFullText from '../cyobstract/getfulltext';
 import Account from '../profile';
 import GlobalAttributes from '../globalattributes';
 import Layout from './Layout';
+import Pending from '../staff/pending';
 
 
 const Loading = () => {
@@ -132,15 +133,15 @@ const App = () => {
             <Route path="/account" >
               <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} />
             </Route>
+            <Route path="/pending">
+              <Pending />
+            </Route>
           </Switch></>}
           {userinfo.is_staff && 
           <>
           <TopNavbar mygroups={intelgroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} userinfo={userinfo} />
           <MenuBar currentgroup={currentgroup} client={client} userinfo={userinfo} />
-          <Switch>
-            <Route path="/pending">
-            </Route>
-          </Switch>
+          
           </>
           }
         </BrowserRouter>

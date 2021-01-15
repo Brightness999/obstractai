@@ -76,6 +76,7 @@
       <form id="subscription-form">
         {% include 'stripe/components/card_element.html' %}
         <button type="submit" id="subscribe-button" class="button is-primary">Upgrade</button>
+        <button class="button is-outlined" id="back-button">Back</button>
         <div class="my-1" id="payment-details" ></div>
       </form>
     </div>
@@ -102,6 +103,7 @@
 
   const cardElement = Payments.createCardElement(stripe);
   const form = document.getElementById('subscription-form');
+  const back = document.getElementById('back-button');
   const subscribeButton = document.getElementById('subscribe-button');
   // prevents submissions if one is already in progress
   let submissionPending = false;
@@ -212,6 +214,11 @@
       }).then(handlePaymentMethodCreated);
     }
 
+  });
+
+  back.addEventListener('click', function(event){
+    event.preventDefault();
+    window.location.href=document.referrer;
   });
 
   // hook up "monthly"/"annual" selection events

@@ -8,6 +8,7 @@ urlpatterns = [
     path(r'v1/feeds', views.apifeeds, name='apifeeds'),
     path(r'v1/reports', views.apireports, name='apireports'),
     path(r'v1/intel_group', views.apigroups, name='apigroups'),
+    path(r'home', views.home, name='home'),
     path(r'account', views.account, name='account'),
     path(r'changingemail', views.emailchange, name='email'),
     path(r'apikeys', views.apikeys, name='apikeys'),
@@ -21,7 +22,7 @@ urlpatterns = [
     path(r'indicators', views.indicators, name='indicators'),
     path(r'invite', views.invite, name='invite'),
     path(r'currentrole', views.currentrole, name='currentrole'),
-    path(r'categorylist', views.categorylist, name='categorylist'),
+    path(r'categories', views.categories, name='categories'),
     path(r'globalindicators', views.globalindicators, name='globalindicators'),
     path(r'globalattributes', views.globalattributes, name='globalattributes'),
 

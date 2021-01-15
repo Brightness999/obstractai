@@ -3,6 +3,8 @@ import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, Grid, TextField, Tooltip } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
 import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
+import HelpIcon from '@material-ui/icons/Help';
+import { yellow } from '@material-ui/core/colors';
 
 const Loading = () => {
 	return (
@@ -135,9 +137,9 @@ const ExtractionList = (props) => {
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>
-							<Th>Observable Type<Tooltip title="Observable type" arrow ><button className="button is-warning is-rounded is-size-7">?</button></Tooltip></Th>
-							<Th>Observable Value<Tooltip title="Observable value" arrow ><button className="button is-warning is-rounded is-size-7" >?</button></Tooltip></Th>
-							<Th>Words to match on<Tooltip title="words matched" arrow ><button className="button is-warning is-rounded is-size-7" >?</button></Tooltip></Th>
+							<Th>Observable Type<Tooltip title="Observable Type" arrow><HelpIcon  style={{color:yellow[900]}} fontSize="default"/></Tooltip></Th>
+							<Th>Observable Value<Tooltip title="Observable Value" arrow><HelpIcon  style={{color:yellow[900]}} fontSize="default"/></Tooltip></Th>
+							<Th>Words to match on<Tooltip title="Words to match on" arrow><HelpIcon  style={{color:yellow[900]}} fontSize="default"/></Tooltip></Th>
 							<Th>Actions</Th>
 						</Tr>
 					</Thead>

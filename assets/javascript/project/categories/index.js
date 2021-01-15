@@ -30,16 +30,56 @@ const CategoryList = (props) => {
 		if(isEdit){
 			params['id'] = props.categorylist[index].id
 			action = getAction(API_ROOT, ['categories', 'partial_update']);
+			if(name.trim() != ''){
+				// props.client.action(window.schema, action, params).then((result)=>{
+				// 	props.saveCategory(result);
+				// 	setBtnText('Add Category');
+				// 	setIsEdit(false);
+				// 	setName('');
+				// });
+				fetch('/api/categories',{
+					method: 'put',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					props.saveCategory(res);
+					setBtnText('Add Category');
+					setIsEdit(false);
+					setName('');
+				})
+			}
 		}
 		else
+		{
 			action = getAction(API_ROOT, ['categories', 'create']);
-		if(name.trim() != ''){
-			props.client.action(window.schema, action, params).then((result)=>{
-				props.saveCategory(result);
-				setBtnText('Add Category');
-				setIsEdit(false);
-				setName('');
-			});
+			if(name.trim() != ''){
+				// props.client.action(window.schema, action, params).then((result)=>{
+				// 	props.saveCategory(result);
+				// 	setBtnText('Add Category');
+				// 	setIsEdit(false);
+				// 	setName('');
+				// });
+				fetch('/api/categories',{
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					props.saveCategory(res);
+					setBtnText('Add Category');
+					setIsEdit(false);
+					setName('');
+				})
+			}
 		}
 	}
 
@@ -101,7 +141,7 @@ const Categories = (props) => {
 		if(props.currentgroup == '') history.push('/');
 		else{
 			let params = {currentgroup:props.currentgroup};
-			fetch('/api/categorylist', {
+			fetch('/api/categories', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -160,10 +200,23 @@ const Categories = (props) => {
 	const deleteCategory = (index) => {
 		const action = getAction(API_ROOT, ['categories', 'delete']);
 		let params = {id: categorylist[index].id};
-		props.client.action(window.schema, action, params).then((result) => {
+		// props.client.action(window.schema, action, params).then((result) => {
+		// 	const newCategoryList = categorylist.splice(0, index).concat(categorylist.splice(index+1));
+		// 	setCategoryList(newCategoryList);
+		// });
+		fetch('/api/categories',{
+			method: 'delete',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>{
 			const newCategoryList = categorylist.splice(0, index).concat(categorylist.splice(index+1));
 			setCategoryList(newCategoryList);
-		});
+		})
 	}
 
 

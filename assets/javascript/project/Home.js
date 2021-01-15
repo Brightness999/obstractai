@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
-import { Tooltip, TextField, Grid } from "@material-ui/core";
+import { Tooltip, TextField, Grid, Paper } from "@material-ui/core";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
@@ -10,8 +10,8 @@ import { API_ROOT } from "./const";
 
 const Welcome = (props) => {
 	return (
-		<div style={{paddingTop:100+'px'}}>
-			<h1 className="title is-size-2 has-text-centered">Welcome to Cyobstract</h1>
+		<div className="my-6">
+			<h1 className="title is-size-2 has-text-centered py-6">Welcome to Cyobstract</h1>
 			{props.mygroups.map(mygroup=>{
 				if(mygroup.role == 0)
 					return <div className="section app-card has-text-centered" key={mygroup.id}>
@@ -21,7 +21,6 @@ const Welcome = (props) => {
 		</div>
 	);
 }
-
 
 const AddIntelgroup = (props) => {
 
@@ -136,7 +135,6 @@ const AddIntelgroup = (props) => {
 }
 
 const HomePage = (props) =>{
-	
 	if(props.mygroups.length == 0)
 		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />
 	else

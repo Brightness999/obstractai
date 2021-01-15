@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from apps.users.models import CustomUser
 from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes
-from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer
+from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer
 
 @csrf_exempt
 def apifeeds(request):
@@ -1075,13 +1075,26 @@ def currentrole(request):
 	serializer = UserGroupRoleSerializer(currentrole[0])
 	return Response({'currentrole':serializer.data})
 
-@api_view(['POST'])
-def categorylist(request):
-	categorylist = Categories.objects.order_by('id').all()
-	category_serializer = CategorySerializer(categorylist, many=True)
-	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-	serializer = UserGroupRoleSerializer(currentrole[0])
-	return Response({'currentrole':serializer.data, 'categorylist':category_serializer.data})
+@api_view(['POST', 'PUT', 'DELETE'])
+def categories(request):
+	if request.method == 'POST':
+		if not 'name' in request.data:
+			categorylist = Categories.objects.order_by('id').all()
+			category_serializer = CategorySerializer(categorylist, many=True)
+			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+			serializer = UserGroupRoleSerializer(currentrole[0])
+			return Response({'currentrole':serializer.data, 'categorylist':category_serializer.data})
+		else:
+			Categories.objects.create(name=request.data['name'])
+			category_serializer = CategorySerializer(Categories.objects.order_by('id').last())
+			return Response(category_serializer.data)
+	if request.method == 'PUT':
+		Categories.objects.filter(id=request.data['id']).update(name=request.data['name'])
+		serializer = CategorySerializer(Categories.objects.filter(id=request.data['id']).all()[0])
+		return Response(serializer.data)
+	if request.method == 'DELETE':
+		Categories.objects.filter(id=request.data['id']).delete()
+		return Response({"Successfully deleted!"})
 
 @api_view(['POST'])
 def globalindicators(request):
@@ -1112,4 +1125,12 @@ def globalattributes(request):
 		attribute = GlobalAttributes.objects.filter(id=request.data['id']).all()
 		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
 		return Response(attribute_serializer.data)
+
+@api_view(['GET'])
+def home(request):
+	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all(), many=True)
+	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True)
+	userinfo = CustomUserSerializer(CustomUser.objects.filter(id=request.user.id).all()[0])
+	intelgroups = IntelGroupSerializer(IntelGroups.objects.order_by('id').all(), many=True)
+	return Response({'mygroups':groups.data, 'users':users.data, 'userinfo':userinfo.data, 'intelgroups':intelgroups.data})
 

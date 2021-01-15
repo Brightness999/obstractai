@@ -20,6 +20,7 @@ import { useScrollTrigger } from '@material-ui/core';
 import GetFullText from '../cyobstract/getfulltext';
 import Account from '../profile';
 import GlobalAttributes from '../globalattributes';
+import Layout from './Layout';
 
 
 const Loading = () => {
@@ -39,18 +40,26 @@ const App = () => {
 	const client = new coreapi.Client({auth: auth});
 	const [isLoading, setIsLoading] = useState(true);
   const [mygroups, setMyGroups] = useState([]);
+  const [intelgroups, setIntelGroups] = useState([]);
   const [users, setUsers] = useState([]);
-	const [currentgroup, setCurrentGroup] = useState('');
-  const intelgroup_action = getAction(API_ROOT, ['intelgroups', 'list']);
-  const customer_action = getAction(API_ROOT, ['customers', 'list']);
+  const [currentgroup, setCurrentGroup] = useState('');
+  const [userinfo, setUserInfo] = useState({});
 	useEffect(() => {
-		client.action(window.schema, intelgroup_action).then((result) => {
-			setMyGroups(result.results);
-			client.action(window.schema, customer_action).then((result) => {
-				setUsers(result.results);
-				setIsLoading(false);
-			});
-		});
+    fetch('/api/home', {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin',
+    }).then((res)=>{return res.json()})
+    .then(res=>{
+      console.log(res);
+      setMyGroups(res.mygroups);
+      setIntelGroups(res.intelgroups);
+      setUsers(res.users);
+      setUserInfo(res.userinfo);
+      setIsLoading(false);
+    })
   },[]);
   
   const currentIntelgroup = (intelgroup) => {
@@ -82,10 +91,15 @@ const App = () => {
     return (
       <Provider store={store}>
         <BrowserRouter basename='/home/'>
-          <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
-          <MenuBar currentgroup={currentgroup} client={client} />
+          {!userinfo.is_staff &&
+          <>
+          <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} userinfo={userinfo} />
+          <MenuBar currentgroup={currentgroup} client={client} userinfo={userinfo} />
           <Switch>
             <Route exact path="/">
+              <Layout mygroups={mygroups} />
+            </Route>
+            <Route path="/customer">
               <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
             <Route path="/intelgroups" >
@@ -118,7 +132,17 @@ const App = () => {
             <Route path="/account" >
               <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} />
             </Route>
+          </Switch></>}
+          {userinfo.is_staff && 
+          <>
+          <TopNavbar mygroups={intelgroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} userinfo={userinfo} />
+          <MenuBar currentgroup={currentgroup} client={client} userinfo={userinfo} />
+          <Switch>
+            <Route path="/pending">
+            </Route>
           </Switch>
+          </>
+          }
         </BrowserRouter>
       </Provider>
     );

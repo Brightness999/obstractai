@@ -67,28 +67,10 @@ const MenuBar = (props) => {
             <div className="container">
                 <div className="navbar-menu" id="nav-menu">
                     <div className="navbar-start">
-                        <div className="navbar-item has-dropdown is-hoverable">
-                            <a className="navbar-link">
-                                <span className="is-show-desktop">View intel</span>
-                            </a>
-                            <div className="navbar-dropdown is-left">
-                                <Link to="/intelgroups/" className="navbar-item">Intel Groups</Link>
-                                <Link to="/intelreports/" className="navbar-item">Intel Reports</Link>
-                            </div>
-                        </div>
                         <Link to="/feeds/" className="navbar-item">Manage feeds</Link>
-                        <Link to="/categories/" className="navbar-item">Categories</Link>
-                        <Link to="/extractions/" className="navbar-item">Extractions</Link>
-                        <div className="navbar-item has-dropdown is-hoverable">
-                            <a className="navbar-link">
-                                <span className="is-show-desktop">Indicator</span>
-                            </a>
-                            <div className="navbar-dropdown is-left">
-                                <Link to="/globalindicators/" className="navbar-item">Global Indicators</Link>
-                                {/* <Link to="/indicators/" className="navbar-item">Indicators</Link> */}
-                                <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
-                            </div>
-                        </div>
+                        {/* <Link to="/categories/" className="navbar-item">Categories</Link> */}
+                        <Link to="/globalattributes/" className="navbar-item">Extractions</Link>
+                        <Link to="/globalindicators/" className="navbar-item">Indicators</Link>
                         <a href={`/subscriptions/intelgroup/${currentgroup}`} className="navbar-item">Plan</a>
                     </div>
                 </div>

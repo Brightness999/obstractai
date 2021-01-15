@@ -59,6 +59,7 @@
   <script>
     window.drsSettings = {{ drs_settings|safe }};
     window.drsSpec = {{ spec|safe }};
+    console.log(window.drsSpec);
   </script>
   <script src="{% static 'rest_framework_swagger/bundles/vendors.bundle.js' %}"></script>
   <script src="{% static 'rest_framework_swagger/bundles/app.bundle.js' %}"></script>

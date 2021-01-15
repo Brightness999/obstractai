@@ -25,5 +25,6 @@ urlpatterns = [
     path(r'categories', views.categories, name='categories'),
     path(r'globalindicators', views.globalindicators, name='globalindicators'),
     path(r'globalattributes', views.globalattributes, name='globalattributes'),
+    path(r'ads', views.ads.as_view(), name='ads'),
 
 ]

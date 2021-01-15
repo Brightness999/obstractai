@@ -118,14 +118,8 @@ const App = () => {
             <Route path="/intelreports" >
               <IntelReports client={client} currentgroup={currentgroup} mygroups={mygroups} />
             </Route>
-            <Route path="/globalindicators" >
-              <GlobalIndicators client={client} currentgroup={currentgroup}/>
-            </Route>
             <Route path="/whitelist" >
               <WhiteLists client={client} currentgroup={currentgroup} />
-            </Route>
-            <Route path="/globalattributes" >
-              <GlobalAttributes client={client} currentgroup={currentgroup} />
             </Route>
             {/* <Route path="/plans" component={Plan} /> */}
             {/* <Route path="/manageplan" component={CurrentPlan} /> */}
@@ -141,7 +135,14 @@ const App = () => {
           <>
           <TopNavbar mygroups={intelgroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} userinfo={userinfo} />
           <MenuBar currentgroup={currentgroup} client={client} userinfo={userinfo} />
-          
+          <Switch>
+            <Route path="/globalattributes" >
+              <GlobalAttributes client={client} currentgroup={currentgroup} />
+            </Route>
+            <Route path="/globalindicators" >
+              <GlobalIndicators client={client} currentgroup={currentgroup}/>
+            </Route>
+          </Switch>
           </>
           }
         </BrowserRouter>

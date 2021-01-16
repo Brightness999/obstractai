@@ -269,7 +269,9 @@
     document.getElementById('back-button').style.display="block";
   };
   const Back = function(){
-    window.location.href=document.referrer;
+    if(document.referrer.split('/')[3]=='home')
+      window.location.href=document.referrer;
+    else history.go(-2);
   }
 
   form.addEventListener('submit', function(event){

@@ -467,9 +467,17 @@ def emailchange(request):
 	CustomUser.objects.filter(id=request.data['id']).update(email=request.data['email'])
 	message = Mail(
 		from_email='kardzavaryan@gmail.com',
-		to_emails=request.data['email'],
-		subject='Cyobstract',
-		html_content='<strong>Please register in Cyobstract.</strong><p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>')
+		to_emails=request.data['emails'],
+		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+		html_content=f'''<strong>From:</strong><span>sherlock@mg.cyobstract.com</span><br/>
+		<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
+		<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
+		<strong>Title:</strong><span>Confirm your email address to use all Cyobstract features!</span><br/>
+		<p>Welcome to Cyobstract!</p>
+		<p>All that’s left to do to complete your registration is click the link below to confirm your email.</p>
+		<p><a href="http://sherlock-staging.obstractai.com/home/account">sherlock-staging.obstractai.com</a></p>
+		<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
+		<p><i>Sherlock and the Cyobstract Team</i></p>''')
 	try:
 		sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 		response = sg.send(message)
@@ -1187,7 +1195,6 @@ def indicators(request):
 
 @api_view(['POST'])
 def invite(request):
-	print(request.data['emails'])
 	groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
 	message = Mail(
 		from_email='kardzavaryan@gmail.com',

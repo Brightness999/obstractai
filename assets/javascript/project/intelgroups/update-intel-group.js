@@ -29,8 +29,11 @@ const UpdateIntelGroup = function(props) {
     }
   
   const onAddition = (tag)=> {
-    var temp = [].concat(tags, tag)
-    setTags(temp)
+    let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+    if(tag.name.match(mailformat)){
+      var temp = [].concat(tags, tag)
+      setTags(temp)
+    }
   }
 
   const saveIntelgroup = function() {

@@ -27,6 +27,7 @@ urlpatterns = [
     path(r'globalindicators', views.globalindicators, name='globalindicators'),
     path(r'globalattributes', views.globalattributes, name='globalattributes'),
     path(r'leavegroup', views.leavegroup, name='leavegroup'),
+    path(r'deleteaccount', views.deleteaccount, name='deleteaccount'),
     path(r'ads', views.ads.as_view(), name='ads'),
 
 ]

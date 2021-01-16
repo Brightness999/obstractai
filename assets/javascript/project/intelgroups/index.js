@@ -39,17 +39,27 @@ const EmptyIntelgroupList = function() {
 
 const IntelgroupList = function(props) {
 	const [isAlert, setIsAlert] = useState(false);
-	const deleteIntelGroup = function (index) {
+
+	const deleteIntelGroup = (index) => {
 		if(confirm("Are you sure you want to delete?")){
-			const action = getAction(API_ROOT, ['intelgroups', 'leave']);
 			const params = {'role': props.intelgroups[index].id};
-			props.client.action(window.schema, action, params).then((result) => {
-				if(result[0].message){
+			fetch('/api/leavegroup', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=> {return res.json()})
+			.then(res=>{
+				if(Boolean(res.message)){
 					setIsAlert(true);
 				}
-				else
+				else{
 					props.saveIntelgroup(result);
-			});
+				}
+			})
 		}
 	};
 

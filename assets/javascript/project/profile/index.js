@@ -51,20 +51,22 @@ const Profile = (props) => {
     }
 
     const deleteAccount = () => {
-        window.location.href="/accounts/logout";
         if(confirm("Are you sure to leave Cyobstract?"))
-            fetch('/api/deleteaccount', {
-                method: 'get', 
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'same-origin',
-            }).then(res=>{res.json()})
-            .then(res=>{
-                if(Boolean(res.message)){
-                    setIsAlert(true);
-                }
-            })
+        fetch('/api/deleteaccount', {
+            method: 'get', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+        }).then(res=>{res.json()})
+        .then(res=>{
+            if(Boolean(res.message)){
+                setIsAlert(true);
+            }
+            if(Boolean(res.delete)){
+                window.location.href="/accounts/logout";
+            }
+        })
     }
 
     return (

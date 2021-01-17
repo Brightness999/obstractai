@@ -28,6 +28,11 @@ urlpatterns = [
     path(r'globalattributes', views.globalattributes, name='globalattributes'),
     path(r'leavegroup', views.leavegroup, name='leavegroup'),
     path(r'deleteaccount', views.deleteaccount, name='deleteaccount'),
-    path(r'ads', views.ads.as_view(), name='ads'),
-
+    path(r'intelgroups', views.intelgroups, name='intelgroups'),
+    path(r'feedenable', views.feedenable, name='feedenable'),
+    path(r'acceptinvite', views.acceptinvite, name='acceptinvite'),
+    path(r'rejectinvite', views.rejectinvite, name='rejectinvite'),
+    path(r'users', views.users, name='users'),
+    path(r'role', views.role, name='role'),
+   
 ]

@@ -4,8 +4,6 @@ import { Container, TextField, Grid } from "@material-ui/core";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 
 import CategoryTable from "./category-table";
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
 
 const Loading = () => {
 	return (
@@ -26,17 +24,9 @@ const CategoryList = (props) => {
 		let params = {
 			name: name
 		}
-		let action
 		if(isEdit){
 			params['id'] = props.categorylist[index].id
-			action = getAction(API_ROOT, ['categories', 'partial_update']);
 			if(name.trim() != ''){
-				// props.client.action(window.schema, action, params).then((result)=>{
-				// 	props.saveCategory(result);
-				// 	setBtnText('Add Category');
-				// 	setIsEdit(false);
-				// 	setName('');
-				// });
 				fetch('/api/categories',{
 					method: 'put',
 					headers: {
@@ -56,7 +46,6 @@ const CategoryList = (props) => {
 		}
 		else
 		{
-			action = getAction(API_ROOT, ['categories', 'create']);
 			if(name.trim() != ''){
 				fetch('/api/categories',{
 					method: 'post',
@@ -192,12 +181,7 @@ const Categories = (props) => {
 	}
 
 	const deleteCategory = (index) => {
-		const action = getAction(API_ROOT, ['categories', 'delete']);
 		let params = {id: categorylist[index].id};
-		// props.client.action(window.schema, action, params).then((result) => {
-		// 	const newCategoryList = categorylist.splice(0, index).concat(categorylist.splice(index+1));
-		// 	setCategoryList(newCategoryList);
-		// });
 		fetch('/api/categories',{
 			method: 'delete',
 			headers: {

@@ -5,8 +5,6 @@ import { Tooltip, TextField, Grid, Paper } from "@material-ui/core";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
-import { getAction } from "../api";
-import { API_ROOT } from "./const";
 
 const Welcome = (props) => {
 	return (
@@ -67,12 +65,20 @@ const AddIntelgroup = (props) => {
 		  userids: userids,
 		  emails: emails
 		};
-		const action = getAction(API_ROOT, ["intelgroup", "newgroup"]);
 		if((name != '' && description != '' && (userids != [] || emails != [])) || isRefuse){
-		  props.client.action(window.schema, action, params).then((result) => {
-			props.intelgroupSave(result);
-			history.push('/intelgroups');
-		  })
+			fetch('/api/intelgroups', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				props.intelgroupSaved(res);
+				history.push('/intelgroups')
+			})
 		}
 	};
 

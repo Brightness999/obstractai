@@ -53,18 +53,37 @@ const UpdateIntelGroup = function(props) {
       userids: userids,
       emails: emails
     };
-    let action;
-    if (editMode) {
-      params['id'] = id;
-      action = getAction(API_ROOT, ["intelgroup", "partial_update"]);
-    } else {
-      action = getAction(API_ROOT, ["intelgroup", "newgroup"]);
-    }
     if(name != '' && description != '' && (userids != []) || emails != []){
-      props.client.action(window.schema, action, params).then((result) => {
-        props.intelgroupSaved(result);
-        history.push('/intelgroups');
-      })
+      if (editMode) {
+        params['id'] = id;
+        fetch('/api/intelgroups', {
+          method: 'put',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': props.client.transports[0].auth.csrfToken
+          },
+          credentials: 'same-origin',
+          body:JSON.stringify(params)
+        }).then(res=>{return res.json()})
+        .then(res=>{
+          props.intelgroupSaved(res);
+          history.push('/intelgroups')
+        })
+      } else {
+        fetch('/api/intelgroups', {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': props.client.transports[0].auth.csrfToken
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(params)
+        }).then(res=>{return res.json()})
+        .then(res=>{
+          props.intelgroupSaved(res);
+          history.push('/intelgroups')
+        })
+      }
     }
   };
 

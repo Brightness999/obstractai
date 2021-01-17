@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Route ,Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from "./store";
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
 import HomePage from '../Home';
 import TopNavbar from '../components/topnavbar';
 import MenuBar from '../components/menubar';
@@ -17,7 +15,6 @@ import WhiteLists from '../whitelist';
 import Plan from '../plans';
 import CurrentPlan from '../plans/current-plan';
 import { useScrollTrigger } from '@material-ui/core';
-import GetFullText from '../cyobstract/getfulltext';
 import Account from '../profile';
 import GlobalAttributes from '../globalattributes';
 import Layout from './Layout';
@@ -124,7 +121,6 @@ const App = () => {
             </Route>
             {/* <Route path="/plans" component={Plan} /> */}
             {/* <Route path="/manageplan" component={CurrentPlan} /> */}
-            {/* <Route path="/getfulltext" component={GetFullText} /> */}
             <Route path="/account" >
               <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} />
             </Route>

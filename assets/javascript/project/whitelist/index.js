@@ -27,10 +27,16 @@ const WhiteList = (props) => {
             params = {id:props.whitelist[index].id, enabled: 'Disable'};
         else if(props.whitelist[index].enabled === 'Disable')
             params = {id:props.whitelist[index].id, enabled: 'Enable'};
-        const action = getAction(API_ROOT, ['whitelist', 'partial_update']);
-        props.client.action(window.schema, action, params).then((result)=>{
-            props.saveWhitelist(result);
-        })
+        fetch('/api/whitelist', {
+            method: 'put',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(params)
+        }).then(res=>{return res.json()})
+        .then(res=>props.saveWhitelist(res))
     }
 
     const IndicatorEnable = (index) => {

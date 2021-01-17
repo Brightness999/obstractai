@@ -21,7 +21,7 @@ from apps.utils.decorators import catch_stripe_errors
 from apps.web.meta import absolute_url
 from .decorators import redirect_subscription_errors
 from .helpers import get_friendly_currency_amount
-from .metadata import get_active_products_with_metadata, \
+from .metadata import get_active_products_with_metadata,\
     get_product_and_metadata_for_subscription, ACTIVE_PLAN_INTERVALS, get_active_plan_interval_metadata
 from project.models import UserIntelGroupRoles, IntelGroups
 
@@ -51,7 +51,8 @@ def _view_subscription(request, subscription_holder, groupid):
     Show user's active subscription
     """
     # assert subscription_holder.has_active_subscription()
-    planid = IntelGroups.objects.filter(id=groupid).values()[0]['plan_id']
+    sub_id = IntelGroups.objects.filter(id=groupid).values()[0]['plan_id']
+    planid = Subscription.objects.filter(djstripe_id=sub_id).values()[0]['plan_id']
     productid = Plan.objects.filter(djstripe_id=planid).values()[0]['product_id']
     active_products = list(get_active_products_with_metadata())
     default_products = [p for p in active_products if p.metadata.is_default]
@@ -229,13 +230,13 @@ def create_customer(request, subscription_holder=None):
     """
     subscription_holder = subscription_holder if subscription_holder else request.user
     request_body = json.loads(request.body.decode('utf-8'))
+    print(request_body)
     user_id = int(request_body['user_id'])
     email = request_body['user_email']
     assert request.user.id == user_id
     assert request.user.email == email
     
-    plan = djstripe.models.Plan.objects.filter(id=request_body['plan_id']).values()[0]['djstripe_id']
-    IntelGroups.objects.filter(id=request_body['groupid']).update(plan_id=plan);
+    
     
     # print(request.data)
 
@@ -275,7 +276,8 @@ def create_customer(request, subscription_holder=None):
     # set subscription object on the subscription holder
     subscription_holder.subscription = djstripe_subscription
     subscription_holder.save()
-
+    sub_id = djstripe.models.Subscription.objects.last()
+    IntelGroups.objects.filter(id=request_body['groupid']).update(plan_id=sub_id);
     data = {
         'customer': customer,
         'subscription': subscription

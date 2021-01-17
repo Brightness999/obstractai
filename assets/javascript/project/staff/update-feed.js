@@ -62,11 +62,6 @@ const UpdateFeed = (props) => {
 
 		if(url && name && description && category && tags ){
 			if(Boolean(props.id)){
-				// action = getAction(API_ROOT, ["feeds", "partial_update"]);
-				// props.client.action(window.schema, action, params).then(result=>{
-				// 	props.saveFeed(result);
-				// 	history.push('/feeds');
-                // })
                 fetch('/api/feeds', {
                     method: 'put',
                     headers: {

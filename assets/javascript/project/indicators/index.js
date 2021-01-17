@@ -33,16 +33,24 @@ const IndicatorList = (props) => {
             value_api: valueApi.trim(),
             enabled: 'Enable'
         }
-        const action = getAction(API_ROOT, ['globalindicators', 'create']);
         if(type.trim() != '' && typeApi.trim() != '' && value.trim() != '' && valueApi.trim() != '')
-            props.client.action(window.schema, action, params).then((result)=>{
-                props.saveIndicator(result);
+            fetch('/api/globalindicators',{
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params)
+            }).then(res=>{return res.json()})
+            .then(res=>{
+                props.saveIndicator(res);
                 setIsAdd(false);
                 setType('');
                 setValue('');
                 setTypeApi('');
                 setValueApi('');
-            });
+            })
         else setIsAlert(true);
     }
 
@@ -52,10 +60,20 @@ const IndicatorList = (props) => {
             params = {id:props.indicators[index].id, enabled: 'Disable'};
         else if(props.indicators[index].enabled === 'Disable')
             params = {id:props.indicators[index].id, enabled: 'Enable'};
-        const action = getAction(API_ROOT, ['globalindicators', 'partial_update']);
-        props.client.action(window.schema, action, params).then((result)=>{
-            props.saveIndicator(result);
+        
+        fetch('/api/globalindicators', {
+            method: 'put',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(params)
+        }).then(res=>{return res.json()})
+        .then(res=>{
+            props.saveIndicator(res);
         })
+
     }
 
     return (

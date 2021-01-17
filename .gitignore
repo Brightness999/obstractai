@@ -12,3 +12,4 @@ docs/_build
 _dist/
 .env.dev
 .env.production
+venv

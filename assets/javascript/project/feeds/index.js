@@ -10,11 +10,10 @@ import {
 	TextField,
 	Grid
 } from "@material-ui/core";
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 import UpdateFeed from "./update-feed";
 import FeedCard from "./feed-card";
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
 
 const Loading = () => {
 	return (
@@ -25,6 +24,23 @@ const Loading = () => {
 	)
 }
 
+const Plan = (props) => {
+	const [isAlert, setIsAlert] = useState(false);
+
+	const ManagePlan = () => {
+		if(props.currentrole.role == 2) location.href=`/subscriptions/intelgroup/${props.currentgroup}`;
+		else setIsAlert(true);
+	}
+
+	return <div className="my-6">
+			<h1 className="title is-size-3 has-text-centered py-6">No plan! You must select a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
+			{isAlert&& <Grid container direction="row" justify="center" alignItems="center">
+				<Grid item xs={6}>
+					<Alert className="has-text-centered title is-size-4" severity="error" onClose={()=>setIsAlert(false)}>! Please contact the feed group administrator to manage intel group plan payment to reinstate access.</Alert>
+				</Grid>
+			</Grid>}
+		</div>
+}
 
 const FeedList = (props) => {
 	const [category, setCategory] = useState('');
@@ -41,6 +57,11 @@ const FeedList = (props) => {
 	return (
 		<Container>
 			<section className="section">
+				{props.isMessage&&
+				<Alert severity="info" className="my-5">
+					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+					<span className="subtitle is-5">{props.message}</span>
+				</Alert>}
 				<Grid container>
 					<Grid item xs={3}>
 							<label className="title is-3">Feed Store</label>
@@ -118,7 +139,7 @@ const FeedList = (props) => {
 					</Grid>
 				</Grid>
 			</section>
-			{props.currentrole.role==2 &&
+			{props.currentrole.role==2 && props.customfeeds &&
 			<section className="section" >
 				<Link to="/feeds/new">
 					<button className="button is-medium is-link is-rounded">
@@ -143,6 +164,10 @@ const Feeds = (props) => {
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [currentrole, setCurrentRole] = useState({});
+	const [isMessage, setIsMessage] = useState(false);
+	const [message, setMessage] = useState('');
+	const [isPlan, setIsPlan] = useState(true);
+	const [customfeeds, setCustomFeeds] = useState(true);
 	const history = useHistory();
 	const confidences = [];
 	for(let i=1;i<=100;i++){
@@ -165,10 +190,17 @@ const Feeds = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				setFeedList(res.feedlist);
-				setCategories(res.categories);
-				setTags(res.tags);
-				setCurrentRole(res.currentrole);
+				if(Boolean(res.isPlan)){
+					setIsPlan(true);
+					setFeedList(res.feedlist);
+					setCategories(res.categories);
+					setTags(res.tags);
+					setIsMessage(Boolean(res.message));
+					setMessage(res.content);
+					setCustomFeeds(res.customfeeds);
+					setCurrentRole(res.currentrole);
+				}
+				else setIsPlan(res.isPlan);
 				setIsLoading(false);
 			});
 		}
@@ -200,15 +232,21 @@ const Feeds = (props) => {
 			return <Loading/>
 		}
 		else {
-			if(currentrole.role==0){
-				return(
-					<div className='app-card has-text-centered'>
-						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
-					</div>
-				)
+			if(isPlan){
+				if(currentrole.role==0){
+					return(
+						<div className='app-card has-text-centered'>
+							<div className="lds-ripple"><div></div><div></div></div>
+							<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+						</div>
+					)
+				}
+				else return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
+					Search={Search} confidences={confidences} currentrole={currentrole} isMessage={isMessage} message={message} customfeeds={customfeeds} />
 			}
-			else return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} Search={Search} confidences={confidences} currentrole={currentrole} />
+			else{
+				return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+			}
 		}
 	}
 

@@ -45,7 +45,7 @@ const TopNavBar = (props) => {
 							}}
 							variant="outlined"
 						>
-							<option value="" className="has-text-light">IntelGroup Name</option>
+							<option value="" className="has-text-light">Select Group</option>
 							{props.mygroups.map((mygroup) => (
 								<option key={mygroup.intelgroup.id} value={mygroup.intelgroup.id}>
 									{mygroup.intelgroup.name}
@@ -67,7 +67,7 @@ const TopNavBar = (props) => {
 							}}
 							variant="outlined"
 						>
-							<option value="" className="has-text-light">IntelGroup Name</option>
+							<option value="" className="has-text-light">Select Group</option>
 							{props.mygroups.map((mygroup) => (
 								<option key={mygroup.id} value={mygroup.id}>
 									{mygroup.name}

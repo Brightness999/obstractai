@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from ..models import IntelGroups, UserIntelGroupRoles
-from ..serializers import IntelGroupSerializer, UserIntelGroupRolesSerializer, RoleGroupSerializer,GroupPlanSerializer, CommentSerializer
+from ..serializers import IntelGroupSerializer, UserIntelGroupRolesSerializer, RoleGroupSerializer, CommentSerializer
 
 
 @method_decorator(login_required, name='dispatch')

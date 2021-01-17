@@ -5,8 +5,6 @@ import {
 } from "@material-ui/core";
 
 import Styles from "../styles";
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
 
 const FeedCard = function (props) {
   let tags = [];
@@ -17,14 +15,23 @@ const FeedCard = function (props) {
   }
 
   const enableFeed = () => {
-    let params = [];
-    params['confidence'] = props.feed.id;
+    let params = {
+      id: props.feed.id
+    };
     if(props.feed.manage_enabled=='false')
       params['manage_enabled'] = 'true';
     else params['manage_enabled'] = 'false';
-    const action = getAction(API_ROOT, ["feeds", "enable"]);
-    props.client.action(window.schema, action, params).then(result=>{
-      props.saveFeed(result);
+    fetch('/api/feedenable', {
+      method: 'put',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': props.client.transports[0].auth.csrfToken
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(params)
+    }).then(res=>{return res.json()})
+    .then(res=>{
+      props.saveFeed(res);
     })
   }
 

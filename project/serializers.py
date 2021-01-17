@@ -1,9 +1,20 @@
 from rest_framework import serializers
 import json
 
+from djstripe.models import Product, Plan, Subscription
 from .models import IntelGroups, Plans, UserIntelGroupRoles, Categories, Tags, Feeds, Extractions, Indicators, Whitelists, APIKeys, WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes, Attributes
 from apps.users.models import CustomUser
 
+class PlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = ('__all__')
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    plan = PlanSerializer(many=False, read_only=True)
+    class Meta:
+        model = Subscription
+        fields = ('djstripe_id', 'id', 'plan_id', 'plan')
 
 class IntelGroupSerializer(serializers.ModelSerializer):
 
@@ -42,11 +53,11 @@ class GroupRoleSerializer(serializers.ModelSerializer):
         model = UserIntelGroupRoles
         fields = ('id', 'role', 'intelgroup_id', 'intelgroup')
 
-class PlanSerializer(serializers.ModelSerializer):
+# class PlanSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Plans
-        fields = ('id', 'types', 'name', 'annual_price', 'monthly_price', 'max_feeds', 'max_users', 'enabled_custom_feeds', 'enabled_api', 'enabled_custom_extraction', 'created_at', 'updated_at')
+#     class Meta:
+#         model = Plans
+#         fields = ('id', 'types', 'name', 'annual_price', 'monthly_price', 'max_feeds', 'max_users', 'enabled_custom_feeds', 'enabled_api', 'enabled_custom_extraction', 'created_at', 'updated_at')
 
 class CategorySerializer(serializers.ModelSerializer):
     
@@ -82,11 +93,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = '__all__'
 
-class GroupPlanSerializer(serializers.ModelSerializer):
-    plan = PlanSerializer(many=False, read_only=True)
-    class Meta:
-        model = IntelGroups
-        fields = fields = ('id', 'uniqueid', 'name', 'description', 'plan_id', 'created_at', 'updated_at', 'plan')
+# class GroupPlanSerializer(serializers.ModelSerializer):
+#     plan = PlanSerializer(many=False, read_only=True)
+#     class Meta:
+#         model = IntelGroups
+#         fields = fields = ('id', 'uniqueid', 'name', 'description', 'plan_id', 'created_at', 'updated_at', 'plan')
 
 
 class Comment:

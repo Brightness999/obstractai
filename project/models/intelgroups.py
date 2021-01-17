@@ -5,7 +5,7 @@ from django.db import models
 
 from apps.utils.models import BaseModel
 
-from djstripe.models import Plan
+from djstripe.models import Subscription
 from .plans import Plans
 
 
@@ -14,5 +14,5 @@ class IntelGroups(BaseModel):
     uniqueid = models.UUIDField(default=uuid.uuid4)
     name = models.CharField(max_length=100, default='')
     description = models.CharField(max_length=100, default='')
-    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, null=True)
+    plan = models.ForeignKey(Subscription, on_delete=models.CASCADE, null=True)
    

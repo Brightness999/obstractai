@@ -124,7 +124,7 @@ ACTIVE_PLAN_INTERVALS = [
 # with plans on your side
 ACTIVE_PRODUCTS = [
     ProductMetadata(
-        stripe_id='prod_Ie22Llz2ohQfhB',
+        stripe_id='prod_IlpzzY6T9Vok8h',
         name=_('Starter'),
         description=_('For hobbyists and side-projects'),
         features=[
@@ -136,7 +136,7 @@ ACTIVE_PRODUCTS = [
         ],
     ),
     ProductMetadata(
-        stripe_id='prod_Ie29M1SB5oUEra',
+        stripe_id='prod_Ilpx3g4g3izlxt',
         name=_('Medium'),
         description=_('For small businesses and teams'),
         is_default=True,
@@ -149,7 +149,7 @@ ACTIVE_PRODUCTS = [
         ],
     ),
     ProductMetadata(
-        stripe_id='prod_Ie2BTwdDfaCcQK',
+        stripe_id='prod_IlpvQKIe7ROUXX',
         name=_('Premium'),
         description=_('For small businesses and teams'),
         features=[

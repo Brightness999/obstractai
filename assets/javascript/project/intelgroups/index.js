@@ -9,8 +9,6 @@ import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 import Alert from '@material-ui/lab/Alert';
 
 import IntelGroupTable from './intel-group-table';
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
 import UpdateIntelGroup from "./update-intel-group";
 import User from '../users';
 
@@ -111,15 +109,19 @@ const IntelGroup = (props) => {
 	const [users, setUsers] = useState([]);
 	
 	useEffect(() => {
-		const intelgroup_action = getAction(API_ROOT, ["intelgroups", "list"]);
-		const customer_action = getAction(API_ROOT, ["customers", "list"]);
-		props.client.action(window.schema, intelgroup_action).then((result) => {
-			setIntelgroups(result.results);
-			props.client.action(window.schema, customer_action).then((result) => {
-				setUsers(result.results);
-				setIsLoading(false);
-			});
-		});
+		fetch('/api/intelgroups',{
+			method: 'get',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			credentials: 'same-origin',
+		}).then(res=>{return res.json()})
+		.then(res=>{
+			console.log(res)
+			setIntelgroups(res.intelgroups);
+			setUsers(res.users);
+			setIsLoading(false);
+		})
 	}, []);
 	
 	const handleIntelGroupSaved = function(intelgroup) {
@@ -141,19 +143,31 @@ const IntelGroup = (props) => {
 	};
 
 	const invitation = function (index) {
-		const action = getAction(API_ROOT, ["intelgroups", "invitate"]);
-		const params = {'role': intelgroups[index].id};
-		props.client.action(window.schema, action, params).then((result) => {
-			setIntelgroups(result);
-		});
+		const params = {id:intelgroups[index].id};
+		fetch('/api/acceptinvite', {
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>setIntelgroups(res))
 	};
 
 	const rejectInvite = (index) => {
-		const action = getAction(API_ROOT, ['intelgroups', 'reject']);
-        const params = {'role': intelgroups[index].id};
-        props.client.action(window.schema, action, params).then((result) => {
-            setIntelgroups(result);
-        });
+		const params = {id: intelgroups[index].id};
+		fetch('/api/rejectinvite',{
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>setIntelgroups(res))
 	}
 
 	const saveIntelgroup = (data) => {setIntelgroups(data);}

@@ -30,11 +30,17 @@ const UpdateUser = function(props) {
     }
   }
   useEffect(() => {
-    const customer_action = getAction(API_ROOT, ["customers", "list"]);
-    props.client.action(window.schema, customer_action).then((result) => {
-      setAllUsers(result.results);
+    fetch('/api/users', {
+      method: 'get',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'same-origin',
+    }).then(res=>{return res.json()})
+    .then(res=>{
+      setAllUsers(res);
       setIsLoading(false);
-    });
+    })
   },[]);
   
   const Loading = function() {

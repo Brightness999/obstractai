@@ -93,24 +93,34 @@ const Intelgroups = (props) => {
     const [isAlert, setIsAlert] = useState(false);
     const [message, setMessage] = useState('');
     const acceptInvite = (index) => {
-        const action = getAction(API_ROOT, ['intelgroups', 'invitate']);
-        const params = {'role': intelgroups[index].id};
-        props.client.action(window.schema, action, params).then((result) => {
-            setIntelgroups(result);
-        });
+        const params = {id:intelgroups[index].id};
+		fetch('/api/acceptinvite', {
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>setIntelgroups(res))
     }
     
     const rejectInvite = (index) => {
-        const action = getAction(API_ROOT, ['intelgroups', 'reject']);
-        const params = {'role': intelgroups[index].id};
-        props.client.action(window.schema, action, params).then((result) => {
-            setIntelgroups(result);
-            props.deleteIntelGroup(result);
-        });
+        const params = {id: intelgroups[index].id};
+		fetch('/api/rejectinvite',{
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>setIntelgroups(res))
     }
 
     const leaveGroup = (index) => {
-        const action = getAction(API_ROOT, ['intelgroups', 'leave']);
         const params = {'role': intelgroups[index].id};
         if(confirm('Are you sure to leave this group?'))
             fetch('/api/leavegroup', {

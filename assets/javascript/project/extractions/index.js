@@ -44,7 +44,6 @@ const ExtractionList = (props) => {
 	const [isInvitation, setIsInvitation] = useState(false);
 	const [groupError, setGroupError] = useState(false);
 	
-	
 	const saveExtraction = () => {
 		let params = {
 			attribute: type.trim(),

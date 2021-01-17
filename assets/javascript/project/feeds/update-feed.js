@@ -6,7 +6,7 @@ import {
 	Button,
 	Tooltip,
 } from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert';
+import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
 import { yellow } from '@material-ui/core/colors';
 
@@ -27,7 +27,8 @@ const UpdateFeed = (props) => {
 	const [categoryError, setCategoryError] = useState(false);
 	const [tagError, setTagError] = useState(false);
 	const [groupError, setGroupError] = useState(false);
-
+	const [isMessage, setIsMessage] = useState(false);
+	
 	const updateFeed = () => {
 		let data;
 		props.categories.forEach(cate => {
@@ -35,11 +36,11 @@ const UpdateFeed = (props) => {
 				data = cate;
 		});
 		let params ={
-			url: url,
-			name: name,
-			description: description,
+			url: url.trim(),
+			name: name.trim(),
+			description: description.trim(),
 			category: category,
-			tags: tags,
+			tags: tags.trim(),
 			confidence: confidence,
 		}
 
@@ -62,9 +63,17 @@ const UpdateFeed = (props) => {
 
 		if(url && name && description && category && tags ){
 			if(Boolean(props.id)){
-				action = getAction(API_ROOT, ["feeds", "partial_update"]);
-				props.client.action(window.schema, action, params).then(result=>{
-					props.saveFeed(result);
+				fetch('/api/feeds', {
+					method: 'put',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					props.saveFeed(res);
 					history.push('/feeds');
 				})
 			}
@@ -80,8 +89,14 @@ const UpdateFeed = (props) => {
 						body: JSON.stringify(params),
 					}).then(res=>{return res.json()})
 					.then(res=>{
-						props.saveFeed(res);
-						history.push('/feeds');
+						if(Boolean(res.message)){
+							setIsMessage(true);
+						}
+						else{
+							setIsMessage(false);
+							props.saveFeed(res);
+							history.push('/feeds');
+						}
 					})
 			}
 		}
@@ -95,6 +110,11 @@ const UpdateFeed = (props) => {
 	return (
 		<Container>
 			<h1 className="title is-3 pt-1" >Add Custom Feed</h1>
+			{isMessage&&
+			<Alert severity="warning" className="my-5"  onClose={()=>setIsMessage(false)}>
+				<AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
+				<span className="subtitle is-5">! You must upgrade your Intel Group plan to perform that action.</span>
+			</Alert>}
 			<section className="section app-card">
 				<div className="columns">
 					{props.currentrole.role==2&&

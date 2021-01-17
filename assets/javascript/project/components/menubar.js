@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Alert, AlertTitle } from "@material-ui/lab";
 
 const MenuBar = (props) => {
     const [currentgroup, setCurrentGroup] = useState(props.currentgroup);
@@ -51,7 +52,7 @@ const MenuBar = (props) => {
                                 <span className="is-show-desktop">Indicator</span>
                             </a>
                             <div className="navbar-dropdown is-left">
-                                <Link to="/globalindicators/" className="navbar-item">Global Indicators</Link>
+                                {/* <Link to="/globalindicators/" className="navbar-item">Global Indicators</Link> */}
                                 {/* <Link to="/indicators/" className="navbar-item">Indicators</Link> */}
                                 <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
                             </div>
@@ -60,6 +61,10 @@ const MenuBar = (props) => {
                     </div>
                     }
                 </div>}
+                {/* <Alert severity="info" className="my-5">
+					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+					<span className="subtitle is-5">Your plan will be downgraded and limited on, to keep all existing features, you must select a plan before this date.</span>
+				</Alert> */}
             </div>
         );
     else

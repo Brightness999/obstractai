@@ -3,10 +3,6 @@ import { Link, useHistory } from "react-router-dom";
 import { TextField, Container, Grid } from "@material-ui/core";
 import Alert from '@material-ui/lab/Alert';
 
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
-import Styles from "../styles";
-
 const AddWhitelist = (props) => {
     const [isAlert, setIsAlert] = useState(false);
     const [indicator, setIndicator] = useState('');
@@ -15,13 +11,21 @@ const AddWhitelist = (props) => {
 
     const AddList = () => {
         let params = {indicator: indicator, value: value, enabled:'Disable'};
-        const action = getAction(API_ROOT, ['whitelist', 'create_0']);
         if(indicator != '' && value != '')
-            props.client.action(window.schema, action, params).then((result)=>{
-                props.saveWhitelist(result);
+            fetch('/api/whitelist', {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params)
+            }).then(res=>{return res.json()})
+            .then(res=>{
+                props.saveWhitelist(res);
                 history.push('/whitelist');
                 setIsAlert(false);
-            });
+            })
         else setIsAlert(true);
     }
 
@@ -32,8 +36,8 @@ const AddWhitelist = (props) => {
             </section>
             <section className="section app-card">
                 {isAlert && <Alert severity="warning" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
-                <Grid container className="column is-two-thirds">
-                    <Grid item xs={3} style={Styles.WhitelistAddText}>
+                <Grid container className="column is-two-thirds" direction="row" justify="center" alignItems="center">
+                    <Grid item xs={3} className="my-4">
                         <span className="title is-5">Indicator Type</span>
                     </Grid>
                     <Grid item xs={9}>
@@ -58,7 +62,7 @@ const AddWhitelist = (props) => {
                     </Grid>
                 </Grid>
                 <Grid container className="column is-two-thirds">
-                    <Grid item xs={3} style={Styles.WhitelistAddText}>
+                    <Grid item xs={3}>
                         <span className="title is-5">Indicator value to exclude</span>
                     </Grid>
                     <Grid item xs={9}>
@@ -67,7 +71,7 @@ const AddWhitelist = (props) => {
                 </Grid>
                 <div className="section">
                     <span>
-                        <button className="button is-outlined" style={{background:'#23d3a2'}} onClick={AddList} >
+                        <button className="button is-success" onClick={AddList} >
                             <span className="title is-4">Enable</span>
                         </button>
                         <Link to ="/whitelist">

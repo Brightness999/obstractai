@@ -1,4 +1,3 @@
-
 import React, {useState, useEffect} from 'react';
 import {
 		BrowserRouter as Router,
@@ -7,13 +6,10 @@ import {
 		Link,
 		useParams,
 		useHistory,
-		useLocation
 } from "react-router-dom";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 
 import UserTable from './user-table';
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
 import UpdateUser from "./update-user";
 
 const EmptyUserList = function() {
@@ -103,16 +99,24 @@ const User = (props) => {
 	const [myId, setMyId] = useState([]);
 	const [groupRole, setGroupRole] = useState([]);
 	let params = {
-		role: group_id
+		groupid: group_id
 	}
 	useEffect(() => {
-		const action = getAction(API_ROOT, ["users", "manage"]);
-		props.client.action(window.schema, action, params).then((result) => {
-			setUsers(result[2]);
-			setMyId(result[1]);
-			setGroupRole(result[0]);
+		fetch('/api/users', {
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>{
+			setUsers(res.users);
+			setMyId(res.myId);
+			setGroupRole(res.grouprole);
 			setIsLoading(false);
-		});
+		})
 	}, []);
 
 	const handleUserSaved = function(invitedUsers) {
@@ -127,28 +131,46 @@ const User = (props) => {
 	};
 
 	const deleteUser = function (index) {
-		const action = getAction(API_ROOT, ["intelgrouprole", "delete"]);
 		const params = {id: users[index].id};
 		if(confirm('Are you sure to revoke invite?'))
-			props.client.action(window.schema, action, params).then((result) => {
+			fetch('/api/role', {
+				method: 'delete',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
 				const newUsers = users.slice(0, index).concat(users.slice(index + 1));
 				setUsers(newUsers);
-			});
+			})
 	};
 
 	const adminUser = function (role,ugr_id) {
 		if(role == 2) role = 1;
 		else if(role == 1) role = 2;
-		const action = getAction(API_ROOT, ["intelgrouprole", "makeadmin"]);
 		let params = {
-			'role': ugr_id
+			id: ugr_id,
+			role: role,
+			groupid: group_id
 		}
-		props.client.action(window.schema, action,params).then((result) => {
-			setUsers(result[2]);
-			setMyId(result[1]);
-			setGroupRole(result[0]);
+		fetch('/api/role',{
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>{
+			setUsers(res.users);
+			setMyId(res.myId);
+			setGroupRole(res.grouprole);
 			setIsLoading(false);
-		});
+		})
 	};
 
 	const getDefaultView = function() {

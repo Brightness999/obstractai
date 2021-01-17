@@ -15,8 +15,7 @@ const FeedCard = function (props) {
   }
 
   const enableFeed = () => {
-    let params = [];
-    params['confidence'] = props.feed.id;
+    let params = {id: props.feed.id};
     if(props.feed.manage_enabled=='false')
       params['manage_enabled'] = 'true';
     else params['manage_enabled'] = 'false';

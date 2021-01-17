@@ -1477,7 +1477,7 @@ def intelgroups(request):
 
 @api_view(['PUT'])
 def feedenable(request):
-	Feeds.objects.filter(id=request.data['id']).update(manage_enabled=request.data['manage_enabled'])
+	Feeds.objects.filter(id=int(request.data['id'])).update(manage_enabled=request.data['manage_enabled'])
 	feeds = Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(id=request.data['id']).last().intelgroup_id).order_by('id').all()
 	serializer = FeedCategorySerializer(feeds, many=True)
 	return Response(serializer.data)

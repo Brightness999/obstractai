@@ -13,8 +13,6 @@ import {
 
 import UpdateFeed from "./update-feed";
 import FeedCard from "./feed-card";
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
 
 const Loading = () => {
 	return (

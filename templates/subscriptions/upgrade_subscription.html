@@ -218,7 +218,9 @@
 
   back.addEventListener('click', function(event){
     event.preventDefault();
-    window.location.href=document.referrer;
+    if(document.referrer.split('/')[3]=='home')
+      window.location.href=document.referrer;
+    else history.go(-2);
   });
 
   // hook up "monthly"/"annual" selection events

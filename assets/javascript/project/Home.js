@@ -76,7 +76,7 @@ const AddIntelgroup = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				props.intelgroupSaved(res);
+				props.intelgroupSave(res);
 				history.push('/intelgroups')
 			})
 		}

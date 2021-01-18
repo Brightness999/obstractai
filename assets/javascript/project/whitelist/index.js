@@ -95,7 +95,7 @@ const WhiteList = (props) => {
                     </Thead>
                     <Tbody>
                         {props.indicators.map((indicator, index)=>{
-                            return <IndicatorTable index={index} key={indicator.id} indicator={indicator} IndicatorEnable={(index)=>IndicatorEnable(index)} />
+                            return <IndicatorTable index={index} key={indicator.id} indicator={indicator} IndicatorEnable={(index)=>IndicatorEnable(index)} isAutoDown={isAutoDown} />
                         })}
                     </Tbody>
                 </Table>
@@ -103,7 +103,7 @@ const WhiteList = (props) => {
             <section className="section">
                 <span className="title is-5">Manage by whitelist</span>
                 <Link to="/whitelist/new">
-                    <button className="button is-info is-pulled-right"  >
+                    <button className={props.isAutoDown ? "button is-static is-pulled-right" : "button is-info is-pulled-right"}  >
                         <span>Add whitelist</span>
                     </button>
 
@@ -120,7 +120,7 @@ const WhiteList = (props) => {
 					<Tbody>
 						{
 							props.whitelist.map((list, index) => {
-								return <ListTable index={index} key={list.id} list={list} ListEnable={(index) => ListEnable(index)} />
+								return <ListTable index={index} key={list.id} list={list} ListEnable={(index) => ListEnable(index)} isAutoDown={props.isAutoDown} />
 							})
 						}
 					</Tbody>

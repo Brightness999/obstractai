@@ -7,11 +7,9 @@ const IndicatorTable = (props) => {
             <Td>{`${props.indicator.globalindicator.type}(${props.indicator.globalindicator.type_api})`}</Td>
             <Td>{`${props.indicator.globalindicator.value}(${props.indicator.globalindicator.value_api})`}</Td>
             <Td>
-                <a onClick={()=>props.IndicatorEnable(props.index)}>
-                    <div className="button is-text">
-                        <span>{props.indicator.enabled}</span>
-                    </div>
-                </a>
+                <div className={props.isAutoDown ? "button is-static" : "button is-text"} onClick={()=>props.IndicatorEnable(props.index)}>
+                    <span>{props.indicator.enabled}</span>
+                </div>
             </Td>
         </Tr>
 	);

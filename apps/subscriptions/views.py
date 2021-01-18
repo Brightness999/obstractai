@@ -41,7 +41,7 @@ class ProductWithMetadataAPI(APIView):
 def subscription(request, subscription_holder=None, groupid=2):
     subscription_holder = subscription_holder if subscription_holder else request.user
     subid = CustomUser.objects.filter(id=request.user.id).last().subscription_id
-    gorupid = IntelGroups.objects.filter(plan_id=subid).last().id
+    groupid = IntelGroups.objects.filter(plan_id=subid).last().id
     if IntelGroups.objects.filter(id=groupid).values()[0]['plan_id']:
         return _view_subscription(request, subscription_holder, groupid)
     else:

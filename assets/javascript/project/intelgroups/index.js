@@ -40,7 +40,7 @@ const IntelgroupList = function(props) {
 
 	const deleteIntelGroup = (index) => {
 		if(confirm("Are you sure you want to delete?")){
-			const params = {'role': props.intelgroups[index].id};
+			const params = {id: props.intelgroups[index].id};
 			fetch('/api/leavegroup', {
 				method: 'post',
 				headers: {

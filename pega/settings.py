@@ -27,7 +27,14 @@ SECRET_KEY = 'mTMhZsVDjurGMIIswFuMKjxiBjomVaFEddqLmpCk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ '178.62.35.174', 'sherlock-staging.obstractai.com', 'www.sherlock-staging.obstractai.com', '0.0.0.0', 'localhost']
+ALLOWED_HOSTS = [
+    '178.62.35.174',
+    'sherlock-staging.obstractai.com',
+    'www.sherlock-staging.obstractai.com',
+    '0.0.0.0',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition
@@ -126,10 +133,10 @@ FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'pega',
-        'USER': 'postgres',
-        'PASSWORD': '***',
-        'HOST': 'localhost',
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USERNAME'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': os.environ.get('DATABASE_HOST'),
         'PORT': '5432',
     }
 }

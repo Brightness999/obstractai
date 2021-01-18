@@ -13,6 +13,12 @@ class FeedAdmin(admin.ModelAdmin):
 class IntelGroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'plan')
 
+    readonly_fields = ('name', 'description', 'plan')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 
 @admin.register(Attributes)
 class AttributeAdmin(admin.ModelAdmin):

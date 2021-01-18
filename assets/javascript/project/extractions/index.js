@@ -101,7 +101,7 @@ const ExtractionList = (props) => {
 	return (
 		<Container>
 			<section className="section">
-				{props.isMessage&&
+				{props.isInit&&
 				<Alert severity="info" className="my-5">
 					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
 					<span className="subtitle is-5">{props.message}</span>
@@ -182,9 +182,6 @@ const Extractions = (props) => {
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [currentrole, setCurrentRole] = useState({});
-	const [isMessage, setIsMessage] = useState(false);
-	const [message, setMessage] = useState('');
-	const [isPlan, setIsPlan] = useState(true);
 	const [customobservable, setCustomObservable] = useState(true);
 	const history = useHistory();
 
@@ -202,17 +199,11 @@ const Extractions = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				console.log(res);
-				if(Boolean(res.isPlan)){
-					setIsPlan(true);
-					setIsMessage(res.message);
-					setMessage(res.content);
-					setExtractionList(res.attributes);
-					setGlobalAttributes(res.globalattributes);
-					setCurrentRole(res.currentrole);
-					setCustomObservable(res.customobservable)
-				}
-				else setIsPlan(false);
+				console.log(res.customobservable)
+				setExtractionList(res.attributes);
+				setGlobalAttributes(res.globalattributes);
+				setCurrentRole(res.currentrole);
+				setCustomObservable(res.customobservable)
 				setIsLoading(false);
 			})
 		}
@@ -241,26 +232,35 @@ const Extractions = (props) => {
 			return <Loading/>
 		}
 		else {
-			if(isPlan){
-				if(currentrole.role ==0)
-					return (
-						<div className='app-card has-text-centered'>
-							<div className="lds-ripple"><div></div><div></div></div>
-							<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/intelgroups" >Click here to accept.</Link></p>
-						</div>
-					)
-				if(currentrole.role == 1)
-					return(
-						<div className='section has-text-centered'>
-							<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
-						</div>
-					)
-				if(currentrole.role ==2)
-					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
-						currentgroup={props.currentgroup} globalattributes={globalattributes} isMessage={isMessage} message={message} />
-			}
+			if(currentrole.role ==0)
+				return (
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+				)
 			else{
-				return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+				if(props.isPlan){
+					if(currentrole.role == 1)
+						if(props.isAutoDown){
+							return <div className='section has-text-centered my-6'>
+                                <p className="title is-3 py-6">Please contact the feed group administrator to manage intel group plan payment.</p>
+                            </div>
+						}
+						else{
+							return(
+								<div className='section has-text-centered'>
+									<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+								</div>
+							)
+						}
+					if(currentrole.role ==2)
+						return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
+							currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
+				}
+				else{
+					return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+				}
 			}
 		}
 	}

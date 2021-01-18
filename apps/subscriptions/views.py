@@ -24,7 +24,7 @@ from .helpers import get_friendly_currency_amount
 from .metadata import get_active_products_with_metadata,\
     get_product_and_metadata_for_subscription, ACTIVE_PLAN_INTERVALS, get_active_plan_interval_metadata
 from project.models import UserIntelGroupRoles, IntelGroups
-
+from apps.users.models import CustomUser
 
 
 class ProductWithMetadataAPI(APIView):
@@ -40,6 +40,8 @@ class ProductWithMetadataAPI(APIView):
 @login_required
 def subscription(request, subscription_holder=None, groupid=2):
     subscription_holder = subscription_holder if subscription_holder else request.user
+    subid = CustomUser.objects.filter(id=request.user.id)
+    gorupid = IntelGroups.objects.filter(plan_id=subid).last().id
     if IntelGroups.objects.filter(id=groupid).values()[0]['plan_id']:
         return _view_subscription(request, subscription_holder, groupid)
     else:

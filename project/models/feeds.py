@@ -8,14 +8,14 @@ from .categories import Categories
 from .intelgroups import IntelGroups
 
 class Feeds(BaseModel):
-    uniqueid = models.UUIDField(default=uuid.uuid4)
+    uniqueid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Categories, on_delete=models.CASCADE)
-    tags = models.CharField(max_length=100)
+    tags = models.CharField(max_length=100, blank=True)
     url = models.TextField(default='')
-    description = models.CharField(max_length=100)
-    manage_enabled = models.CharField(max_length=100)
-    confidence = models.PositiveIntegerField(default=0)
+    description = models.TextField(default='', blank=True)
+    manage_enabled = models.CharField(max_length=100, blank=True)
+    confidence = models.PositiveIntegerField(default=0, blank=True)
     intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
 
     def __str__(self):

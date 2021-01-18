@@ -10,7 +10,7 @@ node_modules/
 media/
 docs/_build
 _dist/
-.env
+/.env
 .env.dev
 .env.production
 venv

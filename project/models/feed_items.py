@@ -19,3 +19,5 @@ class FeedItems(BaseModel):
     source = models.TextField(default='', null=True)
     feed = models.ForeignKey(Feeds, on_delete=models.CASCADE, null=True)
 
+    def __str__(self):
+        return self.title

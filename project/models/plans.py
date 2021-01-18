@@ -14,4 +14,6 @@ class Plans(BaseModel):
     enabled_custom_feeds = models.CharField(max_length=100)
     enabled_api = models.CharField(max_length=100)
     enabled_custom_extraction = models.CharField(max_length=100)
-    
+
+    def __str__(self):
+        return self.name

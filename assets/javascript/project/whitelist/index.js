@@ -95,7 +95,7 @@ const WhiteList = (props) => {
                     </Thead>
                     <Tbody>
                         {props.indicators.map((indicator, index)=>{
-                            return <IndicatorTable index={index} key={indicator.id} indicator={indicator} IndicatorEnable={(index)=>IndicatorEnable(index)} isAutoDown={isAutoDown} />
+                            return <IndicatorTable index={index} key={indicator.id} indicator={indicator} IndicatorEnable={(index)=>IndicatorEnable(index)} isAutoDown={props.isAutoDown} />
                         })}
                     </Tbody>
                 </Table>

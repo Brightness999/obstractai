@@ -50,3 +50,12 @@ urllib3==1.25.11          # via requests
 vine==5.0.0               # via amqp, celery
 wcwidth==0.2.5            # via prompt-toolkit
 zipp==3.3.0               # via importlib-metadata
+
+# missing modules
+python-dotenv==0.1.5
+django-rest-swagger==2.2.0
+xmltodict==0.12.0
+future==0.18.2
+pandas==1.2.0
+progress==1.5
+sendgrid==6.6.0

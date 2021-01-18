@@ -8,9 +8,9 @@ const ListTable = (props) => {
             <Td>{`${props.list.indicator.globalindicator.value}(${props.list.indicator.globalindicator.value_api})`}</Td>
             <Td>{props.list.value}</Td>
             <Td>
-                    <div className={props.isAutoDown ? "button is-static" : "button is-text"} onClick={()=>props.ListEnable(props.index)}>
-                        <span>{props.list.enabled}</span>
-                    </div>
+                <div className={props.isAutoDown ? "button is-static" : "button is-text"} onClick={()=>props.ListEnable(props.index)}>
+                    <span>{props.list.enabled}</span>
+                </div>
             </Td>
         </Tr>
 	);

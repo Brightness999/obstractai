@@ -57,7 +57,7 @@ const FeedList = (props) => {
 	return (
 		<Container>
 			<section className="section">
-				{props.isMessage&&
+				{props.isInit&&
 				<Alert severity="info" className="my-5">
 					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
 					<span className="subtitle is-5">{props.message}</span>
@@ -142,9 +142,9 @@ const FeedList = (props) => {
 			{props.currentrole.role==2 && props.customfeeds &&
 			<section className="section" >
 				<Link to="/feeds/new">
-					<button className="button is-medium is-link is-rounded">
+					{props.customfeeds && <button className="button is-medium is-link is-rounded">
 						<span>Create custom feed</span>
-					</button>
+					</button>}
 				</Link>
 			</section>}
 			{
@@ -190,17 +190,11 @@ const Feeds = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				if(Boolean(res.isPlan)){
-					setIsPlan(true);
-					setFeedList(res.feedlist);
-					setCategories(res.categories);
-					setTags(res.tags);
-					setIsMessage(Boolean(res.message));
-					setMessage(res.content);
-					setCustomFeeds(res.customfeeds);
-					setCurrentRole(res.currentrole);
-				}
-				else setIsPlan(res.isPlan);
+				setFeedList(res.feedlist);
+				setCategories(res.categories);
+				setTags(res.tags);
+				setCustomFeeds(res.customfeeds);
+				setCurrentRole(res.currentrole);
 				setIsLoading(false);
 			});
 		}
@@ -232,20 +226,23 @@ const Feeds = (props) => {
 			return <Loading/>
 		}
 		else {
-			if(isPlan){
-				if(currentrole.role==0){
-					return(
-						<div className='app-card has-text-centered'>
-							<div className="lds-ripple"><div></div><div></div></div>
-							<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
-						</div>
-					)
-				}
-				else return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
-					Search={Search} confidences={confidences} currentrole={currentrole} isMessage={isMessage} message={message} customfeeds={customfeeds} />
+			if(currentrole.role==0){
+				return(
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+				)
 			}
 			else{
-				return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+				if(props.isPlan){
+					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
+						Search={Search} confidences={confidences} currentrole={currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+				}
+				else{
+					return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+				}
+
 			}
 		}
 	}

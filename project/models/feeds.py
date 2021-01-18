@@ -17,3 +17,9 @@ class Feeds(BaseModel):
     manage_enabled = models.CharField(max_length=100)
     confidence = models.PositiveIntegerField(default=0)
     intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Feeds"

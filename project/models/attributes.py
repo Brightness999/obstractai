@@ -15,4 +15,5 @@ class Attributes(BaseModel):
     intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
     enabled = models.CharField(max_length=100, default='Enable')
     
-    
+    class Meta:
+        verbose_name_plural = "Attributes"

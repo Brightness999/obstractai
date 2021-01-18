@@ -13,7 +13,7 @@
   {% endif %}
   <div class="columns my-2" id="plan-selector">
     {% for product in active_products %}
-      <div class="column">
+      <div class="column has-text-centered">
         <div class="plan{% if current_product_id == product.metadata.stripe_id %} is-selected{% endif %}"
              data-product-id="{{ product.stripe_id }}" data-plan-id="{{ product.default_plan.id }}" >
           <div class="plan-summary">

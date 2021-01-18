@@ -182,9 +182,6 @@ const Extractions = (props) => {
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [currentrole, setCurrentRole] = useState({});
-	const [isMessage, setIsMessage] = useState(false);
-	const [message, setMessage] = useState('');
-	const [isPlan, setIsPlan] = useState(true);
 	const [customobservable, setCustomObservable] = useState(true);
 	const history = useHistory();
 
@@ -243,7 +240,7 @@ const Extractions = (props) => {
 					</div>
 				)
 			else{
-				if(isPlan){
+				if(props.isPlan){
 					if(currentrole.role == 1)
 						if(props.isAutoDown){
 							return <div className='section has-text-centered my-6'>

@@ -33,19 +33,20 @@ const WebhookTable = (props) => {
 
     const deleteWebhook = () => {
         let params = {'id':props.webhook.id}
-        fetch('/api/webhooks', {
-            method: 'delete',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify(params),
-        }).then((res)=>{return res.json()})
-        .then((res)=>{
-            props.saveWebhooks(res);
-            setOpen(false);
-        });
+        if(confirm('Are you sure to delete?'))
+            fetch('/api/webhooks', {
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params),
+            }).then((res)=>{return res.json()})
+            .then((res)=>{
+                props.saveWebhooks(res);
+                setOpen(false);
+            });
     }
 
     return (

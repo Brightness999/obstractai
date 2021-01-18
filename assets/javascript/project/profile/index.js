@@ -72,8 +72,8 @@ const Profile = (props) => {
     return (
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
-            {isSuccess && <Alert severity="success" className="column is-one-third" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
-            {isAlert && <Alert severity="danger" className="column is-one-third" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
+            {isSuccess && <Alert severity="success" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
+            {isAlert && <Alert severity="danger" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
                     setEmail(e.target.value);
@@ -121,7 +121,7 @@ const Intelgroups = (props) => {
     }
 
     const leaveGroup = (index) => {
-        const params = {'role': intelgroups[index].id};
+        const params = {id: intelgroups[index].id};
         if(confirm('Are you sure to leave this group?'))
             fetch('/api/leavegroup', {
                 method: 'post',
@@ -195,7 +195,8 @@ const APIKeys = (props) => {
     }
 
     const deleteAPIKey = (index) =>{
-        let params = {id:props.apikeys[index].id};
+
+        let params = {id:apikeys[index].id};
         if(confirm('Are you sure to delete this APIKey?'))
             fetch('/api/apikeys', {
                 method: 'delete',

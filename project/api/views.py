@@ -473,25 +473,6 @@ def account(request):
 @api_view(['POST'])
 def emailchange(request):
 	CustomUser.objects.filter(id=request.data['id']).update(email=request.data['email'])
-	message = Mail(
-		from_email='kardzavaryan@gmail.com',
-		to_emails=request.data['emails'],
-		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-		html_content=f'''<strong>From:</strong><span>sherlock@mg.cyobstract.com</span><br/>
-		<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-		<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
-		<strong>Title:</strong><span>Confirm your email address to use all Cyobstract features!</span><br/>
-		<p>Welcome to Cyobstract!</p>
-		<p>All that’s left to do to complete your registration is click the link below to confirm your email.</p>
-		<p><a href="http://sherlock-staging.obstractai.com/home/account">sherlock-staging.obstractai.com</a></p>
-		<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
-		<p><i>Sherlock and the Cyobstract Team</i></p>''')
-	try:
-		sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-		response = sg.send(message)
-		print(response.status_code)
-	except Exception as e:
-		print(str(e))
 	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
@@ -1396,20 +1377,28 @@ def home(request):
 @api_view(['POST'])
 def leavegroup(request):
 	result = []
-	role = UserIntelGroupRoles.objects.filter(id=request.data['role']).all()
-	if role[0].role == 1:
-		UserIntelGroupRoles.objects.filter(id=request.data['role']).delete()
+	role = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().role
+	if role == 1:
+		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 		groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
 		for group in groups:
 			serializer = RoleGroupSerializer(group)
 			result.append(serializer.data)
-	if role[0].role == 2:
-		intelgroup_id = UserIntelGroupRoles.objects.filter(id=request.data['role']).all()[0].intelgroup_id
-		users = UserIntelGroupRoles.objects.filter(intelgroup_id=intelgroup_id, role=2).all()
-		if(len(users)==1):
-			return Response({'message':True})
+	elif role == 2:
+		intelgroup_id = UserIntelGroupRoles.objects.filter(id=request.data['id']).all()[0].intelgroup_id
+		admins = UserIntelGroupRoles.objects.filter(intelgroup_id=intelgroup_id, role=2).all()
+		users = UserIntelGroupRoles.objects.filter(intelgroup_id=intelgroup_id).all()
+		if len(admins)==1:
+			if len(users)==1:
+				UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
+				groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
+				for group in groups:
+					serializer = RoleGroupSerializer(group)
+					result.append(serializer.data)
+			else:
+				return Response({'message':True})
 		else:
-			UserIntelGroupRoles.objects.filter(id=request.data['role']).delete()
+			UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 			groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
 			for group in groups:
 				serializer = RoleGroupSerializer(group)
@@ -1477,7 +1466,7 @@ def intelgroups(request):
 
 @api_view(['PUT'])
 def feedenable(request):
-	Feeds.objects.filter(id=int(request.data['id'])).update(manage_enabled=request.data['manage_enabled'])
+	Feeds.objects.filter(id=request.data['id']).update(manage_enabled=request.data['manage_enabled'])
 	feeds = Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(id=request.data['id']).last().intelgroup_id).order_by('id').all()
 	serializer = FeedCategorySerializer(feeds, many=True)
 	return Response(serializer.data)
@@ -1563,4 +1552,36 @@ def users(request):
 		user_role = UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['groupid'], user_id=request.user.id).last().role
 		serializer = UserIntelGroupRolesSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid']).all(), many=True)
 		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role})
+
+@api_view(['POST'])
+def changegroup(request, subscription_holder=None):
+	isPlan = True
+	isInit = False
+	isAutoDown = False
+	message = ''
+	subid = IntelGroups.objects.filter(id=request.data['groupid']).last().plan_id
+	print(subid)
+	created_at = IntelGroups.objects.filter(id=request.data['groupid']).last().created_at
+	if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
+		if subid == None:
+			if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=30):
+				isInit = True
+				date = str(created_at.replace(tzinfo=None)+timedelta(days=30)).split(' ')[0]
+				message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
+			else:
+				# starterid = Plan.objects.filter(interval='month', amount=0).last().djstripe_id
+				# print(datetime.now()+timedelta(days=30))
+				# Subscription.objects.create(plan_id=starterid, current_period_end=(datetime.now()+timedelta(days=30)), current_period_start=datetime.now(), start=datetime.now(), start_date=datetime.now())
+				# IntelGroups.objects.filter(id=request.data['groupid']).update(plan_id=Subscription.objects.last().djstripe_id)
+				isPlan = False
+				
+		else:
+			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+			if datetime.now() > current_period_end.replace(tzinfo=None):
+				starterid = Plan.objects.filter(interval='month', amount=0).last().djstripe_id
+				Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+				isAutoDown = True
+		
+	return Response({'isPlan':isPlan, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message': message})
+
 

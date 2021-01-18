@@ -43,6 +43,11 @@ const App = () => {
   const [users, setUsers] = useState([]);
   const [currentgroup, setCurrentGroup] = useState('');
   const [userinfo, setUserInfo] = useState({});
+  const [isPlan, setIsPlan] = useState(true);
+  const [isInit, setIsInit] = useState(false);
+  const [isAutoDown, setIsAutoDown] = useState(false);
+  const [message, setMessage] = useState('');
+
 	useEffect(() => {
     fetch('/api/home', {
       method: 'get',
@@ -62,7 +67,24 @@ const App = () => {
   },[]);
   
   const currentIntelgroup = (intelgroup) => {
-    setCurrentGroup(intelgroup);
+    let params = {groupid:intelgroup};
+    fetch('/api/changegroup', {
+      method:'post',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': client.transports[0].auth.csrfToken
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(params)
+    }).then(res=>{return res.json()})
+    .then(res=>{
+      console.log(res);
+      setCurrentGroup(intelgroup);
+      setIsPlan(res.isPlan);
+      setIsInit(res.isInit);
+      setIsAutoDown(res.isAutoDown);
+      setMessage(res.message);
+    })
   }
   const intelgroupSave = (intelgroup) => {
     let flag = false;
@@ -102,27 +124,27 @@ const App = () => {
               <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
             <Route path="/intelgroups" >
-              <IntelGroup client={client} intelgroupSave={(data)=>intelgroupSave(data)} deleteIntelGroup={(data)=>deleteIntelGroup(data)}/>
+              <IntelGroup isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)} deleteIntelGroup={(data)=>deleteIntelGroup(data)}/>
             </Route>
             <Route path="/feeds">
-              <Feeds currentgroup={currentgroup} client={client}/>
+              <Feeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message}/>
             </Route>
             <Route path="/categories" >
-              <Categories client={client} currentgroup={currentgroup} />
+              <Categories client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message}/>
             </Route>
             <Route path="/extractions">
-              <Extractions client={client} currentgroup={currentgroup} />
+              <Extractions client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message}/>
             </Route>
             <Route path="/intelreports" >
-              <IntelReports client={client} currentgroup={currentgroup} mygroups={mygroups} />
+              <IntelReports client={client} currentgroup={currentgroup} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message}/>
             </Route>
             <Route path="/whitelist" >
-              <WhiteLists client={client} currentgroup={currentgroup} />
+              <WhiteLists client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message}/>
             </Route>
             {/* <Route path="/plans" component={Plan} /> */}
             {/* <Route path="/manageplan" component={CurrentPlan} /> */}
             <Route path="/account" >
-              <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} />
+              <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message}/>
             </Route>
             <Route path="/pending">
               <Pending />

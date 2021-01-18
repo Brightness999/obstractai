@@ -40,8 +40,6 @@ const ExtractionList = (props) => {
 	const [value, setValue] = useState('');
 	const [words, setWords] = useState('');
 	const [isAlert, setIsAlert] = useState(false);
-	const [isConfrim, setIsConfirm] = useState(false);
-	const [isInvitation, setIsInvitation] = useState(false);
 	const [groupError, setGroupError] = useState(false);
 	
 	const saveExtraction = () => {
@@ -102,10 +100,6 @@ const ExtractionList = (props) => {
 
 	return (
 		<Container>
-			<section className="section" >
-				{isConfrim && <Alert severity="info" onClose={()=>setIsConfirm(false)}>Please confirm your email. Click here to resend confirmation link.</Alert>}
-				{isInvitation && <Alert severity="info" onClose={()=>setIsInvitation(false)}>You have an invitation to Intel Group XXX pending. <Link className="has-text-danger" to="#">Click here to accept.</Link></Alert>}
-			</section>
 			<section className="section">
 				{props.isMessage&&
 				<Alert severity="info" className="my-5">

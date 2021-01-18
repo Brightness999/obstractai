@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
-import { Container, TextField, Grid } from "@material-ui/core";
-import { Table, Thead, Tbody, Tr, Th, Td } from "react-super-responsive-table";
+import { Container, Grid } from "@material-ui/core";
+import { Table, Thead, Tbody, Tr, Th } from "react-super-responsive-table";
+import { Alert, AlertTitle } from "@material-ui/lab";
 
 import ListTable from "./list-table";
 import AddWhitelist from "./add-whitelist";
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
-import Styles from "../styles";
 import IndicatorTable from "./indicator-table";
 
 
@@ -18,6 +16,24 @@ const Loading = () => {
 			<p className="heading has-text-primary">Loading...</p>
 		</div>
 	);
+}
+
+const Plan = (props) => {
+	const [isAlert, setIsAlert] = useState(false);
+
+	const ManagePlan = () => {
+		if(props.currentrole.role == 2) location.href=`/subscriptions/intelgroup/${props.currentgroup}`;
+		else setIsAlert(true);
+	}
+
+	return <div className="my-6">
+			<h1 className="title is-size-3 has-text-centered py-6">No plan! You must select a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
+			{isAlert&& <Grid container direction="row" justify="center" alignItems="center">
+				<Grid item xs={6}>
+					<Alert className="has-text-centered title is-size-4" severity="error" onClose={()=>setIsAlert(false)}>! Please contact the feed group administrator to manage intel group plan payment to reinstate access.</Alert>
+				</Grid>
+			</Grid>}
+		</div>
 }
 
 const WhiteList = (props) => {
@@ -62,6 +78,11 @@ const WhiteList = (props) => {
     return (
 		<Container>
 			<section className="section">
+                {props.isInit&&
+				<Alert severity="info" className="my-5">
+					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+					<span className="subtitle is-5">{props.message}</span>
+				</Alert>}
                 <h1 className="title is-3">Manage Indicator visibility</h1>
                 <h1 className="title is-5">Manage by type</h1>
                 <Table className="table is-striped is-fullwidth has-vcentered-cells">
@@ -183,15 +204,30 @@ const WhiteLists = (props) => {
 						<div className="lds-ripple"><div></div><div></div></div>
 						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
 					</div>
-				)
-			if(currentrole.role == 1)
-				return(
-					<div className='section has-text-centered'>
-						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
-					</div>
-				)
-			if(currentrole.role ==2)
-                return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} indicators={indicators} />
+                )
+            else{
+                if(props.isPlan){
+                    if(currentrole.role == 1)
+                        if(props.isAutoDown){
+                            return <div className='section has-text-centered my-6'>
+                                <p className="title is-3 py-6">Please contact the feed group administrator to manage intel group plan payment.</p>
+                            </div>
+                        }
+                        else{
+                            return(
+                                <div className='section has-text-centered'>
+                                    <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+                                </div>
+                            )
+                        }
+                    if(currentrole.role ==2)
+                        return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
+                            indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
+                }
+                else{
+                    return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+                }
+            }
         }
     }
 

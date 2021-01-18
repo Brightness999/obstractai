@@ -117,10 +117,10 @@ const App = () => {
           <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} userinfo={userinfo} />
           <MenuBar currentgroup={currentgroup} client={client} userinfo={userinfo} />
           <Switch>
-            <Route exact path="/">
+            {/* <Route exact path="/">
               <Layout mygroups={mygroups} />
-            </Route>
-            <Route path="/customer">
+            </Route> */}
+            <Route exact path="/">
               <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
             <Route path="/intelgroups" >

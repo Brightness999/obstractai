@@ -34,5 +34,6 @@ urlpatterns = [
     path(r'rejectinvite', views.rejectinvite, name='rejectinvite'),
     path(r'users', views.users, name='users'),
     path(r'role', views.role, name='role'),
+    path(r'changegroup', views.changegroup, name='changegroup'),
    
 ]

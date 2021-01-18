@@ -42,10 +42,10 @@
             </div>
             {% endfor %}
           </div>
-          {% if current_product_id > product.metadata.stripe_id %}
+          {% if current_product_id < product.metadata.stripe_id %}
           <button type="submit" class="button is-primary" onclick="managePlan()">Downgrade to this plan</button>
           {% endif %}
-          {% if current_product_id < product.metadata.stripe_id %}
+          {% if current_product_id > product.metadata.stripe_id %}
           <button type="submit" class="button is-primary" onclick="managePlan()">Upgrade to this plan</button>
           {% endif %}
         </div>

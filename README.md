@@ -9,6 +9,11 @@ Setup a virtualenv and install requirements:
 ```bash
 mkvirtualenv --no-site-packages pega -p python3
 pip install -r requirements.txt
+git clone https://github.com/cmu-sei/cyobstract.git
+pip install pandas
+cd cyobstract && python setup.py install
+pip install future   
+pip install progress
 ```
 
 ## Running server

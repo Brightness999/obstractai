@@ -238,8 +238,6 @@ def create_customer(request, subscription_holder=None):
     
     
     
-    # print(request.data)
-
     payment_method = request_body['payment_method']
     plan_id = request_body['plan_id']
     stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY

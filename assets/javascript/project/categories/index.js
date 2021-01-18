@@ -197,11 +197,10 @@ const Categories = (props) => {
 		})
 	}
 
-
 	return (
 		<Switch>
 			<Route path="/categories" >
-				{CategoryListView()}				
+				{CategoryListView()}			
 			</Route>
 		</Switch>
 	);

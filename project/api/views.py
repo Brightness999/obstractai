@@ -990,48 +990,28 @@ def feeds(request):
 def feedlist(request):
 	if not request.user.is_staff:
 		created_at = IntelGroups.objects.filter(id=request.data['currentgroup']).last().created_at
+		subid = IntelGroups.objects.filter(id=request.data['currentgroup']).last().plan_id
 		customfeeds = True
 		message = ''
-		if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=30):
-			date = str(created_at.replace(tzinfo=None)+timedelta(days=30)).split(' ')[0]
-			message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
-			if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
-				feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-			if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
-				feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-			if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
-				feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-			feed_serializer = FeedCategorySerializer(feeds, many=True)
-			categories = Categories.objects.order_by('id').all()
-			category_serializer = CategorySerializer(categories, many=True)
-			tags = Tags.objects.order_by('id').all()
-			tag_serializer = TagSerializer(tags, many=True)
-			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-			role_serializer = UserGroupRoleSerializer(currentrole[0])
-			return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data, 'message':True, 'content':message, 'isPlan':True, 'customfeeds':customfeeds})
-		else:
-			subid = IntelGroups.objects.filter(id=request.data['currentgroup']).last().plan_id
-			if subid == None:
-				return Response({'isPlan':False})
-			else:
-				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-				if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
-					customfeeds = False
-				if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
-					feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-				if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
-					feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-				if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
-					feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-				feed_serializer = FeedCategorySerializer(feeds, many=True)
-				categories = Categories.objects.order_by('id').all()
-				category_serializer = CategorySerializer(categories, many=True)
-				tags = Tags.objects.order_by('id').all()
-				tag_serializer = TagSerializer(tags, many=True)
-				currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-				role_serializer = UserGroupRoleSerializer(currentrole[0])
-				return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data, 'message':False, 'content':'', 'isPlan':True, 'customfeeds':customfeeds})
+		if subid != None:
+			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+			if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
+				customfeeds = False
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
+		feed_serializer = FeedCategorySerializer(feeds, many=True)
+		categories = Categories.objects.order_by('id').all()
+		category_serializer = CategorySerializer(categories, many=True)
+		tags = Tags.objects.order_by('id').all()
+		tag_serializer = TagSerializer(tags, many=True)
+		currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+		role_serializer = UserGroupRoleSerializer(currentrole[0])
+		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data,'customfeeds':customfeeds})
 
 	if request.user.is_staff:
 		if request.data['currentgroup'] == '':

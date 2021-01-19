@@ -12,6 +12,7 @@ media/
 docs/_build
 _dist/
 /.env
+.env.staging.server
 .env.dev
 .env.production
 venv

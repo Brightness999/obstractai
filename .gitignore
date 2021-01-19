@@ -3,6 +3,7 @@
 *~
 db.sqlite3
 .sass-cache/
+cyobstract
 cyobstract/localsettings.py
 cyobstract/local.py
 static_root/

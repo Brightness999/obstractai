@@ -16,9 +16,9 @@ class Migration(migrations.Migration):
             name='description',
             field=models.TextField(blank=True, default=''),
         ),
-        migrations.AlterField(
-            model_name='feeds',
-            name='uniqueid',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
-        ),
+        # migrations.AlterField(
+        #     model_name='feeds',
+        #     name='uniqueid',
+        #     field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
+        # ),
     ]

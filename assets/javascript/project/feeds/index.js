@@ -178,7 +178,7 @@ const Feeds = (props) => {
 		if(props.currentgroup == '') history.push('/');
 		else{
 			let params = {
-				currentgroup: props.currentgroup
+				id: props.currentgroup
 			}
 			fetch('/api/feedlist', {
 				method: 'post',

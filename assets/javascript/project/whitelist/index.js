@@ -62,7 +62,7 @@ const WhiteList = (props) => {
         else if(props.indicators[index].enabled === 'Disable')
             params = {id:props.indicators[index].id, enabled: 'Enable'};
         fetch('/api/indicators', {
-            method: 'post',
+            method: 'put',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': props.client.transports[0].auth.csrfToken

@@ -33,7 +33,7 @@ from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerial
 	CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
 		TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, \
 			GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, \
-				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, SubscriptionSerializer, UserGlobalIndicatorSerializer
+				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, UserGlobalIndicatorSerializer
 
 @csrf_exempt
 def apifeeds(request):
@@ -51,10 +51,23 @@ def apifeeds(request):
 		
 	if not 'uuids' in body:
 		for role in UserIntelGroupRoles.objects.filter(user_id=userid).all():
-			groupids.append(role.intelgroup_id)
+			subid = IntelGroups.objects.filter(id=role.intelgroup_id).last().plan_id
+			if subid != None:
+				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+				custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
+				current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
+				if custom_feeds == 'true' and current_period_end.replace(tzinfo=None) > datetime.now():
+					groupids.append(role.intelgroup_id)
 	else:
 		for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']):
-			groupids.append(group.id)
+			if group.plan_id != None:
+				planid = Subscription.objects.filter(djstripe_id=group.plan_id).last().plan_id
+				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+				custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
+				current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
+				if custom_feeds == 'true' and current_period_end.replace(tzinfo=None) > datetime.now():
+					groupids.append(group.id)
 	if not 'confidence' in body:
 		if not 'category' in body:
 			if not 'tags' in body:
@@ -335,6 +348,7 @@ def apireports(request):
 	body = json.loads(body_unicode)
 	groupid = 0
 	userid = 0
+	tempgroupids = []
 	groupids = []
 	feedids = []
 	for apikey in APIKeys.objects.all():
@@ -346,10 +360,10 @@ def apireports(request):
 	if not 'attributes' in body:
 		if not 'uuids' in body:
 			for role in UserIntelGroupRoles.objects.filter(user_id=userid):
-				groupids.append(role.intelgroup_id)
+				tempgroupids.append(role.intelgroup_id)
 		else:
 			for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']):
-				groupids.append(group.id)
+				tempgroupids.append(group.id)
 	else:
 		if not 'uuids' in body:
 			attributelist = list(body['attributes'])
@@ -359,11 +373,11 @@ def apireports(request):
 					tempids.append(globalattribute.intelgroup_id)
 			for tempid in tempids:
 				flag = True
-				for groupid in groupids:
+				for groupid in tempgroupids:
 					if tempid == groupid:
 						flag = False
 				if flag:
-					groupids.append(tempid)
+					tempgroupids.append(tempid)
 		else:
 			attributelist = list(body['attributes'])
 			apitempids = []
@@ -376,8 +390,16 @@ def apireports(request):
 			for uuidtempid in uuidtempids:
 				for apitempid in apitempids:
 					if uuidtempid == apitempid:
-						groupids.append(uuidtempid)
-		
+						tempgroupids.append(uuidtempid)
+	for group in IntelGroups.objects.filter(id__in=tempgroupids).all():
+		if group.plan_id != None:
+			planid = Subscription.objects.filter(djstripe_id=group.plan_id).last().plan_id
+			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+			custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
+			current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
+			if custom_feeds == 'true' and current_period_end.replace(tzinfo=None) > datetime.now():
+				groupids.append(group.id)
+
 	if not 'feedids' in body:
 		if not 'created_at' in body:
 			if not 'updated_at' in body:
@@ -1042,8 +1064,6 @@ def searchfeeds(request):
 					if(request.data['tags'] in feed.tags):
 						data.append(feed)
 			if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
-				print('sdfsd')
-				print(request.data)
 				data = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence']).order_by('id').all()
 			if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
 				data = Feeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all()
@@ -1058,7 +1078,6 @@ def searchfeeds(request):
 					if(request.data['tags'] in t.tags):
 						data.append(t)
 			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
-				print('sdf')
 				temp = Feeds.objects.filter(intelgroup_id=currentgroup,  category_id = request.data['category'], confidence__gte=request.data['confidence']).order_by('id').all()
 				for t in temp:
 					if(request.data['tags'] in t.tags):
@@ -1426,7 +1445,6 @@ def intelgroups(request):
 		serializer = RoleGroupSerializer(new_role[0])
 		return Response(serializer.data)
 	if request.method == 'PUT':
-		print(request.data)
 		IntelGroups.objects.filter(id=request.data['id']).update(name=request.data['name'],description=request.data['description'])
 		new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id'], user_id=request.user.id).all()
 		serializer = RoleGroupSerializer(new_role[0])
@@ -1528,7 +1546,6 @@ def changegroup(request, subscription_holder=None):
 	isAutoDown = False
 	message = ''
 	subid = IntelGroups.objects.filter(id=request.data['groupid']).last().plan_id
-	print(subid)
 	created_at = IntelGroups.objects.filter(id=request.data['groupid']).last().created_at
 	if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
 		if subid == None:

@@ -16,14 +16,9 @@
       <div class="column has-text-centered">
         <div class="plan{% if current_product_id == product.metadata.stripe_id %} is-selected{% endif %}"
              data-product-id="{{ product.stripe_id }}" data-plan-id="{{ product.default_plan.id }}" >
-          <div class="plan-summary">
-            <!-- <div class="plan-icon">
-              <span class="icon is-medium">
-                <i class="fa"></i>
-              </span>
-            </div> -->
-            <div class="plan-details">
-              <p class="title is-size-4">{{ product.metadata.name }}</p>
+          <div class="has-text-centered">
+            <div class="plan-detail">
+              <p class="title is-size-3">{{ product.metadata.name }}</p>
             </div>
           </div>
           <p class="plan-tagline is-size-6">{{ product.metadata.description }}</p>

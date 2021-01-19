@@ -28,7 +28,7 @@ from djstripe.models import Product, Plan, Subscription
 from dateutil import parser as dateutil_parser
 
 from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, \
-	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes
+	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory
 from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, \
 	CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
 		TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, \
@@ -48,7 +48,22 @@ def apifeeds(request):
 			userid = apikey.user_id
 	if groupid == 0 and userid == 0:
 		return render(request, 'project/feeds.html', {'feeds':'This is invalid apikey.'})
-		
+	subid = IntelGroups.objects.filter(id=groupid).last().plan_id
+	created_at = IntelGroups.objects.filter(id=groupid).last().created_at
+	if subid == None:
+		if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
+			return render(request, 'project/feeds.html', {'feeds': "Please select plan to perform this action."})
+	else:
+		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+		productid = Plan.objects.filter(djstripe_id=planid).product_id
+		current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
+		history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
+		if Product.objects.filter(djstripe_id=productid).last().metadata['api_access'] == 'true':
+			if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
+				return render(request, 'project/feeds.html', {'feeds': 'Please select plan to perform this action.'})
+		else:
+			return render(request, 'project/feeds.html', {'feeds':'You are not allowed to access.'})
+
 	if not 'uuids' in body:
 		for role in UserIntelGroupRoles.objects.filter(user_id=userid).all():
 			subid = IntelGroups.objects.filter(id=role.intelgroup_id).last().plan_id
@@ -357,6 +372,21 @@ def apireports(request):
 		userid = apikey.user_id
 	if groupid == 0 and userid == 0:
 		return render(request, 'project/reports.html', {'reports':'This is invalid apikey.'})
+	subid = IntelGroups.objects.filter(id=groupid).last().plan_id
+	created_at = IntelGroups.objects.filter(id=groupid).last().created_at
+	if subid == None:
+		if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
+			return render(request, 'project/reports.html', {'reports': "Please select plan to perform this action."})
+	else:
+		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+		productid = Plan.objects.filter(djstripe_id=planid).product_id
+		current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
+		history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
+		if Product.objects.filter(djstripe_id=productid).last().metadata['api_access'] == 'true':
+			if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
+				return render(request, 'project/reports.html', {'reports': 'Please select plan to perform this action.'})
+		else:
+			return render(request, 'project/reports.html', {'reports':'You are not allowed to access.'})
 	if not 'attributes' in body:
 		if not 'uuids' in body:
 			for role in UserIntelGroupRoles.objects.filter(user_id=userid):
@@ -467,6 +497,21 @@ def apigroups(request):
 	if groupid == 0 and userid == 0:
 		return render(request, 'project/intel_groups.html', {'feeds':'This is invalid apikey.'})
 	groups = UserIntelGroupRoles.objects.filter(intelgroup_id=groupid, user_id=userid).all()
+	subid = groups[0].plan_id
+	created_at = groups[0].created_at
+	if subid == None:
+		if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
+			return render(request, 'project/intel_groups.html', {'groups':"Please select plan to perform this action."})
+	else:
+		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+		productid = Plan.objects.filter(djstripe_id=planid).product_id
+		current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
+		history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
+		if Product.objects.filter(djstripe_id=productid).last().metadata['api_access'] == 'true':
+			if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
+				return render(request, 'project/intel_groups.html', {'groups': 'Please select plan to perform this action.'})
+		else:
+			return render(request, 'project/intel_groups.html', {'groups':'You are not allowed to access.'})
 	group_serializer = GroupRoleSerializer(groups[0])
 	return render(request, 'project/intel_groups.html', {'groups':json.dumps(group_serializer.data)})
 
@@ -1246,8 +1291,19 @@ def indicators(request):
 @api_view(['POST'])
 def invite(request):
 	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
-	
-	if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=30):
+	subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
+	flag = False
+	if subid == None:
+		if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=30):
+			flag =True			
+	else:
+		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+		max_users = Product.objects.filter(djstripe_id=productid).last().metadata['max_users']
+		users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id']).all()
+		if len(users) < max_users:
+			flag = True
+	if flag:
 		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
 		message = Mail(
 			from_email='kardzavaryan@gmail.com',
@@ -1281,13 +1337,6 @@ def invite(request):
 		if(len(data) == 0):
 				data=[{'role': 'success'}]
 		return Response(data)
-	else:
-		subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
-		if subid == None:
-			return Response({'isPlan': False})
-		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-		max_users = Product.objects.filter(djstripe_id=productid).last().metadata['max_users']
 
 @api_view(['POST'])
 def currentrole(request):
@@ -1555,7 +1604,6 @@ def changegroup(request, subscription_holder=None):
 				message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
 			else:
 				isPlan = False
-				
 		else:
 			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
 			if datetime.now() > current_period_end.replace(tzinfo=None):

@@ -17,11 +17,11 @@
         <div class="plan{% if current_product_id == product.metadata.stripe_id %} is-selected{% endif %}"
              data-product-id="{{ product.stripe_id }}" data-plan-id="{{ product.default_plan.id }}" >
           <div class="plan-summary">
-            <div class="plan-icon">
+            <!-- <div class="plan-icon">
               <span class="icon is-medium">
                 <i class="fa"></i>
               </span>
-            </div>
+            </div> -->
             <div class="plan-details">
               <p class="title is-size-4">{{ product.metadata.name }}</p>
             </div>
@@ -56,7 +56,7 @@
     <div class="column is-three-quarters">
       <form id="subscription-form">
         {% include 'stripe/components/card_element.html' %}
-        <button type="submit" id="subscribe-button" class="button is-primary">Upgrade</button>
+        <button type="submit" id="subscribe-button" class="button is-primary">Submit</button>
         <button class="button is-outlined" onclick="Cancel()">Cancel</button>
         <div class="my-1" id="payment-details" ></div>
       </form>
@@ -87,12 +87,12 @@
   const userEmail = '{{ user.email }}';
   const createCustomerUrl = "{{ subscription_urls.create_customer }}";
   const subscriptionSuccessUrl = "{{ subscription_urls.subscription_intelgroup }}";
-  console.log(activeProducts);
   // const paymentDetailsElement = document.getElementById('payment-details');
   const form = document.getElementById('subscription-form');
   const subscribeButton = document.getElementById('subscribe-button');
   const cardElement = Payments.createCardElement(stripe);
   const groupid = '{{groupid}}'
+  const current_product_id = '{{current_product_id}}'
 
   let submissionPending = false;
   const getSelectedPlanElement = function () {
@@ -118,6 +118,7 @@
       paymentParams.plan_id = selectedPlan;
       paymentParams.payment_method = result.paymentMethod.id;
       paymentParams.groupid = groupid
+      
       fetch(createCustomerUrl, {
         method: 'post',
         headers: {
@@ -129,6 +130,11 @@
       }).then(function(response) {
         return response.json();
       }).then(function(result) {
+        console.log(result);
+        if(Boolean(result.feeds) || Boolean(result.users)){
+          helpLabel.innerHTML = `<h1 class="is-size-4">You can't downgrade your plan until you correct the features where quota is exceeded.</h1>`;
+          // document.querySelector('section').innerHTML=`<h1>You can't downgrade your plan until you correct the features where quota is exceeded.</h1>`
+        }
         if (result.error) {
           handleError(result.error.message);
           submissionPending = false;
@@ -214,8 +220,8 @@
           annualSelector.classList.add('is-selected', 'is-primary');
           monthlySelector.classList.remove('is-selected', 'is-primary');
           // helpLabel.innerText = annualHelpText;
-          helpLabel.classList.add('is-primary');
-        helpLabel.classList.remove('is-danger');
+          helpLabel.classList.add('is-danger');
+        // helpLabel.classList.remove('is-danger');
       }
       updatePlans(isAnnual);
     } else {
@@ -224,7 +230,7 @@
         monthlySelector.classList.add('is-selected', 'is-primary');
         // helpLabel.innerText = monthlyHelpText;
         helpLabel.classList.add('is-danger');
-        helpLabel.classList.remove('is-primary');
+        // helpLabel.classList.remove('is-primary');
       }
       updatePlans(isAnnual);
     }
@@ -276,17 +282,32 @@
 
   form.addEventListener('submit', function(event){
     event.preventDefault();
-    if (getSelectedPlanElement() && !submissionPending) {
-      submissionPending = true;
-      subscribeButton.classList.add('is-loading');
-      stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: {
-          email: userEmail,
-        },
-      }).then(handlePaymentMethodCreated);
-    }
+    let selectedPlanElement = getSelectedPlanElement()
+    if(selectedPlanElement.dataset.productId > current_product_id)
+      if(confirm("If you downgrade, you will lose custom mapping functionality and lose API access. Are you sure to downgrade?"))
+        if (getSelectedPlanElement() && !submissionPending) {
+          submissionPending = true;
+          subscribeButton.classList.add('is-loading');
+          stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+            billing_details: {
+              email: userEmail,
+            },
+          }).then(handlePaymentMethodCreated);
+        }
+    if(selectedPlanElement.dataset.productId < current_product_id)
+      if (getSelectedPlanElement() && !submissionPending) {
+        submissionPending = true;
+        subscribeButton.classList.add('is-loading');
+        stripe.createPaymentMethod({
+          type: 'card',
+          card: cardElement,
+          billing_details: {
+            email: userEmail,
+          },
+        }).then(handlePaymentMethodCreated);
+      }
   });
 </script>
 {% endblock %}

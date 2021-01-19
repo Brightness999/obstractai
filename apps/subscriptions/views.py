@@ -23,7 +23,7 @@ from .decorators import redirect_subscription_errors
 from .helpers import get_friendly_currency_amount
 from .metadata import get_active_products_with_metadata,\
     get_product_and_metadata_for_subscription, ACTIVE_PLAN_INTERVALS, get_active_plan_interval_metadata
-from project.models import UserIntelGroupRoles, IntelGroups
+from project.models import UserIntelGroupRoles, IntelGroups, Feeds
 from apps.users.models import CustomUser
 
 
@@ -42,8 +42,6 @@ def subscription(request, subscription_holder=None, groupid=2):
     subscription_holder = subscription_holder if subscription_holder else request.user
     # subid = CustomUser.objects.filter(id=request.user.id).last().subscription_id
     # groupid = IntelGroups.objects.filter(plan_id=subid).last().id
-    print(subscription_holder)
-    print(request.user)
     if IntelGroups.objects.filter(id=groupid).values()[0]['plan_id'] != None:
         return _view_subscription(request, subscription_holder, groupid)
     else:
@@ -234,13 +232,54 @@ def create_customer(request, subscription_holder=None):
     """
     subscription_holder = subscription_holder if subscription_holder else request.user
     request_body = json.loads(request.body.decode('utf-8'))
-    print(request_body)
     user_id = int(request_body['user_id'])
     email = request_body['user_email']
     assert request.user.id == user_id
     assert request.user.email == email
     
-    
+    subid = IntelGroups.objects.filter(id=request_body['groupid']).last().plan_id
+    if subid != None:
+        planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+        productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+        plan_id = request_body['plan_id']
+        product_id = Plan.objects.filter(id=plan_id).last().product_id
+        product_name = Product.objects.filter(djstripe_id=product_id).last().name
+        max_users = Product.objects.filter(djstripe_id=product_id).last().metadata['max_users']
+        max_feeds = Product.objects.filter(djstripe_id=product_id).last().metadata['max_feeds']
+        current_product_name = Product.objects.filter(djstripe_id=productid).last().name
+        if (current_product_name=='Large' and product_name=='Medium') or (current_product_name=='Large' and product_name=='Starter') or (current_product_name=='Medium' and product_name=='Starter'):
+            print('ok')
+            users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()
+            feeds = Feeds.objects.filter(intelgroup_id=request_body['groupid'])
+            if len(users) > int(max_users) and len(feeds) > int(max_feeds):
+                print(len(users))
+                print(len(feeds))
+                print('success')
+
+                result = {
+                    'users': len(users),
+                    'feeds': len(feeds)
+                }
+                return JsonResponse(
+                    data=result,
+                )
+            elif len(users) > int(max_users):
+                result = {
+                    'users': len(users),
+                }
+                return JsonResponse(
+                    data=result,
+                )
+            elif len(feeds) > int(max_feeds):
+                result = {
+                    'feeds': len(feeds)
+                }
+                return JsonResponse(
+                    data=result,
+                )
+
+
+
     
     payment_method = request_body['payment_method']
     plan_id = request_body['plan_id']

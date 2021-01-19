@@ -31,7 +31,6 @@ class Home(ObjectLifecycleView):
 # from .feeds import *
 from .intelgroups import *
 from .users import *
-from .plans import *
 from .customers import *
 from .feeds import *
 from .categories import *

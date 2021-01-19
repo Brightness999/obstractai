@@ -209,3 +209,136 @@ class UserGroupAttributeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attributes
         fields = ('__all__')
+
+class ChangeEmailSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    email = serializers.CharField(max_length=100)
+
+class IDSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+
+class AccepInviteSerializer(serializers.Serializer):
+    intelgroup_id = serializers.IntegerField()
+    name = serializers.CharField(max_length=100)
+
+class AttributeCreateSerializer(serializers.Serializer):
+    attribute = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
+    words_matched = serializers.CharField(max_length=100)
+    enabled = serializers.CharField(max_length=100)
+    currentgroup = serializers.IntegerField()
+
+class AttributeUpdateSerializer(serializers.Serializer):
+    extraction_id = serializers.IntegerField()
+    enabled = serializers.CharField(max_length=100)
+
+class CategoryCreateSerializer(serializers.Serializer):
+    currentgroup = serializers.IntegerField()
+    name = serializers.CharField(max_length=100)
+
+class ManageEnabledSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    manage_enabled = serializers.CharField(max_length=100)
+
+class FeedCreateSerializer(serializers.Serializer):
+    url = serializers.CharField(max_length=100)
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField(max_length=100)
+    category = serializers.IntegerField()
+    tags = serializers.IntegerField()
+    confidence = serializers.IntegerField()
+    intelgroup_id = serializers.IntegerField()
+
+class FeedUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    url = serializers.CharField(max_length=100)
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField(max_length=100)
+    manage_enabled = serializers.CharField(max_length=100)
+    category = serializers.IntegerField()
+    tags = serializers.IntegerField()
+    confidence = serializers.IntegerField()
+
+class GlobalAttributeCreateSerializer(serializers.Serializer):
+    attribute = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
+    description = serializers.CharField(max_length=100)
+    words_matched = serializers.CharField(max_length=100)
+    enabled = serializers.CharField(max_length=100)
+    currentgroup = serializers.IntegerField()
+
+class GlobalAttributeUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    attribute = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
+    description = serializers.CharField(max_length=100)
+    words_matched = serializers.CharField(max_length=100)
+    enabled = serializers.CharField(max_length=100)
+    currentgroup = serializers.IntegerField()
+
+class GlobalIndicatorCreateSerializer(serializers.Serializer):
+    type = serializers.CharField(max_length=100)
+    type_api = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
+    value_api = serializers.CharField(max_length=100)
+    enabled = serializers.CharField(max_length=100)
+
+class EnabledSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    enabled = serializers.CharField(max_length=100)
+
+class IntelgroupCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField(max_length=100)
+    userids = serializers.ListField(
+        child = serializers.IntegerField()
+    )
+    emails = serializers.ListField(
+        child = serializers.CharField(max_length=100)
+    )
+
+class InviteSerializer(serializers.Serializer):
+    group_id = serializers.IntegerField()
+    userids = serializers.ListField(
+        child = serializers.IntegerField()
+    )
+    emails = serializers.ListField(
+        child = serializers.CharField(max_length=100)
+    )
+
+class RoleUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    groupid = serializers.IntegerField()
+    role = serializers.CharField(max_length=100)
+
+class SearchFeedSerializer(serializers.Serializer):
+    currentgroup = serializers.IntegerField()
+    category = serializers.IntegerField()
+    confidence = serializers.IntegerField()
+    tags = serializers.CharField(max_length=100)
+
+class SearchReportSerializer(serializers.Serializer):
+    classification = serializers.IntegerField()
+    category = serializers.IntegerField()
+    tag = serializers.IntegerField()
+    confidence = serializers.IntegerField()
+    feedname = serializers.IntegerField()
+    indicator = serializers.IntegerField()
+
+class WebhookCreateSerializer(serializers.Serializer):
+    intelgroup_id = serializers.IntegerField()
+    endpoint = serializers.CharField(max_length=300)
+    description = serializers.CharField(max_length=300)
+
+class WebhookUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    intelgroup_id = serializers.IntegerField()
+    endpoint = serializers.CharField(max_length=300)
+    description = serializers.CharField(max_length=300)
+
+class WhitelistCreateSerializer(serializers.Serializer):
+    indicator = serializers.IntegerField()
+    value = serializers.CharField(max_length=100)
+    enabled = serializers.CharField(max_length=100)
+
+

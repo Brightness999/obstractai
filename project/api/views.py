@@ -26,6 +26,8 @@ from rest_framework import generics
 from apps.users.models import CustomUser
 from djstripe.models import Product, Plan, Subscription
 from dateutil import parser as dateutil_parser
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, \
 	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory
@@ -33,7 +35,11 @@ from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerial
 	CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
 		TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, \
 			GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, \
-				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, UserGlobalIndicatorSerializer
+				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, \
+					UserGlobalIndicatorSerializer, CommentSerializer, ChangeEmailSerializer, IDSerializer, AccepInviteSerializer, AttributeCreateSerializer, AttributeUpdateSerializer, \
+						CategoryCreateSerializer, ManageEnabledSerializer,FeedCreateSerializer,FeedUpdateSerializer,GlobalAttributeCreateSerializer,GlobalAttributeUpdateSerializer, \
+							GlobalIndicatorCreateSerializer,EnabledSerializer,IntelgroupCreateSerializer,InviteSerializer,RoleUpdateSerializer,SearchFeedSerializer,SearchReportSerializer, \
+								WebhookCreateSerializer,WebhookUpdateSerializer,WhitelistCreateSerializer
 
 @csrf_exempt
 def apifeeds(request):
@@ -515,6 +521,7 @@ def apigroups(request):
 	group_serializer = GroupRoleSerializer(groups[0])
 	return render(request, 'project/intel_groups.html', {'groups':json.dumps(group_serializer.data)})
 
+@swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['GET'])
 def account(request):
     profile = CustomUser.objects.filter(id=request.user.id).all()[0]
@@ -538,6 +545,8 @@ def account(request):
     
     return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
 
+
+@swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['POST'])
 def emailchange(request):
 	CustomUser.objects.filter(id=request.data['id']).update(email=request.data['email'])
@@ -1057,8 +1066,8 @@ def feeds(request):
 @api_view(['POST'])
 def feedlist(request):
 	if not request.user.is_staff:
-		created_at = IntelGroups.objects.filter(id=request.data['currentgroup']).last().created_at
-		subid = IntelGroups.objects.filter(id=request.data['currentgroup']).last().plan_id
+		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
 		customfeeds = True
 		message = ''
 		if subid != None:
@@ -1066,18 +1075,18 @@ def feedlist(request):
 			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 			if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
 				customfeeds = False
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 2:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 1:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).filter(manage_enabled='true').order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 0:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).filter(manage_enabled='true').order_by('id').all()
 		feed_serializer = FeedCategorySerializer(feeds, many=True)
 		categories = Categories.objects.order_by('id').all()
 		category_serializer = CategorySerializer(categories, many=True)
 		tags = Tags.objects.order_by('id').all()
 		tag_serializer = TagSerializer(tags, many=True)
-		currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+		currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
 		role_serializer = UserGroupRoleSerializer(currentrole[0])
 		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data,'customfeeds':customfeeds})
 
@@ -1282,7 +1291,7 @@ def whitelist(request):
 		serializer = UserIndicatorWhitelistSerializer(Whitelists.objects.filter(id=request.data['id']).last())
 		return Response(serializer.data)
 
-@api_view(['POST'])
+@api_view(['PUT'])
 def indicators(request):
 	Indicators.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
 	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
@@ -1301,7 +1310,7 @@ def invite(request):
 		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 		max_users = Product.objects.filter(djstripe_id=productid).last().metadata['max_users']
 		users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id']).all()
-		if len(users) < max_users:
+		if len(users) < int(max_users):
 			flag = True
 	if flag:
 		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
@@ -1340,7 +1349,7 @@ def invite(request):
 
 @api_view(['POST'])
 def currentrole(request):
-	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
 	serializer = UserGroupRoleSerializer(currentrole[0])
 	return Response({'currentrole':serializer.data})
 
@@ -1410,7 +1419,7 @@ def home(request):
 	intelgroups = IntelGroupSerializer(IntelGroups.objects.order_by('id').all(), many=True)
 	return Response({'mygroups':groups.data, 'users':users.data, 'userinfo':userinfo.data, 'intelgroups':intelgroups.data})
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 def leavegroup(request):
 	result = []
 	role = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().role
@@ -1536,7 +1545,7 @@ def acceptinvite(request):
 	result = RoleGroupSerializer(groups, many=True)
 	return Response(result.data)
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 def rejectinvite(request):
 	userid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().user_id
 	useremail = CustomUser.objects.filter(id=userid).last().email
@@ -1584,8 +1593,8 @@ def users(request):
 		serializer = CustomUserSerializer(CustomUser.objects.all(), many=True)
 		return Response(serializer.data)
 	if request.method == 'POST':
-		user_role = UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['groupid'], user_id=request.user.id).last().role
-		serializer = UserIntelGroupRolesSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid']).all(), many=True)
+		user_role = UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['id'], user_id=request.user.id).last().role
+		serializer = UserIntelGroupRolesSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
 		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role})
 
 @api_view(['POST'])
@@ -1594,8 +1603,8 @@ def changegroup(request, subscription_holder=None):
 	isInit = False
 	isAutoDown = False
 	message = ''
-	subid = IntelGroups.objects.filter(id=request.data['groupid']).last().plan_id
-	created_at = IntelGroups.objects.filter(id=request.data['groupid']).last().created_at
+	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
 	if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
 		if subid == None:
 			if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=30):

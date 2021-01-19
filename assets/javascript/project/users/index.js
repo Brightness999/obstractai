@@ -99,7 +99,7 @@ const User = (props) => {
 	const [myId, setMyId] = useState([]);
 	const [groupRole, setGroupRole] = useState([]);
 	let params = {
-		groupid: group_id
+		id: group_id
 	}
 	useEffect(() => {
 		fetch('/api/users', {

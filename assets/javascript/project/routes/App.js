@@ -67,7 +67,7 @@ const App = () => {
   },[]);
   
   const currentIntelgroup = (intelgroup) => {
-    let params = {groupid:intelgroup};
+    let params = {id:intelgroup};
     fetch('/api/changegroup', {
       method:'post',
       headers: {

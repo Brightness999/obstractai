@@ -8,7 +8,7 @@ const MenuBar = (props) => {
     useEffect(()=>{
         setCurrentGroup(props.currentgroup);
         if(!props.userinfo.is_staff){
-            let params = {currentgroup:props.currentgroup};
+            let params = {id:props.currentgroup};
             if(props.currentgroup != '')
                 fetch('/api/currentrole', {
                     method: 'post',

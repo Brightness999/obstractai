@@ -109,7 +109,7 @@ const Intelgroups = (props) => {
     const rejectInvite = (index) => {
         const params = {id: intelgroups[index].id};
 		fetch('/api/rejectinvite',{
-			method: 'post',
+			method: 'delete',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': props.client.transports[0].auth.csrfToken
@@ -124,7 +124,7 @@ const Intelgroups = (props) => {
         const params = {id: intelgroups[index].id};
         if(confirm('Are you sure to leave this group?'))
             fetch('/api/leavegroup', {
-                method: 'post',
+                method: 'delete',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': props.client.transports[0].auth.csrfToken

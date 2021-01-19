@@ -23,7 +23,7 @@ from .decorators import redirect_subscription_errors
 from .helpers import get_friendly_currency_amount
 from .metadata import get_active_products_with_metadata,\
     get_product_and_metadata_for_subscription, ACTIVE_PLAN_INTERVALS, get_active_plan_interval_metadata
-from project.models import UserIntelGroupRoles, IntelGroups, Feeds
+from project.models import UserIntelGroupRoles, IntelGroups, Feeds, PlanHistory
 from apps.users.models import CustomUser
 
 
@@ -248,14 +248,9 @@ def create_customer(request, subscription_holder=None):
         max_feeds = Product.objects.filter(djstripe_id=product_id).last().metadata['max_feeds']
         current_product_name = Product.objects.filter(djstripe_id=productid).last().name
         if (current_product_name=='Large' and product_name=='Medium') or (current_product_name=='Large' and product_name=='Starter') or (current_product_name=='Medium' and product_name=='Starter'):
-            print('ok')
             users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()
             feeds = Feeds.objects.filter(intelgroup_id=request_body['groupid'])
             if len(users) > int(max_users) and len(feeds) > int(max_feeds):
-                print(len(users))
-                print(len(feeds))
-                print('success')
-
                 result = {
                     'users': len(users),
                     'feeds': len(feeds)
@@ -318,7 +313,8 @@ def create_customer(request, subscription_holder=None):
     subscription_holder.subscription = djstripe_subscription
     subscription_holder.save()
     sub_id = djstripe.models.Subscription.objects.last()
-    IntelGroups.objects.filter(id=request_body['groupid']).update(plan_id=sub_id);
+    IntelGroups.objects.filter(id=request_body['groupid']).update(plan_id=sub_id.djstripe_id);
+    PlanHistory.objects.create(intelgroup_id=request_body['groupid'], sub_id=sub_id.djstripe_id, start=sub_id.current_period_start, end=sub_id.current_period_end)
     data = {
         'customer': customer,
         'subscription': subscription

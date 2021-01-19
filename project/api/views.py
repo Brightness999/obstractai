@@ -48,6 +48,7 @@ def apifeeds(request):
 			userid = apikey.user_id
 	if groupid == 0 and userid == 0:
 		return render(request, 'project/feeds.html', {'feeds':'This is invalid apikey.'})
+		
 	if not 'uuids' in body:
 		for role in UserIntelGroupRoles.objects.filter(user_id=userid).all():
 			groupids.append(role.intelgroup_id)
@@ -1536,10 +1537,6 @@ def changegroup(request, subscription_holder=None):
 				date = str(created_at.replace(tzinfo=None)+timedelta(days=30)).split(' ')[0]
 				message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
 			else:
-				# starterid = Plan.objects.filter(interval='month', amount=0).last().djstripe_id
-				# print(datetime.now()+timedelta(days=30))
-				# Subscription.objects.create(plan_id=starterid, current_period_end=(datetime.now()+timedelta(days=30)), current_period_start=datetime.now(), start=datetime.now(), start_date=datetime.now())
-				# IntelGroups.objects.filter(id=request.data['groupid']).update(plan_id=Subscription.objects.last().djstripe_id)
 				isPlan = False
 				
 		else:

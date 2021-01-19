@@ -3,12 +3,10 @@ from django.db import models
 
 from apps.utils.models import BaseModel
 from .intelgroups import IntelGroups
+from djstripe.models import Subscription
 
-
-class UserIntelGroupRoles(BaseModel):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
+class PlanHistory(BaseModel):
     intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
-    role = models.PositiveIntegerField()
-
-    # def __str__(self):
-    #     return self.role
+    sub = models.ForeignKey(Subscription, on_delete=models.CASCADE, null=True)
+    start = models.DateTimeField()
+    end = models.DateTimeField()

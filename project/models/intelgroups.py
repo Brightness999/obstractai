@@ -8,7 +8,6 @@ from django.db import models
 from apps.utils.models import BaseModel
 
 from djstripe.models import Subscription
-from .plans import Plans
 
 
 

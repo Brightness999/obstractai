@@ -86,6 +86,7 @@ PROJECT_APPS = [
 
 SWAGGER_APPS = [
     'rest_framework_swagger',
+    'drf_yasg',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS

@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
-import { Container, Grid, TextField, Tooltip } from "@material-ui/core";
+import { 
+	Container, Grid, TextField, Tooltip, Dialog, 
+	DialogActions, DialogContent, DialogTitle 
+} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
+import ExtractionTable from "./extraction-table";
 
 const Loading = () => {
 	return (
@@ -41,34 +45,47 @@ const ExtractionList = (props) => {
 	const [words, setWords] = useState('');
 	const [isAlert, setIsAlert] = useState(false);
 	const [groupError, setGroupError] = useState(false);
+	const [bannerCustom, setBannerCustom] = useState(false);
+	const [bannerAdd, setBannerAdd] = useState(false);
 	
 	const saveExtraction = () => {
-		let params = {
-			attribute: type.trim(),
-			value: value.trim(),
-			words_matched: words.trim(),
-			enabled: 'Enable',
-			currentgroup: props.currentgroup
+
+		if(props.customobservable){
+			let params = {
+				attribute: type.trim(),
+				value: value.trim(),
+				words_matched: words.trim(),
+				enabled: 'Enable',
+				currentgroup: props.currentgroup
+			}
+			if(props.currentgroup == '') setGroupError(true);
+			if(type == '' || value == '' || words == '') setIsAlert(true);
+			if(type != '' && value != '' && words != '' && props.currentgroup != ''){
+				setIsAdd(false);
+				setType('');
+				setValue('');
+				setWords('');
+				fetch('/api/attributes', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					if(Boolean(res.message)){
+						setBannerAdd(true);
+					}
+					else{
+						props.saveExtraction(res);
+					}
+				})
+			}
 		}
-		if(props.currentgroup == '') setGroupError(true);
-		if(type == '' || value == '' || words == '') setIsAlert(true);
-		if(type != '' && value != '' && words != '' && props.currentgroup != ''){
-			setIsAdd(false);
-			setType('');
-			setValue('');
-			setWords('');
-			fetch('/api/attributes', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res=>{return res.json()})
-			.then(res=>{
-				props.saveExtraction(res);
-			})
+		else{
+			setBannerCustom(true);
 		}
 	}
 
@@ -81,7 +98,11 @@ const ExtractionList = (props) => {
 
 	const changeStatus = (index) => {
 		let params = {
-			extraction_id: props.extractionlist[index].id,
+			id: props.extractionlist[index].id,
+			attribute: props.extractionlist[index].type,
+			value: props.extractionlist[index].value,
+			words_matched: props.extractionlist[index].words,
+			currentgroup: props.globalattributes[index].intelgroup.id,
 			enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
 		}
 		fetch('/api/attributes',{
@@ -98,6 +119,29 @@ const ExtractionList = (props) => {
 		})
 	}
 
+	const EditAttribute = (index, words, value, type, enabled) => {
+        let params = {
+            id: props.globalattributes[index].id,
+            attribute: type.trim(),
+			value: value.trim(),
+			words_matched: words.trim(),
+			currentgroup: props.globalattributes[index].intelgroup.id,
+			enabled: enabled.trim()
+		}
+		fetch('/api/attributes',{
+			method: 'put',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify(params)
+		}).then(res=>{return res.json()})
+		.then(res=>{
+			props.saveExtraction(res);
+		})
+    }
+
 	return (
 		<Container>
 			<section className="section">
@@ -106,15 +150,17 @@ const ExtractionList = (props) => {
 					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
 					<span className="subtitle is-5">{props.message}</span>
 				</Alert>}
+				{bannerCustom && <Alert severity="error" onClose={()=>setBannerCustom(false)}>Sorry, your plan does not currently cover custom attribute abstractions. You can upgrade now to enable this feature here.</Alert>}
+				{bannerAdd && <Alert severity="error" onClose={()=>setBannerAdd(false)}>The attribute already exists! Please find out it and edit.</Alert>}
 				<h1 className="title is-3">Manage Observable extractions</h1>
 				<Grid container>
 					<Grid item xs={9}>
 						<label className="title is-5">Custom extractions</label>
 					</Grid>
 					<Grid item xs={3}>
-						{props.customobservable&&<button className="button is-link is-rounded is-medium has-pulled-right" onClick={()=>setIsAdd(true)} >
+						<button className="button is-link is-rounded is-medium has-pulled-right" onClick={()=>setIsAdd(true)} >
 							Add extraction
-						</button>}
+						</button>
 					</Grid>
 				</Grid>
 				{isAlert && <Alert severity="warning" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
@@ -122,8 +168,8 @@ const ExtractionList = (props) => {
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>
-							<Th>Observable Type</Th>
-							<Th>Observable Value</Th>
+							<Th>Observable Type(API)</Th>
+							<Th>Observable Value(API)</Th>
 							<Th>Words to match on</Th>
 							<Th>Actions</Th>
 						</Tr>
@@ -139,12 +185,8 @@ const ExtractionList = (props) => {
 							</Tr>
 						}
 						{props.extractionlist.map((extraction, index)=>{
-							return <Tr index={index} key={extraction.id}>
-								<Td>{extraction.attribute+'('+extraction.api_attribute+')'}</Td>
-								<Td>{extraction.value+'('+extraction.api_value+')'}</Td>
-								<Td>{extraction.words_matched}</Td>
-								<Td><a className="button is-text" onClick={()=>changeStatus(index)}>{extraction.enabled}</a></Td>
-							</Tr>
+							return <ExtractionTable index={index} key={extraction.id} extraction={extraction} 
+								changeStatus={(index)=>changeStatus(index)} EditAttribute={(index, words, value, type, enabled)=>EditAttribute(index, words, value, type, enabled)} />
 						})}
 					</Tbody>
 				</Table>

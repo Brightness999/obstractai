@@ -97,12 +97,13 @@ const ExtractionList = (props) => {
 	}
 
 	const changeStatus = (index) => {
+		console.log(props.extractionlist)
 		let params = {
 			id: props.extractionlist[index].id,
-			attribute: props.extractionlist[index].type,
+			attribute: props.extractionlist[index].attribute,
 			value: props.extractionlist[index].value,
-			words_matched: props.extractionlist[index].words,
-			currentgroup: props.globalattributes[index].intelgroup.id,
+			words_matched: props.extractionlist[index].words_matched,
+			currentgroup: props.extractionlist[index].intelgroup.id,
 			enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
 		}
 		fetch('/api/attributes',{
@@ -115,17 +116,18 @@ const ExtractionList = (props) => {
 			body: JSON.stringify(params)
 		}).then(res=>{return res.json()})
 		.then(res=>{
+			console.log(res);
 			props.saveExtraction(res);
 		})
 	}
 
 	const EditAttribute = (index, words, value, type, enabled) => {
         let params = {
-            id: props.globalattributes[index].id,
+            id: props.extractionlist[index].id,
             attribute: type.trim(),
 			value: value.trim(),
 			words_matched: words.trim(),
-			currentgroup: props.globalattributes[index].intelgroup.id,
+			currentgroup: props.extractionlist[index].intelgroup.id,
 			enabled: enabled.trim()
 		}
 		fetch('/api/attributes',{

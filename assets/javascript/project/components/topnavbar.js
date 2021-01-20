@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { connect } from "react-redux";
 import { TextField } from "@material-ui/core";
 
 const TopNavBar = (props) => {
 	const [intelgroup, setIntelGroup] = useState('');
-
+	const history = useHistory();
 	useEffect(()=>{
 		// props.mygroups.map((group, index) => ({
 		// 	key: index, value: group.intelgroup.id, text: group.intelgroup.name
@@ -37,9 +38,14 @@ const TopNavBar = (props) => {
 							select
 							value={intelgroup}
 							onChange={(event) => {
-								setIntelGroup(event.target.value); 
-								if(event.target.value != "")
-									props.currentIntelgroup(event.target.value);}}
+								if(event.target.value == 'add'){
+									history.push('/intelgroups/new');
+								}
+								else{
+									setIntelGroup(event.target.value); 
+									if(event.target.value != "")
+										props.currentIntelgroup(event.target.value);}}
+								}
 							SelectProps={{
 								native: true,
 							}}
@@ -51,6 +57,7 @@ const TopNavBar = (props) => {
 									{mygroup.intelgroup.name}
 								</option>
 							))}
+							<option value="add" className="has-text-primary">Create New Group</option>
 						</TextField>}
 						{props.userinfo.is_staff &&
 						<TextField

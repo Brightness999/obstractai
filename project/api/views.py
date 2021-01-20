@@ -1249,7 +1249,7 @@ def searchfeeds(request):
 def attributes(request):
 	if request.method == 'POST':
 		if 'attribute' in request.data:
-			for attribute in Attributes.objects.filter(user_id=request.user.id, Intelgroup_id=request.data['currentgroup']):
+			for attribute in Attributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']):
 				if attribute.attribute == request.data['attribute'] and attribute.value == request.data['value']:
 					return Response({'message':True})
 			Attributes.objects.create(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
@@ -1274,7 +1274,7 @@ def attributes(request):
 			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':global_serializer.data, 'customobservable':customobservable})
 	elif request.method == 'PUT':
 		Attributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
-		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).values()[0])
+		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).all()[0])
 		return Response(serializer.data)
 
 @swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})

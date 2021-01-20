@@ -232,8 +232,11 @@ class AttributeUpdateSerializer(serializers.Serializer):
     extraction_id = serializers.IntegerField()
     enabled = serializers.CharField(max_length=100)
 
+class CategoryUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=100)
+
 class CategoryCreateSerializer(serializers.Serializer):
-    currentgroup = serializers.IntegerField()
     name = serializers.CharField(max_length=100)
 
 class ManageEnabledSerializer(serializers.Serializer):
@@ -297,6 +300,11 @@ class IntelgroupCreateSerializer(serializers.Serializer):
         child = serializers.CharField(max_length=100)
     )
 
+class IntelgroupUpdateSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField(max_length=100)
+
 class InviteSerializer(serializers.Serializer):
     group_id = serializers.IntegerField()
     userids = serializers.ListField(
@@ -341,4 +349,7 @@ class WhitelistCreateSerializer(serializers.Serializer):
     value = serializers.CharField(max_length=100)
     enabled = serializers.CharField(max_length=100)
 
+class APIKeyCreateSerializer(serializers.Serializer):
+    intelgroup_id = serializers.IntegerField()
+    name = serializers.CharField(max_length=100)
 

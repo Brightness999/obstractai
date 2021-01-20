@@ -55,7 +55,8 @@ const IntelgroupList = function(props) {
 					setIsAlert(true);
 				}
 				else{
-					props.saveIntelgroup(result);
+					console.log(res);
+					props.saveIntelgroup(res);
 				}
 			})
 		}
@@ -170,7 +171,7 @@ const IntelGroup = (props) => {
 		.then(res=>setIntelgroups(res))
 	}
 
-	const saveIntelgroup = (data) => {setIntelgroups(data);}
+	const saveIntelgroup = (data) => {setIntelgroups(data); props.deleteIntelGroup(data)}
 
 	const getDefaultView = () => {
 		if (isLoading) {

@@ -37,9 +37,9 @@ from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerial
 			GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, \
 				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, \
 					UserGlobalIndicatorSerializer, CommentSerializer, ChangeEmailSerializer, IDSerializer, AccepInviteSerializer, AttributeCreateSerializer, AttributeUpdateSerializer, \
-						CategoryCreateSerializer, ManageEnabledSerializer,FeedCreateSerializer,FeedUpdateSerializer,GlobalAttributeCreateSerializer,GlobalAttributeUpdateSerializer, \
+						CategoryUpdateSerializer, ManageEnabledSerializer,FeedCreateSerializer,FeedUpdateSerializer,GlobalAttributeCreateSerializer,GlobalAttributeUpdateSerializer, \
 							GlobalIndicatorCreateSerializer,EnabledSerializer,IntelgroupCreateSerializer,InviteSerializer,RoleUpdateSerializer,SearchFeedSerializer,SearchReportSerializer, \
-								WebhookCreateSerializer,WebhookUpdateSerializer,WhitelistCreateSerializer
+								WebhookCreateSerializer,WebhookUpdateSerializer,WhitelistCreateSerializer, APIKeyCreateSerializer, CategoryCreateSerializer, IntelgroupUpdateSerializer
 
 @csrf_exempt
 def apifeeds(request):
@@ -521,7 +521,7 @@ def apigroups(request):
 	group_serializer = GroupRoleSerializer(groups[0])
 	return render(request, 'project/intel_groups.html', {'groups':json.dumps(group_serializer.data)})
 
-@swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
+@swagger_auto_schema(methods=['get'], responses={200: UserSerializer})
 @api_view(['GET'])
 def account(request):
     profile = CustomUser.objects.filter(id=request.user.id).all()[0]
@@ -545,7 +545,6 @@ def account(request):
     
     return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
 
-
 @swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['POST'])
 def emailchange(request):
@@ -553,6 +552,8 @@ def emailchange(request):
 	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=APIKeyCreateSerializer, responses={201: GroupAPIkeySerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupAPIkeySerializer})
 @api_view(['POST', 'DELETE'])
 def apikeys(request):
 	if request.method == 'POST':
@@ -570,6 +571,9 @@ def apikeys(request):
 		apikey_serializer = GroupAPIkeySerializer(apikeys, many=True)
 		return Response(apikey_serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=WebhookCreateSerializer, responses={201: GroupWebHookSerializer})
+@swagger_auto_schema(methods=['put'], request_body=WebhookUpdateSerializer, responses={200: GroupWebHookSerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupWebHookSerializer})
 @api_view(['POST', 'PUT', 'DELETE'])
 def webhooks(request):
 	if request.method == 'POST':
@@ -629,6 +633,7 @@ def reports(request):
 
 	return Response({'feeds':feeds, 'feedchannels':feedchannels, 'feeditems':feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
+@swagger_auto_schema(methods=['post'], request_body=SearchReportSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def searchreports(request):
 	feeds = []
@@ -794,6 +799,8 @@ def searchreports(request):
 
 	return Response({'feeds':search_serializer.data, 'feedchannels':search_feedchannels, 'feeditems':search_feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
+@swagger_auto_schema(methods=['post'], request_body=FeedCreateSerializer, responses={201: FeedCategorySerializer})
+@swagger_auto_schema(methods=['put'], request_body=FeedUpdateSerializer, responses={200: FeedCategorySerializer})
 @api_view(['POST', 'PUT'])
 def feeds(request):
 	if request.method == 'POST':
@@ -1063,6 +1070,7 @@ def feeds(request):
 		serializer = FeedCategorySerializer(Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(id=request.data['id']).values()[0]['intelgroup_id']).order_by('id').all(), many=True)
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def feedlist(request):
 	if not request.user.is_staff:
@@ -1102,6 +1110,7 @@ def feedlist(request):
 		tag_serializer = TagSerializer(tags, many=True)
 		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data})
 
+@swagger_auto_schema(methods=['post'], request_body=SearchFeedSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def searchfeeds(request):
 	data = []
@@ -1233,6 +1242,8 @@ def searchfeeds(request):
 			serializer = FeedCategorySerializer(data, many=True)
 			return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
+@swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
 @api_view(['POST', 'PUT'])
 def attributes(request):
 	if request.method == 'POST':
@@ -1262,6 +1273,8 @@ def attributes(request):
 		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['extraction_id']).values()[0])
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
+@swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
 @api_view(['POST', 'PUT'])
 def whitelist(request):
 	if request.method == 'POST':
@@ -1291,12 +1304,14 @@ def whitelist(request):
 		serializer = UserIndicatorWhitelistSerializer(Whitelists.objects.filter(id=request.data['id']).last())
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: GlobalItemIndicatorSerializer})
 @api_view(['PUT'])
 def indicators(request):
 	Indicators.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
 	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=InviteSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def invite(request):
 	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
@@ -1347,12 +1362,16 @@ def invite(request):
 				data=[{'role': 'success'}]
 		return Response(data)
 
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
 @api_view(['POST'])
 def currentrole(request):
 	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
 	serializer = UserGroupRoleSerializer(currentrole[0])
 	return Response({'currentrole':serializer.data})
 
+@swagger_auto_schema(methods=['post'], request_body=CategoryCreateSerializer, responses={201: CategorySerializer})
+@swagger_auto_schema(methods=['put'], request_body=CategoryUpdateSerializer, responses={200: CategorySerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: CategorySerializer})
 @api_view(['POST', 'PUT', 'DELETE'])
 def categories(request):
 	if request.method == 'POST':
@@ -1374,6 +1393,9 @@ def categories(request):
 		Categories.objects.filter(id=request.data['id']).delete()
 		return Response({"Successfully deleted!"})
 
+@swagger_auto_schema(methods=['get'], responses={200: GlobalIndicatorSerializer})
+@swagger_auto_schema(methods=['post'], request_body=GlobalIndicatorCreateSerializer, responses={201: UserGlobalIndicatorSerializer})
+@swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: UserGlobalIndicatorSerializer})
 @api_view(['GET', 'POST', 'PUT'])
 def globalindicators(request):
 	if request.method == 'GET':
@@ -1389,6 +1411,8 @@ def globalindicators(request):
 		serializer = UserGlobalIndicatorSerializer(GlobalIndicators.objects.filter(id=request.data['id']).last())
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=GlobalAttributeCreateSerializer, responses={201: UserGroupGlobalAttributeSerializer})
+@swagger_auto_schema(methods=['put'], request_body=GlobalAttributeUpdateSerializer, responses={200: UserGroupGlobalAttributeSerializer})
 @api_view(['POST', 'PUT'])
 def globalattributes(request):
 	if request.method == 'POST':
@@ -1411,6 +1435,7 @@ def globalattributes(request):
 		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
 		return Response(attribute_serializer.data)
 
+
 @api_view(['GET'])
 def home(request):
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all(), many=True)
@@ -1419,6 +1444,7 @@ def home(request):
 	intelgroups = IntelGroupSerializer(IntelGroups.objects.order_by('id').all(), many=True)
 	return Response({'mygroups':groups.data, 'users':users.data, 'userinfo':userinfo.data, 'intelgroups':intelgroups.data})
 
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={200: RoleGroupSerializer})
 @api_view(['DELETE'])
 def leavegroup(request):
 	result = []
@@ -1460,6 +1486,9 @@ def deleteaccount(request):
 		CustomUser.objects.filter(id=request.user.id).delete()
 		return Response({'delete':True})
 
+@swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
+@swagger_auto_schema(methods=['post'], request_body=IntelgroupCreateSerializer, responses={201: RoleGroupSerializer})
+@swagger_auto_schema(methods=['put'], request_body=IntelgroupUpdateSerializer, responses={200: RoleGroupSerializer})
 @api_view(['GET', 'POST', 'PUT'])
 def intelgroups(request):
 	if request.method == 'GET':
@@ -1508,6 +1537,7 @@ def intelgroups(request):
 		serializer = RoleGroupSerializer(new_role[0])
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['put'], request_body=ManageEnabledSerializer, responses={200: FeedCategorySerializer})
 @api_view(['PUT'])
 def feedenable(request):
 	Feeds.objects.filter(id=request.data['id']).update(manage_enabled=request.data['manage_enabled'])
@@ -1515,6 +1545,7 @@ def feedenable(request):
 	serializer = FeedCategorySerializer(feeds, many=True)
 	return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=AccepInviteSerializer, responses={201: RoleGroupSerializer})
 @api_view(['POST'])
 def acceptinvite(request):
 	UserIntelGroupRoles.objects.filter(id=request.data['id']).update(role = '1')
@@ -1545,6 +1576,7 @@ def acceptinvite(request):
 	result = RoleGroupSerializer(groups, many=True)
 	return Response(result.data)
 
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: RoleGroupSerializer})
 @api_view(['DELETE'])
 def rejectinvite(request):
 	userid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().user_id
@@ -1576,6 +1608,8 @@ def rejectinvite(request):
 	result = RoleGroupSerializer(groups, many=True)
 	return Response(result.data)
 
+@swagger_auto_schema(methods=['put'], request_body=RoleUpdateSerializer, responses={200: UserIntelGroupRolesSerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: UserIntelGroupRolesSerializer})
 @api_view(['PUT', 'DELETE'])
 def role(request):
 	if request.method == 'PUT':
@@ -1587,6 +1621,8 @@ def role(request):
 		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 		return Response('Success')
 
+@swagger_auto_schema(methods=['get'], responses={200: CustomUserSerializer})
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['GET', 'POST'])
 def users(request):
 	if request.method == 'GET':
@@ -1597,6 +1633,7 @@ def users(request):
 		serializer = UserIntelGroupRolesSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
 		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role})
 
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def changegroup(request, subscription_holder=None):
 	isPlan = True

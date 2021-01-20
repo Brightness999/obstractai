@@ -164,9 +164,6 @@ const Feeds = (props) => {
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [currentrole, setCurrentRole] = useState({});
-	const [isMessage, setIsMessage] = useState(false);
-	const [message, setMessage] = useState('');
-	const [isPlan, setIsPlan] = useState(true);
 	const [customfeeds, setCustomFeeds] = useState(true);
 	const history = useHistory();
 	const confidences = [];

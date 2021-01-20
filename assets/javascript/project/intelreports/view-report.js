@@ -72,7 +72,7 @@ const ViewReport = (props) => {
 			else words.push(classification.words_matched);
 		});
 		words.forEach(word => {
-			let reg = new RegExp(word.trim(), 'g');
+			let reg = new RegExp(word.trim(), "g");
 			str = str.replace(reg, `<span style="background:#00e7ff;">${word.trim()}</span>`)
 		});
 		document.querySelector("#extraction").innerHTML=str;

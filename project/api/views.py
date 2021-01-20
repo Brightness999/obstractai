@@ -1249,7 +1249,10 @@ def searchfeeds(request):
 def attributes(request):
 	if request.method == 'POST':
 		if 'attribute' in request.data:
-			Attributes.objects.create(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup']);
+			for attribute in Attributes.objects.filter(user_id=request.user.id, Intelgroup_id=request.data['currentgroup']):
+				if attribute.attribute == request.data['attribute'] and attribute.value == request.data['value']:
+					return Response({'message':True})
+			Attributes.objects.create(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 			create_data = Attributes.objects.filter(user_id=request.user.id).last()
 			serializer = UserGroupAttributeSerializer(create_data)
 			return Response(serializer.data)
@@ -1270,8 +1273,8 @@ def attributes(request):
 			role_serializer = UserGroupRoleSerializer(currentrole[0])
 			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':global_serializer.data, 'customobservable':customobservable})
 	elif request.method == 'PUT':
-		Attributes.objects.filter(id=request.data['extraction_id']).update(enabled=request.data['enabled'])
-		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['extraction_id']).values()[0])
+		Attributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
+		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).values()[0])
 		return Response(serializer.data)
 
 @swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})

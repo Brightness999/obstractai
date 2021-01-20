@@ -598,6 +598,7 @@ def webhooks(request):
 			webhooks.append(serializer.data)
 		return Response(webhooks)
 
+@swagger_auto_schema(methods=['get'], responses={201: FeedCategorySerializer})
 @api_view(['GET'])
 def reports(request):
 	feeds = []
@@ -1435,7 +1436,7 @@ def globalattributes(request):
 		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
 		return Response(attribute_serializer.data)
 
-
+@swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def home(request):
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all(), many=True)
@@ -1477,6 +1478,7 @@ def leavegroup(request):
 
 	return Response(result)
 
+@swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def deleteaccount(request):
 	groups = UserIntelGroupRoles.objects.filter(user_id=request.user.id).all()

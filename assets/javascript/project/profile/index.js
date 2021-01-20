@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
     Dialog, DialogActions, DialogContent, DialogTitle,
-    TextField, Image, Container
+    TextField, Container
 } from '@material-ui/core';
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 import Alert from '@material-ui/lab/Alert';
 
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
 import IntelgroupTable from "./intelgroup-table";
 import APIKeyTable from "./apikey-table";
 import WebhookTable from "./webhook-table";

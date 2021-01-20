@@ -229,8 +229,12 @@ class AttributeCreateSerializer(serializers.Serializer):
     currentgroup = serializers.IntegerField()
 
 class AttributeUpdateSerializer(serializers.Serializer):
-    extraction_id = serializers.IntegerField()
+    id = serializers.IntegerField()
+    attribute = serializers.CharField(max_length=100)
+    value = serializers.CharField(max_length=100)
+    words_matched = serializers.CharField(max_length=100)
     enabled = serializers.CharField(max_length=100)
+    currentgroup = serializers.IntegerField()
 
 class CategoryUpdateSerializer(serializers.Serializer):
     id = serializers.IntegerField()

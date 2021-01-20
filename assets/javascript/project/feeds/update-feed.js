@@ -10,9 +10,6 @@ import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
 import { yellow } from '@material-ui/core/colors';
 
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
-
 const UpdateFeed = (props) => {
 	const [url, setUrl] = useState(props.url || '');
 	const [name, setName] = useState(props.name || '');
@@ -44,7 +41,6 @@ const UpdateFeed = (props) => {
 			confidence: confidence,
 		}
 
-		let action;
 		if(props.id){
 			params['id'] = props.id;
 			params['manage_enabled'] = 'true';

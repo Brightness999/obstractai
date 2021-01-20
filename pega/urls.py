@@ -72,7 +72,7 @@ from project.api.swagger import get_swagger_view
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-
+from two_factor.urls import urlpatterns as tf_urls
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -106,6 +106,7 @@ urlpatterns = [
     path('home/', include('project.urls')),
     path('api/', include('project.api.urls')),
     path('', include('apps.web.urls')),
+    # path('', include(tf_urls)),
     path('pegasus/', include('pegasus.apps.examples.urls')),
     path('celery-progress/', include('celery_progress.urls')),
     # API docs

@@ -52,9 +52,10 @@
     <script src="{% static 'js/home-bundle.js' %}"></script>
     <script type="application/javascript">
         // see: https://bulma.io/documentation/components/navbar/
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentUpdated', () => {
             // Get all "navbar-burger" elements
             const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+            console.log($navbarBurgers);
             // Check if there are any navbar burgers
             if ($navbarBurgers.length > 0) {
                 // Add a click event on each of them

@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Alert, AlertTitle } from "@material-ui/lab";
 
 const MenuBar = (props) => {
     const [currentgroup, setCurrentGroup] = useState(props.currentgroup);
     const [currentrole, setCurrentRole] = useState({});
+    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+    console.log($navbarBurgers);
+
     useEffect(()=>{
+        if ($navbarBurgers.length > 0) {
+            // Add a click event on each of them
+            $navbarBurgers.forEach(el => {
+                el.addEventListener('click', () => {
+                    // Get the target from the "data-target" attribute
+                    const target = el.dataset.target;
+                    const $target = document.getElementById(target);
+
+                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                    el.classList.toggle('is-active');
+                    $target.classList.toggle('is-active');
+                });
+            });
+        }
         setCurrentGroup(props.currentgroup);
         if(!props.userinfo.is_staff){
             let params = {id:props.currentgroup};
@@ -24,18 +40,27 @@ const MenuBar = (props) => {
     },[props.currentgroup])
     if(!props.userinfo.is_staff)
         return (
-            <div className="container">
+            <div className="container semisection">
+                <div className="navbar-brand">
+					<a className="navbar-item" href="#">
+					</a>
+					<a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-menu">
+					<span aria-hidden="true"></span>
+					<span aria-hidden="true"></span>
+					<span aria-hidden="true"></span>
+					</a>
+				</div>
                 {currentgroup != '' &&
                 <div className="navbar-menu" id="nav-menu">
-                    {currentrole.role != 0 &&
+                    {currentrole.role == 1 &&
                     <div className="navbar-start">
-                        <a className="navbar-item is-size-5 has-text-weight-bold">Member actions:</a>
+                        {/* <a className="navbar-item is-size-5 has-text-weight-bold">Member actions:</a> */}
                         <div className="navbar-item has-dropdown is-hoverable">
                             <a className="navbar-link">
                                 <span className="is-show-desktop">View intel</span>
                             </a>
                             <div className="navbar-dropdown is-left">
-                                <Link to="/intelgroups/" className="navbar-item">Intel Groups</Link>
+                                
                                 <Link to="/intelreports/" className="navbar-item">Intel Reports</Link>
                             </div>
                         </div>
@@ -43,17 +68,18 @@ const MenuBar = (props) => {
                     }
                     {currentrole.role == 2 &&
                     <div className="navbar-end">
-                        <a className="navbar-item is-size-5 has-text-weight-bold">Admin actions:</a>
+                        {/* <a className="navbar-item is-size-5 has-text-weight-bold">Admin actions:</a> */}
                         <Link to="/feeds/" className="navbar-item">Manage feeds</Link>
-                        <Link to="/categories/" className="navbar-item">Categories</Link>
-                        <Link to="/extractions/" className="navbar-item">Extractions</Link>
+                        <Link to="/intelgroups/" className="navbar-item">Manage Groups</Link>
                         <div className="navbar-item has-dropdown is-hoverable">
                             <a className="navbar-link">
-                                <span className="is-show-desktop">Indicator</span>
+                                <span className="is-show-desktop">Manage Observables</span>
                             </a>
                             <div className="navbar-dropdown is-left">
                                 {/* <Link to="/globalindicators/" className="navbar-item">Global Indicators</Link> */}
                                 {/* <Link to="/indicators/" className="navbar-item">Indicators</Link> */}
+                                <Link to="/categories/" className="navbar-item">Categories</Link>
+                                <Link to="/extractions/" className="navbar-item">Extractions</Link>
                                 <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
                             </div>
                         </div>
@@ -61,15 +87,20 @@ const MenuBar = (props) => {
                     </div>
                     }
                 </div>}
-                {/* <Alert severity="info" className="my-5">
-					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
-					<span className="subtitle is-5">Your plan will be downgraded and limited on, to keep all existing features, you must select a plan before this date.</span>
-				</Alert> */}
             </div>
         );
     else
         return (
             <div className="container">
+                <div className="navbar-brand">
+					<a className="navbar-item" href="#">
+					</a>
+					<a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-menu">
+					<span aria-hidden="true"></span>
+					<span aria-hidden="true"></span>
+					<span aria-hidden="true"></span>
+					</a>
+				</div>
                 <div className="navbar-menu" id="nav-menu">
                     <div className="navbar-start">
                         <Link to="/feeds/" className="navbar-item">Manage feeds</Link>

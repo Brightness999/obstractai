@@ -24,6 +24,7 @@ const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
     const [isSuccess, setIsSuccess] = useState(false);
     const [isAlert, setIsAlert] = useState(false);
+    const [isExist, setIsExist] = useState(false);
 
     const changeEmail =() => {
         let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
@@ -42,8 +43,13 @@ const Profile = (props) => {
                 body: JSON.stringify(params)
             }).then(res=>{return res.json()})
             .then(res=>{
-                setEmail(res.email);
-                setIsSuccess(true);
+                if(Boolean(res.isExist)){
+                    setIsExist(true);
+                }
+                else{
+                    setEmail(res.email);
+                    setIsSuccess(true);
+                }
             })
         }
     }
@@ -71,6 +77,7 @@ const Profile = (props) => {
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
             {isSuccess && <Alert severity="success" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
+            {isExist && <Alert severity="warning" className="column is-one-third my-4" onClose={()=>setIsExist(false)}>This email already exists. Please input another email.</Alert>}
             {isAlert && <Alert severity="danger" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{

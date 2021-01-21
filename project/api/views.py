@@ -3,6 +3,7 @@ import urllib
 import xmltodict
 import json
 import os
+import stripe
 
 from urllib.parse import urlencode
 from django.contrib import messages
@@ -11,7 +12,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from cyobstract import extract
 from django.core.mail import send_mail
@@ -521,33 +523,101 @@ def apigroups(request):
 	group_serializer = GroupRoleSerializer(groups[0])
 	return render(request, 'project/intel_groups.html', {'groups':json.dumps(group_serializer.data)})
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def test(request):
+	print('webhooktest')
+	endpoint_secret = os.environ.get('DJSTRIPE_WEBHOOK_SECRET')
+	payload = request.body
+	sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+	event = None
+	try:
+		event = stripe.Webhook.construct_event(
+		payload, sig_header, endpoint_secret
+		)
+	except ValueError as e:
+		# Invalid payload
+		return HttpResponse(status=400)
+	except stripe.error.SignatureVerificationError as e:
+		# Invalid signature
+		return HttpResponse(status=400)
+	
+	if event.type == 'product.created':
+		product = event.data.object
+		print(product)
+	elif event.type == 'price.created':
+		price = event.data.object
+		print(price)
+	elif event.type == 'plan.created':
+		plan = event.data.object
+		print(plan)
+
+	return Response({'message': 'ok'})
+
+
 @swagger_auto_schema(methods=['get'], responses={200: UserSerializer})
 @api_view(['GET'])
 def account(request):
-    profile = CustomUser.objects.filter(id=request.user.id).all()[0]
-    serializer = UserSerializer(profile)
-    profile_data = serializer.data
-    intelgroups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
-    intelgroup_data = []
-    for intelgroup in intelgroups:
-        serializer = RoleGroupSerializer(intelgroup)
-        intelgroup_data.append(serializer.data)
-    apikeys = APIKeys.objects.order_by('id').filter(user_id=request.user.id).all()
-    apikey_data = []
-    for apikey in apikeys:
-        serializer = GroupAPIkeySerializer(apikey)
-        apikey_data.append(serializer.data)
-    webhooks = WebHooks.objects.order_by('id').filter(user_id=request.user.id).all()
-    webhook_data = []
-    for webhook in webhooks:
-        serializer = GroupWebHookSerializer(webhook)
-        webhook_data.append(serializer.data)
-    
-    return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
+	
+	# stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
+	# new_product=stripe.Product.create(
+	# 	name="Professional",
+	# 	description="The description of professional product",
+	# 	active= True,
+	# 	metadata={
+	# 		'max_users':5,
+	# 		'max_feeds':3,
+	# 		'custom_feeds':True,
+	# 		'custom_observables':True,
+	# 		'api_access':True
+	# 	}
+	# )
+	# stripe.Plan.create(
+	# 	amount=30000,
+	# 	currency="usd",
+	# 	interval="year",
+	# 	product=new_product.id,
+	# 	billing_scheme="per_unit",
+	# 	interval_count=1
+	# )
+	# stripe.Plan.create(
+	# 	amount=5000,
+	# 	currency="usd",
+	# 	interval="month",
+	# 	product=new_product.id,
+	# 	billing_scheme="per_unit",
+	# 	interval_count=1
+	# )
+	profile = CustomUser.objects.filter(id=request.user.id).all()[0]
+	serializer = UserSerializer(profile)
+	profile_data = serializer.data
+	intelgroups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
+	intelgroup_data = []
+	for intelgroup in intelgroups:
+		serializer = RoleGroupSerializer(intelgroup)
+		intelgroup_data.append(serializer.data)
+	apikeys = APIKeys.objects.order_by('id').filter(user_id=request.user.id).all()
+	apikey_data = []
+	for apikey in apikeys:
+		serializer = GroupAPIkeySerializer(apikey)
+		apikey_data.append(serializer.data)
+	webhooks = WebHooks.objects.order_by('id').filter(user_id=request.user.id).all()
+	webhook_data = []
+	for webhook in webhooks:
+		serializer = GroupWebHookSerializer(webhook)
+		webhook_data.append(serializer.data)
+	
+	return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
 
 @swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['POST'])
 def emailchange(request):
+	users = CustomUser.objects.filter(email=request.data['email']).all()
+	if len(users) > 1:
+		return Response({'isExist':True})
+	elif len(users) == 1:
+		if users[0].email != request.user.email:
+			return Response({'isExist': True})
 	CustomUser.objects.filter(id=request.data['id']).update(email=request.data['email'])
 	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
@@ -1100,10 +1170,10 @@ def feedlist(request):
 		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data,'customfeeds':customfeeds})
 
 	if request.user.is_staff:
-		if request.data['currentgroup'] == '':
+		if request.data['id'] == '':
 			feeds = Feeds.objects.order_by('id').all()
 		else:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all()
 		feed_serializer = FeedCategorySerializer(feeds, many=True)
 		categories = Categories.objects.order_by('id').all()
 		category_serializer = CategorySerializer(categories, many=True)
@@ -1662,6 +1732,4 @@ def changegroup(request, subscription_holder=None):
 				Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
 				isAutoDown = True
 		
-	return Response({'isPlan':isPlan, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message': message})
-
-
+	return Response({'isPlan':isPlan, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message})

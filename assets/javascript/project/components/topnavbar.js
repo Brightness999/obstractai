@@ -16,7 +16,7 @@ const TopNavBar = (props) => {
 	return (
 		<nav className="navbar" role="navigation" aria-label="main navigation">
 			<div className="container">
-				<div className="navbar-brand">
+				{/* <div className="navbar-brand">
 					<a className="navbar-item" href="#">
 					</a>
 					<img src="/static/images/favicons/logo.png" alt=""/>
@@ -25,7 +25,7 @@ const TopNavBar = (props) => {
 					<span aria-hidden="true"></span>
 					<span aria-hidden="true"></span>
 					</a>
-				</div>
+				</div> */}
 				<div className="navbar-menu" id="nav-menu">
 					{/* <div className="navbar-start">
 						<TextField id="outlined-basic" placeholder="Search for intelligence" variant="outlined" />

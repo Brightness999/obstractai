@@ -55,7 +55,6 @@ const IntelgroupList = function(props) {
 					setIsAlert(true);
 				}
 				else{
-					console.log(res);
 					props.saveIntelgroup(res);
 				}
 			})

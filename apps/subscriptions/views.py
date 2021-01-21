@@ -1,4 +1,4 @@
-import json
+import json, decimal
 
 import djstripe
 import stripe
@@ -16,6 +16,8 @@ from djstripe.models import Product, Plan, Subscription
 from djstripe import settings as djstripe_settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from datetime import datetime, timedelta
+from django.conf import settings
 
 from apps.utils.decorators import catch_stripe_errors
 from apps.web.meta import absolute_url
@@ -25,6 +27,7 @@ from .metadata import get_active_products_with_metadata,\
     get_product_and_metadata_for_subscription, ACTIVE_PLAN_INTERVALS, get_active_plan_interval_metadata
 from project.models import UserIntelGroupRoles, IntelGroups, Feeds, PlanHistory
 from apps.users.models import CustomUser
+from pegasus.apps.examples.models import Payment
 
 
 class ProductWithMetadataAPI(APIView):
@@ -243,10 +246,14 @@ def create_customer(request, subscription_holder=None):
         productid = Plan.objects.filter(djstripe_id=planid).last().product_id
         plan_id = request_body['plan_id']
         product_id = Plan.objects.filter(id=plan_id).last().product_id
+        interval = Plan.objects.filter(id=plan_id).last().interval
         product_name = Product.objects.filter(djstripe_id=product_id).last().name
         max_users = Product.objects.filter(djstripe_id=product_id).last().metadata['max_users']
         max_feeds = Product.objects.filter(djstripe_id=product_id).last().metadata['max_feeds']
         current_product_name = Product.objects.filter(djstripe_id=productid).last().name
+        current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+        current_period_start = Subscription.objects.filter(djstripe_id=subid).last().current_period_start
+        current_interval = Plan.objects.filter(djstripe_id=planid).last().interval
         if (current_product_name=='Large' and product_name=='Medium') or (current_product_name=='Large' and product_name=='Starter') or (current_product_name=='Medium' and product_name=='Starter'):
             users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()
             feeds = Feeds.objects.filter(intelgroup_id=request_body['groupid'])
@@ -272,8 +279,38 @@ def create_customer(request, subscription_holder=None):
                 return JsonResponse(
                     data=result,
                 )
-
-
+        if current_product_name == 'Medium' and product_name == 'Large':
+            delta_time = current_period_end.date()-datetime.now().date()
+            if current_interval == 'month' and interval == 'year':
+                return JsonResponse(
+                    data = {'monthyear':False}
+                )
+            if current_interval == 'year' and interval == 'month':
+                return JsonResponse(
+                    data = {'yearmonth':False}
+                )
+            
+            current_amount = Plan.objects.filter(djstripe_id=planid).last().amount
+            amount = Plan.objects.filter(id=request_body['plan_id']).last().amount
+            addition_amount = decimal.Decimal(delta_time/(current_period_end.date()-current_period_start.date()))*(amount-current_amount)
+            name = 'Addition Payment2'
+            token = request_body['stripeToken']
+            stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+            user = request.user
+            email = request.user.email
+            charge = stripe.Charge.create(
+                amount=int(addition_amount*100),
+                currency="usd",
+                description=name,
+                source=token,
+                receipt_email=email,
+            )
+            payment = Payment.objects.create(
+                charge_id=charge.id,
+                amount=int(charge.amount),
+                name=name,
+                user=user,
+            )
 
     
     payment_method = request_body['payment_method']
@@ -283,7 +320,6 @@ def create_customer(request, subscription_holder=None):
     # first sync payment method to local DB to workaround https://github.com/dj-stripe/dj-stripe/issues/1125
     payment_method_obj = stripe.PaymentMethod.retrieve(payment_method)
     djstripe.models.PaymentMethod.sync_from_stripe_data(payment_method_obj)
-
     # create customer objects
     # This creates a new Customer in stripe and attaches the default PaymentMethod in one API call.
     customer = stripe.Customer.create(

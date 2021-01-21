@@ -305,6 +305,6 @@ STRIPE_LIVE_MODE = False  # Change to True in production
 
 # Get it from the section in the Stripe dashboard where you added the webhook endpoint
 # or from the stripe CLI when testing
-DJSTRIPE_WEBHOOK_SECRET = "whsec_xxx"
+DJSTRIPE_WEBHOOK_SECRET = "whsec_wAo9D0lTNnQqSA0cqS5yeQOnD7KJuU1r"
 
 

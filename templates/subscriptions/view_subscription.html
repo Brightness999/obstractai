@@ -89,6 +89,7 @@
   const cardElement = Payments.createCardElement(stripe);
   const groupid = '{{groupid}}'
   const current_product_id = '{{current_product_id}}'
+  let stripeToken = '';
 
   let submissionPending = false;
   const getSelectedPlanElement = function () {
@@ -113,8 +114,8 @@
       const paymentParams = {...paymentMetadata};
       paymentParams.plan_id = selectedPlan;
       paymentParams.payment_method = result.paymentMethod.id;
-      paymentParams.groupid = groupid
-      
+      paymentParams.groupid = groupid;
+      paymentParams.stripeToken = stripeToken;
       fetch(createCustomerUrl, {
         method: 'post',
         headers: {
@@ -296,13 +297,25 @@
       if (getSelectedPlanElement() && !submissionPending) {
         submissionPending = true;
         subscribeButton.classList.add('is-loading');
-        stripe.createPaymentMethod({
-          type: 'card',
-          card: cardElement,
-          billing_details: {
-            email: userEmail,
-          },
-        }).then(handlePaymentMethodCreated);
+        stripe.createToken(cardElement).then(function (result) {
+          if (result.error) {
+            // Inform the customer that there was an error.
+            Payments.showOrClearError(result.error.message);
+          } else {
+            // Send the token to your server.
+            stripeToken = result.token.id;
+            console.log(stripeToken);
+          }
+        }).then(
+          stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+            billing_details: {
+              email: userEmail,
+            },
+          }).then(handlePaymentMethodCreated)
+
+        )
       }
   });
 

@@ -30,6 +30,7 @@ from djstripe.models import Product, Plan, Subscription
 from dateutil import parser as dateutil_parser
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from Crypto.Cipher import AES
 
 from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, \
 	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory
@@ -937,7 +938,8 @@ def feeds(request):
 							Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 				ftr = "http://ftr-premium.fivefilters.org/"
 				encode = urllib.parse.quote_plus(data['url'])
-				req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key=KSF8GH22GZRKA8")
+				key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
+				req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key)
 				contents = urllib.request.urlopen(req).read()
 				FeedChannels.objects.create(feed_id=Feeds.objects.last().id)
 				for item in xmltodict.parse(contents)['rss']['channel']:

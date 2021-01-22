@@ -5,18 +5,13 @@ const MenuBar = (props) => {
     const [currentgroup, setCurrentGroup] = useState(props.currentgroup);
     const [currentrole, setCurrentRole] = useState({});
     const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-    console.log($navbarBurgers);
 
     useEffect(()=>{
         if ($navbarBurgers.length > 0) {
-            // Add a click event on each of them
             $navbarBurgers.forEach(el => {
                 el.addEventListener('click', () => {
-                    // Get the target from the "data-target" attribute
                     const target = el.dataset.target;
                     const $target = document.getElementById(target);
-
-                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
                     el.classList.toggle('is-active');
                     $target.classList.toggle('is-active');
                 });
@@ -41,18 +36,9 @@ const MenuBar = (props) => {
     if(!props.userinfo.is_staff)
         return (
             <div className="container semisection">
-                {/* <div className="navbar-brand">
-					<a className="navbar-item" href="#">
-					</a>
-					<a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-menu">
-					<span aria-hidden="true"></span>
-					<span aria-hidden="true"></span>
-					<span aria-hidden="true"></span>
-					</a>
-				</div> */}
                 {currentgroup != '' &&
                 <div className="navbar-menu" id="nav-menu">
-                    {currentrole.role == 1 &&
+                    {currentrole.role != 0 &&
                     <div className="navbar-start">
                         {/* <a className="navbar-item is-size-5 has-text-weight-bold">Member actions:</a> */}
                         <div className="navbar-item has-dropdown is-hoverable">

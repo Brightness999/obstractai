@@ -28,12 +28,4 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
-        migrations.DeleteModel(
-            name='Plans',
-        ),
-        migrations.AlterField(
-            model_name='feeds',
-            name='uniqueid',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
-        ),
     ]

@@ -254,6 +254,14 @@ def create_customer(request, subscription_holder=None):
         current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
         current_period_start = Subscription.objects.filter(djstripe_id=subid).last().current_period_start
         current_interval = Plan.objects.filter(djstripe_id=planid).last().interval
+        if current_interval == 'month' and interval == 'year':
+            return JsonResponse(
+                data = {'monthyear':True}
+            )
+        if current_interval == 'year' and interval == 'month':
+            return JsonResponse(
+                data = {'yearmonth':True}
+            )
         if (current_product_name=='Large' and product_name=='Medium') or (current_product_name=='Large' and product_name=='Starter') or (current_product_name=='Medium' and product_name=='Starter'):
             users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()
             feeds = Feeds.objects.filter(intelgroup_id=request_body['groupid'])
@@ -281,15 +289,6 @@ def create_customer(request, subscription_holder=None):
                 )
         if current_product_name == 'Medium' and product_name == 'Large':
             delta_time = current_period_end.date()-datetime.now().date()
-            if current_interval == 'month' and interval == 'year':
-                return JsonResponse(
-                    data = {'monthyear':False}
-                )
-            if current_interval == 'year' and interval == 'month':
-                return JsonResponse(
-                    data = {'yearmonth':False}
-                )
-            
             current_amount = Plan.objects.filter(djstripe_id=planid).last().amount
             amount = Plan.objects.filter(id=request_body['plan_id']).last().amount
             addition_amount = decimal.Decimal(delta_time/(current_period_end.date()-current_period_start.date()))*(amount-current_amount)

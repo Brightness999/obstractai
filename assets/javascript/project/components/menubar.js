@@ -41,7 +41,7 @@ const MenuBar = (props) => {
     if(!props.userinfo.is_staff)
         return (
             <div className="container semisection">
-                <div className="navbar-brand">
+                {/* <div className="navbar-brand">
 					<a className="navbar-item" href="#">
 					</a>
 					<a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-menu">
@@ -49,7 +49,7 @@ const MenuBar = (props) => {
 					<span aria-hidden="true"></span>
 					<span aria-hidden="true"></span>
 					</a>
-				</div>
+				</div> */}
                 {currentgroup != '' &&
                 <div className="navbar-menu" id="nav-menu">
                     {currentrole.role == 1 &&

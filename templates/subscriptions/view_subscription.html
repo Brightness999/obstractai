@@ -130,7 +130,12 @@
         console.log(result);
         if(Boolean(result.feeds) || Boolean(result.users)){
           helpLabel.innerHTML = `<h1 class="is-size-4">You can't downgrade your plan until you correct the features where quota is exceeded.</h1>`;
-          // document.querySelector('section').innerHTML=`<h1>You can't downgrade your plan until you correct the features where quota is exceeded.</h1>`
+        }
+        if(Boolean(result.monthyear)){
+          helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from monthly plan to yearly plan!</h1>`;
+        }
+        if(Boolean(result.yearmonth)){
+          helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from yearly plan to monthly plan!</h1>`;
         }
         if (result.error) {
           handleError(result.error.message);

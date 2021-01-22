@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 import { connect } from "react-redux";
 import { TextField } from "@material-ui/core";
 
@@ -7,16 +7,14 @@ const TopNavBar = (props) => {
 	const [intelgroup, setIntelGroup] = useState('');
 	const history = useHistory();
 	useEffect(()=>{
-		// props.mygroups.map((group, index) => ({
-		// 	key: index, value: group.intelgroup.id, text: group.intelgroup.name
-		// }));
-	},[props.mygroups]);
+		
+	},[]);
 
 	
 	return (
 		<nav className="navbar" role="navigation" aria-label="main navigation">
 			<div className="container">
-				{/* <div className="navbar-brand">
+				<div className="navbar-brand">
 					<a className="navbar-item" href="#">
 					</a>
 					<img src="/static/images/favicons/logo.png" alt=""/>
@@ -25,7 +23,7 @@ const TopNavBar = (props) => {
 					<span aria-hidden="true"></span>
 					<span aria-hidden="true"></span>
 					</a>
-				</div> */}
+				</div>
 				<div className="navbar-menu" id="nav-menu">
 					{/* <div className="navbar-start">
 						<TextField id="outlined-basic" placeholder="Search for intelligence" variant="outlined" />

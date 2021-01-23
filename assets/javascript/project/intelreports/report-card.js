@@ -2,8 +2,6 @@ import React from "react";
 import {Link} from "react-router-dom";
 import { Grid } from "@material-ui/core";
 
-import Styles from "../styles";
-
 const ReportCard = function (props) {
 	let tags = [];
 	if(props.feed[0]){
@@ -29,7 +27,7 @@ const ReportCard = function (props) {
 									</div>
 									<div className="">
 										<span> URL: </span>
-										<span> {props.feed[0]? props.feed[0].url : ""} </span>
+										<span> {props.feed[0]? props.feeditem.link : ""} </span>
 									</div>
 
 								</Grid>

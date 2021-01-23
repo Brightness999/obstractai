@@ -31,11 +31,12 @@ from dateutil import parser as dateutil_parser
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from Crypto.Cipher import AES
+from pegasus.apps.examples.tasks import progress_bar_task
 
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, \
-	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory
+from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, FeedChannels, FeedItems, Feeds, \
+	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory, IntelReports
 from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, \
-	CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
+	CategorySerializer, FeedItemSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
 		TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, \
 			GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, \
 				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, \
@@ -589,6 +590,8 @@ def account(request):
 	# 	billing_scheme="per_unit",
 	# 	interval_count=1
 	# )
+	
+	# progress_bar_task('sdf')
 	profile = CustomUser.objects.filter(id=request.user.id).all()[0]
 	serializer = UserSerializer(profile)
 	profile_data = serializer.data
@@ -982,6 +985,7 @@ def feeds(request):
 				
 				if type(xmltodict.parse(contents)['rss']['channel']['item']) is not list:
 					FeedItems.objects.create(feed_id=Feeds.objects.last().id)
+					IntelReports.objects.create(feeditem_id=FeedItems.objects.last().id)
 					for item in xmltodict.parse(contents)['rss']['channel']['item']:
 						if(item == 'title'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=xmltodict.parse(contents)['rss']['channel']['item'][item])
@@ -1057,6 +1061,7 @@ def feeds(request):
 				if type(xmltodict.parse(contents)['rss']['channel']['item']) is list:
 					for items in xmltodict.parse(contents)['rss']['channel']['item']:
 						FeedItems.objects.create(feed_id=Feeds.objects.last().id)
+						IntelReports.objects.create(feeditem_id=FeedItems.objects.last().id)
 						for item in items:
 							if(item == 'title'):
 								FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=items[item])

@@ -17,9 +17,15 @@ class Feeds(BaseModel):
     manage_enabled = models.CharField(max_length=100, blank=True)
     confidence = models.PositiveIntegerField(default=0, blank=True)
     intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
+    polltime = models.DurationField(null=True)
+    isglobal = models.BooleanField(default=False)
+    type = models.CharField(max_length=100, null=True)
+
 
     def __str__(self):
         return self.name
+    # def save(self, *args, **kwargs):
+        
 
     class Meta:
         verbose_name_plural = "Feeds"

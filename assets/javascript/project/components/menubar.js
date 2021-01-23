@@ -4,19 +4,10 @@ import { Link } from "react-router-dom";
 const MenuBar = (props) => {
     const [currentgroup, setCurrentGroup] = useState(props.currentgroup);
     const [currentrole, setCurrentRole] = useState({});
-    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+    
 
     useEffect(()=>{
-        if ($navbarBurgers.length > 0) {
-            $navbarBurgers.forEach(el => {
-                el.addEventListener('click', () => {
-                    const target = el.dataset.target;
-                    const $target = document.getElementById(target);
-                    el.classList.toggle('is-active');
-                    $target.classList.toggle('is-active');
-                });
-            });
-        }
+        
         setCurrentGroup(props.currentgroup);
         if(!props.userinfo.is_staff){
             let params = {id:props.currentgroup};
@@ -78,15 +69,6 @@ const MenuBar = (props) => {
     else
         return (
             <div className="container">
-                <div className="navbar-brand">
-					<a className="navbar-item" href="#">
-					</a>
-					<a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-menu">
-					<span aria-hidden="true"></span>
-					<span aria-hidden="true"></span>
-					<span aria-hidden="true"></span>
-					</a>
-				</div>
                 <div className="navbar-menu" id="nav-menu">
                     <div className="navbar-start">
                         <Link to="/feeds/" className="navbar-item">Manage feeds</Link>

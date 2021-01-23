@@ -98,9 +98,6 @@ const UpdateFeed = (props) => {
 		}
 	}
 
-	useEffect(() => {
-
-	},[]);
 
 	
 	return (

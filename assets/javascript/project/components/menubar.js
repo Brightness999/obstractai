@@ -37,7 +37,7 @@ const MenuBar = (props) => {
                                 <span className="is-show-desktop">View intel</span>
                             </a>
                             <div className="navbar-dropdown is-left">
-                                
+                                <Link to="/intelreports/" className="navbar-item">Feed List</Link>
                                 <Link to="/intelreports/" className="navbar-item">Intel Reports</Link>
                             </div>
                         </div>

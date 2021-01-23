@@ -29,7 +29,7 @@ const Plan = (props) => {
 	}
 
 	return <div className="my-6">
-			<h1 className="title is-size-3 has-text-centered py-6">No plan! You must select a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
+			<h1 className="title is-size-3 has-text-centered py-6">You must upgrade a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
 			{isAlert&& <Grid container direction="row" justify="center" alignItems="center">
 				<Grid item xs={6}>
 					<Alert className="has-text-centered title is-size-4" severity="error" onClose={()=>setIsAlert(false)}>! Please contact the feed group administrator to manage intel group plan payment to reinstate access.</Alert>
@@ -292,14 +292,26 @@ const Extractions = (props) => {
 						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/intelgroups" >Click here to accept.</Link></p>
 					</div>
 				)
-			else{
-				if(props.isPlan){
+			// else{
+			// 	if(props.isPlan){
+			// 		return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
+			// 			currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
+			// 	}
+			// 	else{
+			// 		return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+			// 	}
+			// }
+			if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+					</div>
+				)
+			if(currentrole.role ==2){
+				if(props.isPlan)
 					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
-						currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
-				}
-				else{
-					return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
-				}
+								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
 		}
 	}

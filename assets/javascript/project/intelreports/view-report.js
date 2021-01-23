@@ -157,7 +157,7 @@ const ViewReport = (props) => {
 								<span>https://www.cyobstract.com/api/v1/report</span>
 							</div>
 							<div>
-								<span>Object: </span>
+								<span>Report: </span>
 								<span>https://www.cyobstract.com/api/v1/report</span>
 							</div>
 							<a href="/docs" className="muted-link">API docs</a>

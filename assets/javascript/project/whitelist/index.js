@@ -205,29 +205,41 @@ const WhiteLists = (props) => {
 						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
 					</div>
                 )
-            else{
-                if(props.isPlan){
-                    if(currentrole.role == 1)
-                        if(props.isAutoDown){
-                            return <div className='section has-text-centered my-6'>
-                                <p className="title is-3 py-6">Please contact the feed group administrator to manage intel group plan payment.</p>
-                            </div>
-                        }
-                        else{
-                            return(
-                                <div className='section has-text-centered'>
-                                    <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
-                                </div>
-                            )
-                        }
-                    if(currentrole.role ==2)
-                        return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
-                            indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
-                }
-                else{
-                    return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
-                }
-            }
+            if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+					</div>
+				)
+			if(currentrole.role ==2){
+				if(props.isPlan)
+					return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
+                                    indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+			}
+            // else{
+            //     if(props.isPlan){
+            //         if(currentrole.role == 1)
+            //             if(props.isAutoDown){
+            //                 return <div className='section has-text-centered my-6'>
+            //                     <p className="title is-3 py-6">Please contact the feed group administrator to manage intel group plan payment.</p>
+            //                 </div>
+            //             }
+            //             else{
+            //                 return(
+            //                     <div className='section has-text-centered'>
+            //                         <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+            //                     </div>
+            //                 )
+            //             }
+            //         if(currentrole.role ==2)
+            //             return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
+            //                 indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
+            //     }
+            //     else{
+            //         return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+            //     }
+            // }
         }
     }
 

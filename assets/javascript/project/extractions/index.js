@@ -84,7 +84,7 @@ const ExtractionList = (props) => {
 				})
 			}
 		}
-		else{
+		if(props.isAutoDown || !props.customobservable){
 			setBannerCustom(true);
 		}
 	}
@@ -97,51 +97,60 @@ const ExtractionList = (props) => {
 	}
 
 	const changeStatus = (index) => {
-		console.log(props.extractionlist)
-		let params = {
-			id: props.extractionlist[index].id,
-			attribute: props.extractionlist[index].attribute,
-			value: props.extractionlist[index].value,
-			words_matched: props.extractionlist[index].words_matched,
-			currentgroup: props.extractionlist[index].intelgroup.id,
-			enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
+		if(props.customobservable){
+			let params = {
+				id: props.extractionlist[index].id,
+				attribute: props.extractionlist[index].attribute,
+				value: props.extractionlist[index].value,
+				words_matched: props.extractionlist[index].words_matched,
+				currentgroup: props.extractionlist[index].intelgroup.id,
+				enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
+			}
+			fetch('/api/attributes',{
+				method: 'put',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				console.log(res);
+				props.saveExtraction(res);
+			})
 		}
-		fetch('/api/attributes',{
-			method: 'put',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-			},
-			credentials: 'same-origin',
-			body: JSON.stringify(params)
-		}).then(res=>{return res.json()})
-		.then(res=>{
-			console.log(res);
-			props.saveExtraction(res);
-		})
+		if(props.isAutoDown || !props.customobservable){
+			setBannerCustom(true);
+		}
 	}
 
 	const EditAttribute = (index, words, value, type, enabled) => {
-        let params = {
-            id: props.extractionlist[index].id,
-            attribute: type.trim(),
-			value: value.trim(),
-			words_matched: words.trim(),
-			currentgroup: props.extractionlist[index].intelgroup.id,
-			enabled: enabled.trim()
+		if(props.customobservable){
+			let params = {
+				id: props.extractionlist[index].id,
+				attribute: type.trim(),
+				value: value.trim(),
+				words_matched: words.trim(),
+				currentgroup: props.extractionlist[index].intelgroup.id,
+				enabled: enabled.trim()
+			}
+			fetch('/api/attributes',{
+				method: 'put',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				props.saveExtraction(res);
+			})
 		}
-		fetch('/api/attributes',{
-			method: 'put',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-			},
-			credentials: 'same-origin',
-			body: JSON.stringify(params)
-		}).then(res=>{return res.json()})
-		.then(res=>{
-			props.saveExtraction(res);
-		})
+		if(props.isAutoDown || !props.customobservable){
+			setBannerCustom(true);
+		}
     }
 
 	return (
@@ -285,22 +294,8 @@ const Extractions = (props) => {
 				)
 			else{
 				if(props.isPlan){
-					if(currentrole.role == 1)
-						if(props.isAutoDown){
-							return <div className='section has-text-centered my-6'>
-                                <p className="title is-3 py-6">Please contact the feed group administrator to manage intel group plan payment.</p>
-                            </div>
-						}
-						else{
-							return(
-								<div className='section has-text-centered'>
-									<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
-								</div>
-							)
-						}
-					if(currentrole.role ==2)
-						return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
-							currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
+					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
+						currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
 				}
 				else{
 					return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />

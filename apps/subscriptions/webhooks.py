@@ -39,6 +39,9 @@ def email_admins_when_subscriptions_canceled(event, **kwargs):
         f'Their email was {customer_email}'
     )
 
+@djstripe_hooks.handler('product.created')
+def product_created(event, **kwargs):
+    print('dfds')
 
 def get_plan_data(stripe_event_data):
     return stripe_event_data['object']['items']['data'][0]['plan']

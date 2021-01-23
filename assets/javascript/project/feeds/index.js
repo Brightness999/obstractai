@@ -134,7 +134,6 @@ const FeedList = (props) => {
 							<button className="button is-success is-rounded mx-2" onClick={search} >
 								Filter
 							</button>
-							
 						</span>
 					</Grid>
 				</Grid>

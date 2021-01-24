@@ -36,5 +36,6 @@ urlpatterns = [
     path(r'role', views.role, name='role'),
     path(r'changegroup', views.changegroup, name='changegroup'),
     path(r'test/', views.test, name='test'),
+    path(r'pullfeed', views.pullfeed, name='pullfeed'),
    
 ]

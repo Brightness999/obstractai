@@ -6,6 +6,7 @@ import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
 const UpdateIntelGroup = function(props) {
+  console.log(props);
   const [id, setId] = useState(props.intelgroup_id || null);
   const [name, setName] = useState(props.intelgroup? props.intelgroup.name: '');
   const [description, setDescription] = useState(props.intelgroup? props.intelgroup.description : '');

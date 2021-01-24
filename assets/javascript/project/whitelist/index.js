@@ -214,7 +214,7 @@ const WhiteLists = (props) => {
 			if(currentrole.role ==2){
 				if(props.isPlan)
 					return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
-                                    indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
+                        indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
             // else{

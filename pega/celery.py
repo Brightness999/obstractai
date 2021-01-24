@@ -20,7 +20,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'feed': {
         'task': 'project.tasks.feed',
-        'schedule': 1.0,
+        'schedule': crontab(minute='*/60'),
     }
 }
 

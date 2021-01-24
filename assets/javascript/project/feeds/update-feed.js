@@ -1,14 +1,16 @@
 import React, {useState, useEffect} from 'react';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import {
-	Container,
-	TextField,
-	Button,
-	Tooltip,
+	Container,TextField,Button,Tooltip,Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, 
 } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
 import { yellow } from '@material-ui/core/colors';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import CloseIcon from '@material-ui/icons/Close';
 
 const UpdateFeed = (props) => {
 	const [url, setUrl] = useState(props.url || '');
@@ -25,7 +27,43 @@ const UpdateFeed = (props) => {
 	const [tagError, setTagError] = useState(false);
 	const [groupError, setGroupError] = useState(false);
 	const [isMessage, setIsMessage] = useState(false);
+	const [fulltext, setFullText] = useState({});
+	const [open, setOpen] = useState(false);
 	
+	const saveFeed = () => {
+		let params ={
+			url: url.trim(),
+			name: name.trim(),
+			description: description.trim(),
+			category: category,
+			tags: tags.trim(),
+			confidence: confidence,
+		}
+		params['intelgroup_id'] = props.currentgroup;
+		params['manage_enabled'] = 'false';
+		if(props.currentgroup == '') setGroupError(true);
+		if(props.currentgroup != '')
+			fetch('/api/feeds', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params),
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				if(Boolean(res.message)){
+					setIsMessage(true);
+				}
+				else{
+					setIsMessage(false);
+					props.saveFeed(res);
+					history.push('/feeds');
+				}
+			})
+	}
+
 	const updateFeed = () => {
 		let data;
 		props.categories.forEach(cate => {
@@ -74,26 +112,42 @@ const UpdateFeed = (props) => {
 				})
 			}
 			else{
-				if(props.currentgroup != '')
-					fetch('/api/feeds', {
+				// if(props.currentgroup != '')
+				// 	fetch('/api/feeds', {
+				// 		method: 'post',
+				// 		headers: {
+				// 			'Content-Type': 'application/json',
+				// 			'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				// 		},
+				// 		credentials: 'same-origin',
+				// 		body: JSON.stringify(params),
+				// 	}).then(res=>{return res.json()})
+				// 	.then(res=>{
+				// 		if(Boolean(res.message)){
+				// 			setIsMessage(true);
+				// 		}
+				// 		else{
+				// 			setIsMessage(false);
+				// 			props.saveFeed(res);
+				// 			history.push('/feeds');
+				// 		}
+				// 	})
+				if(props.currentgroup != ''){
+					fetch('/api/pullfeed', {
 						method: 'post',
 						headers: {
 							'Content-Type': 'application/json',
-							'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+							'X-CSRFToken': props.client.transports[0].auth.csrfToken
 						},
 						credentials: 'same-origin',
-						body: JSON.stringify(params),
+						body: JSON.stringify(params)
 					}).then(res=>{return res.json()})
 					.then(res=>{
-						if(Boolean(res.message)){
-							setIsMessage(true);
-						}
-						else{
-							setIsMessage(false);
-							props.saveFeed(res);
-							history.push('/feeds');
-						}
+						console.log(res.fulltext);
+						setFullText(res.fulltext);
+						setOpen(true)
 					})
+				}
 			}
 		}
 	}
@@ -327,6 +381,19 @@ const UpdateFeed = (props) => {
 							</TextField><Tooltip title="Value between 1 and 100 for how reliable is source" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 						</div>
 					}
+					<Dialog fullScreen open={open} onClose={()=>setOpen(false)}>
+					<DialogTitle>
+						<button onClick={()=>{setOpen(false); saveFeed()}} className="button is-success mx-4" autoFocus>
+							Save
+						</button>
+						<button onClick={()=>{setOpen(false); }} className="button is-danger" >
+							Cancel
+						</button>
+					</DialogTitle>
+						<DialogContent>
+							<pre>{JSON.stringify(fulltext, null, 2) }</pre>
+						</DialogContent>
+					</Dialog>
 				</div>
 				{ (()=>{
 					if(Boolean(props.id)){

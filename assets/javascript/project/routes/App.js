@@ -47,6 +47,7 @@ const App = () => {
   const [isInit, setIsInit] = useState(false);
   const [isAutoDown, setIsAutoDown] = useState(false);
   const [message, setMessage] = useState('');
+  const [re, setRe] = useState({});
 
 	useEffect(() => {
     fetch('/api/home', {
@@ -62,6 +63,7 @@ const App = () => {
       setIntelGroups(res.intelgroups);
       setUsers(res.users);
       setUserInfo(res.userinfo);
+      setRe(res.re);
       setIsLoading(false);
     })
   },[]);
@@ -121,7 +123,7 @@ const App = () => {
               <Layout mygroups={mygroups} />
             </Route> */}
             <Route exact path="/">
-              <HomePage mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
+              <HomePage re={re} mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
             <Route path="/intelgroups" >
               <IntelGroup isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)} deleteIntelGroup={(data)=>deleteIntelGroup(data)}/>

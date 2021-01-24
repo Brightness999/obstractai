@@ -21,9 +21,6 @@ class Feeds(BaseModel):
     isglobal = models.BooleanField(default=False)
     type = models.CharField(max_length=100, null=True)
 
-
-    def __str__(self):
-        return self.name
     # def save(self, *args, **kwargs):
         
 

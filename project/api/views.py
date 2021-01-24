@@ -1442,6 +1442,8 @@ def invite(request):
 		if(len(data) == 0):
 				data=[{'role': 'success'}]
 		return Response(data)
+	else:
+		return Response({'message':True})
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
 @api_view(['POST'])

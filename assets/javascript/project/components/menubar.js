@@ -47,7 +47,15 @@ const MenuBar = (props) => {
                     <div className="navbar-end">
                         {/* <a className="navbar-item is-size-5 has-text-weight-bold">Admin actions:</a> */}
                         <Link to="/feeds/" className="navbar-item">Manage feeds</Link>
-                        <Link to="/intelgroups/" className="navbar-item">Manage Groups</Link>
+                        <div className="navbar-item has-dropdown is-hoverable">
+                            <a className="navbar-link">
+                                <span className="is-show-desktop">Manage Group</span>
+                            </a>
+                            <div className="navbar-dropdown is-left">
+                                <Link to={`/intelgroups/${currentgroup}`} className="navbar-item">Edit Group</Link>
+                                <Link to={`/intelgroups/manage/${currentgroup}`} className="navbar-item">Manage Users</Link>
+                            </div>
+                        </div>
                         <div className="navbar-item has-dropdown is-hoverable">
                             <a className="navbar-link">
                                 <span className="is-show-desktop">Manage Observables</span>

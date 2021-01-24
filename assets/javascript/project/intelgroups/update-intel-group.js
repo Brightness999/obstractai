@@ -5,10 +5,6 @@ import { Tooltip, TextField, Grid } from "@material-ui/core";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
-
-
 const UpdateIntelGroup = function(props) {
   const [id, setId] = useState(props.intelgroup_id || null);
   const [name, setName] = useState(props.intelgroup? props.intelgroup.name: '');
@@ -67,7 +63,7 @@ const UpdateIntelGroup = function(props) {
         }).then(res=>{return res.json()})
         .then(res=>{
           props.intelgroupSaved(res);
-          history.push('/intelgroups')
+          history.goBack();
         })
       } else {
         fetch('/api/intelgroups', {
@@ -81,7 +77,7 @@ const UpdateIntelGroup = function(props) {
         }).then(res=>{return res.json()})
         .then(res=>{
           props.intelgroupSaved(res);
-          history.push('/intelgroups')
+          history.goBack();
         })
       }
     }
@@ -145,11 +141,9 @@ const UpdateIntelGroup = function(props) {
           </button>
         </div>
         <div className="control">
-          <Link to="/intelgroups">
-            <button className="button is-text" >
+            <button className="button is-text" onClick={()=>{history.goBack()}}>
               <span>Cancel</span>
             </button>
-          </Link>
         </div>
       </div>
     </section>

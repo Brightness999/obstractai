@@ -49,7 +49,9 @@ const ViewReport = (props) => {
 					while ( (result = alastreg.exec(str)) ) {
 						alast.push(result.index);
 					}
-					let url = item.replace("(", "").replace(/'/gi, "").replace(")", "").replace(/\\/gi, "").trim();
+					let url = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
+					if(url.search(RegExp('x(.)?'))>-1)
+						url = url.substring(0,url.search(RegExp('x(.)?')))
 					let re = new RegExp(url);
 					let index = str.search(re);
 					for(let i=0;i<astart.length;i++){

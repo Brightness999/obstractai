@@ -14,12 +14,12 @@ const ReportCard = function (props) {
 			<div className="columns">
 				<div className="column is-one-thirds">
 					<Grid container>
-						<Grid item xs={12} md={8} className="container">
+						<Grid item xs={12} md={8} className="container" style={{position:'relative'}}>
 							<Grid container>
 								<Grid item xs={12} md={6}>
 									<div>
 										<span> Name: </span>
-										<span> {props.feed[0]? props.feed[0].name : ""} </span>
+										<span> {props.feeditem? props.feeditem.title : ""} </span>
 									</div>
 									<div>
 										<span> Description: </span>
@@ -27,7 +27,7 @@ const ReportCard = function (props) {
 									</div>
 									<div className="">
 										<span> URL: </span>
-										<span> {props.feed[0]? props.feeditem.link : ""} </span>
+										<span> {props.feeditem? props.feeditem.link : ""} </span>
 									</div>
 
 								</Grid>
@@ -38,7 +38,7 @@ const ReportCard = function (props) {
 									</div>
 								</Grid>
 							</Grid>
-							<div>
+							<div style={{position:'absolute', bottom:0}}>
 								<span>
 									<button className="button is-info is-rounded mx-2" >
 									<span>{props.feed[0].category ? props.feed[0].category.name : ""}</span>

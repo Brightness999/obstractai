@@ -52,8 +52,8 @@ const MenuBar = (props) => {
                                 <span className="is-show-desktop">Manage Group</span>
                             </a>
                             <div className="navbar-dropdown is-left">
-                                <Link to={`/intelgroups/${currentgroup}`} className="navbar-item">Edit Group</Link>
-                                <Link to={`/intelgroups/manage/${currentgroup}`} className="navbar-item">Manage Users</Link>
+                                <Link to="/intelgroup" className="navbar-item">Edit Group</Link>
+                                <Link to="/users" className="navbar-item">Manage Users</Link>
                             </div>
                         </div>
                         <div className="navbar-item has-dropdown is-hoverable">

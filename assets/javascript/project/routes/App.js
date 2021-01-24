@@ -5,7 +5,7 @@ import store from "./store";
 import HomePage from '../Home';
 import TopNavbar from '../components/topnavbar';
 import MenuBar from '../components/menubar';
-import IntelGroup from '../intelgroups';
+import IntelGroup from '../intelgroups/intel-group';
 import Feeds from '../feeds';
 import Categories from '../categories';
 import Extractions from '../extractions';
@@ -20,6 +20,8 @@ import GlobalAttributes from '../globalattributes';
 import Layout from './Layout';
 import Pending from '../staff/pending';
 import StaffFeeds from '../staff/feeds';
+import User from '../users';
+import IntelGroups from '../intelgroups';
 
 
 const Loading = () => {
@@ -80,7 +82,6 @@ const App = () => {
       body: JSON.stringify(params)
     }).then(res=>{return res.json()})
     .then(res=>{
-      console.log(res);
       setCurrentGroup(intelgroup);
       setIsPlan(res.isPlan);
       setIsInit(res.isInit);
@@ -126,7 +127,13 @@ const App = () => {
               <HomePage re={re} mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
             <Route path="/intelgroups" >
-              <IntelGroup isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)} deleteIntelGroup={(data)=>deleteIntelGroup(data)}/>
+              <IntelGroups currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)} deleteIntelGroup={(data)=>deleteIntelGroup(data)}/>
+            </Route>
+            <Route path="/intelgroup">
+              <IntelGroup client={client} currentgroup={currentgroup} />
+            </Route>
+            <Route path="/users" >
+              <User isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentgroup={currentgroup} />
             </Route>
             <Route path="/feeds">
               <Feeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message}/>

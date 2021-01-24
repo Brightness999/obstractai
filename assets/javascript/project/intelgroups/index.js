@@ -103,7 +103,7 @@ const Loading = function() {
 	)
 }
 
-const IntelGroup = (props) => {
+const IntelGroups = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [intelgroups, setIntelgroups] = useState([]);
 	const [users, setUsers] = useState([]);
@@ -206,7 +206,7 @@ const IntelGroup = (props) => {
 	return (
 	  	<Switch  >
 			<Route path="/intelgroups/manage/:id">
-				<User client={props.client} />
+				<User client={props.client} currentgroup={props.currentgroup} />
 			</Route>
 			<Route path="/intelgroups/new">
 				<UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} />
@@ -218,4 +218,4 @@ const IntelGroup = (props) => {
 	   </Switch>
   );
 };
-export default IntelGroup;
+export default IntelGroups;

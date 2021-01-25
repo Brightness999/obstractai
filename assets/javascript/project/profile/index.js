@@ -76,9 +76,9 @@ const Profile = (props) => {
     return (
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
-            {isSuccess && <Alert severity="success" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
-            {isExist && <Alert severity="warning" className="column is-one-third my-4" onClose={()=>setIsExist(false)}>This email already exists. Please input another email.</Alert>}
-            {isAlert && <Alert severity="danger" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
+            {isSuccess && <Alert severity="success" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
+            {isExist && <Alert severity="warning" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsExist(false)}>This email already exists. Please input another email.</Alert>}
+            {isAlert && <Alert severity="danger" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
                     setEmail(e.target.value);
@@ -153,7 +153,7 @@ const Intelgroups = (props) => {
     return (
         <section className="semisection">
             <h1 className="title is-5 py-4">Intel groups you belong to</h1>
-            {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>{message}</Alert>}
+            {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>{message}</Alert>}
             <Table className="table is-striped is-fullwidth has-vcentered-cells">
                 <Thead>
                     <Tr>
@@ -231,7 +231,7 @@ const APIKeys = (props) => {
             >
                 <DialogTitle id="alert-dialog-title">Create new API key</DialogTitle>
                 <DialogContent>
-                    {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
+                    {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
                     <div className="semisection">
                         <TextField id="outlined-basic" size="small" placeholder="name" variant="outlined" onChange={(e)=>setName(e.target.value)} />
                     </div>
@@ -331,7 +331,7 @@ const WebHooks = (props) => {
             >
                 <DialogTitle id="alert-dialog-title">Add a webhook endpoint</DialogTitle>
                 <DialogContent>
-                    {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
+                    {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
                     <div className="semisection">
                         <TextField id="outlined-basic1" size="small" placeholder="https://..." variant="outlined" onChange={(e)=>setEndpoint(e.target.value)} />
                     </div>

@@ -161,8 +161,8 @@ const ExtractionList = (props) => {
 					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
 					<span className="subtitle is-5">{props.message}</span>
 				</Alert>}
-				{bannerCustom && <Alert severity="error" onClose={()=>setBannerCustom(false)}>Sorry, your plan does not currently cover custom attribute abstractions. You can upgrade now to enable this feature here.</Alert>}
-				{bannerAdd && <Alert severity="error" onClose={()=>setBannerAdd(false)}>The attribute already exists! Please find out it and edit.</Alert>}
+				{bannerCustom && <Alert severity="error" className="title is-size-4" onClose={()=>setBannerCustom(false)}>Sorry, your plan does not currently cover custom attribute abstractions. You can upgrade now to enable this feature here.</Alert>}
+				{bannerAdd && <Alert severity="error" className="title is-size-4" onClose={()=>setBannerAdd(false)}>The attribute already exists! Please find out it and edit.</Alert>}
 				<h1 className="title is-3">Manage Observable extractions</h1>
 				<Grid container>
 					<Grid item xs={9}>
@@ -174,8 +174,8 @@ const ExtractionList = (props) => {
 						</button>
 					</Grid>
 				</Grid>
-				{isAlert && <Alert severity="warning" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
-				{groupError && <Alert severity="warning" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
+				{isAlert && <Alert severity="warning" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
+				{groupError && <Alert severity="warning" className="title is-size-4" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>

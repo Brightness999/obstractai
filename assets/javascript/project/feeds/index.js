@@ -1,15 +1,6 @@
 import React, {useState, useEffect} from "react";
-import {
-	Switch,
-	Route,
-	Link,
-	useHistory
-} from "react-router-dom";
-import {
-	Container,
-	TextField,
-	Grid
-} from "@material-ui/core";
+import { Switch,Route,Link,useHistory} from "react-router-dom";
+import { Container,TextField,Grid} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 
 import UpdateFeed from "./update-feed";

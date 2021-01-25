@@ -1,13 +1,13 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Grid } from "@material-ui/core";
 
 const ReportCard = function (props) {
 	let tags = [];
-	if(props.feed[0]){
-		if(props.feed[0].tags.indexOf(",") > -1)
-		tags = props.feed[0].tags.split(',');
-		else tags.push(props.feed[0].tags);
+	if(props.report.feed){
+		if(props.report.feed.tags.indexOf(",") > -1)
+		tags = props.report.feed.tags.split(',');
+		else tags.push(props.report.feed.tags);
 	}
 	return (
 		<section className="section app-card" >
@@ -19,29 +19,29 @@ const ReportCard = function (props) {
 								<Grid item xs={12} md={6}>
 									<div>
 										<span> Name: </span>
-										<span> {props.feeditem? props.feeditem.title : ""} </span>
+										<span> {props.report? props.report.feeditem.title : ""} </span>
 									</div>
 									<div>
 										<span> Description: </span>
-										<span> {props.feed[0]? props.feed[0].description: ""} </span>
+										<span> {props.report? props.report.feed.description: ""} </span>
 									</div>
 									<div className="">
 										<span> URL: </span>
-										<span> {props.feeditem? props.feeditem.link : ""} </span>
+										<span> {props.report.feeditem? props.report.feeditem.link : ""} </span>
 									</div>
 
 								</Grid>
 								<Grid item xs={12} md={6}>
 									<div>
 										<span> Publish Date: </span>
-										<span> {props.feed[0]? props.feed[0].updated_at.split('.')[0].split('T')[0]+" "+props.feed[0].updated_at.split('.')[0].split('T')[1] : ""} </span>
+										<span>{ props.report.feeditem.pubdate && new Date(props.report.feeditem.pubdate).toLocaleString()}</span>
 									</div>
 								</Grid>
 							</Grid>
 							<div style={{position:'absolute', bottom:0}}>
 								<span>
 									<button className="button is-info is-rounded mx-2" >
-									<span>{props.feed[0].category ? props.feed[0].category.name : ""}</span>
+									<span>{props.report.feed.category ? props.report.feed.category.name : ""}</span>
 									</button>
 									{
 									tags.map((tag, index) => {
@@ -52,9 +52,9 @@ const ReportCard = function (props) {
 										);
 									})
 									}
-									<Link to={`/intelreports/${props.feeditem.id}`}>
+									<Link to={`/intelreports/${props.report.id}`}>
 										<button className="button is-link is-rounded is-text mx-2">
-											<span>{props.feed[0] ? props.feed[0].name : ""}</span>
+											<span>{props.report.feed ? props.report.feed.name : ""}</span>
 										</button>
 									</Link>
 								</span>
@@ -67,7 +67,7 @@ const ReportCard = function (props) {
 								</Grid>
 								<Grid item xs={9} className="py-2">
 									<button className="button is-primary is-rounded">
-										<span>{props.feed[0].confidence}</span>
+										<span>{props.report.feed.confidence}</span>
 									</button>
 								</Grid>
 							</Grid>

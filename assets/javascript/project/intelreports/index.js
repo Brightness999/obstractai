@@ -46,7 +46,7 @@ const ReportList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="0">Indicator</option>
+								<option value="0" className="has-text-light">Indicator</option>
 								{props.globalindicators.map((globalindicator) => (
 									<option key={globalindicator.id} value={globalindicator.id}>
 										{globalindicator.value}
@@ -64,7 +64,7 @@ const ReportList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="0">Confidence</option>
+								<option value="0" className="has-text-light">Confidence</option>
 								{props.confidences.map((confidence) => (
 									<option key={confidence} value={confidence}>
 										{confidence}
@@ -82,7 +82,7 @@ const ReportList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="0">Category</option>
+								<option value="0" className="has-text-light">Category</option>
 								{props.categories.map((category) => (
 									<option key={category.id} value={category.id}>
 										{category.name}
@@ -100,7 +100,7 @@ const ReportList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="0">Tag</option>
+								<option value="0" className="has-text-light">Tag</option>
 								{props.tags.map((tag) => (
 									<option key={tag.id} value={tag.name}>
 										{tag.name}
@@ -118,7 +118,7 @@ const ReportList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="0">Feed Name</option>
+								<option value="0" className="has-text-light">Feed Name</option>
 								{props.feeds.map((feed) => (
 									<option key={feed.id} value={feed.id}>
 										{feed.name}
@@ -136,7 +136,7 @@ const ReportList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="0">Classification</option>
+								<option value="0" className="has-text-light">Classification</option>
 								{props.classifications.map((classification) => (
 									<option key={classification.id} value={classification.id}>
 										{classification.words_matched}
@@ -155,26 +155,21 @@ const ReportList = (props) => {
 				</Grid>
 			</section>
 			{
-				props.feeditems.map((feeditem, index) => {
+				props.reports.map((report, index) => {
 					const indicators = [];
 					props.indicators.forEach(indicator => {
-						if(feeditem.id == indicator.feeditem_id){
+						if(report.feeditem.id == indicator.feeditem_id){
 							indicators.push(indicator)
 						}
 					});
-					const itemfeed = [];
-					props.feeds.forEach(feed => {
-						if(feed.uniqueid == feeditem.feed.uniqueid){
-							itemfeed.push(feed);
-						}
-					});
+					
 					const classifications = [];
 					props.classifications.forEach(classification => {
-						if(classification.intelgroup.id == itemfeed[0].intelgroup_id){
+						if(classification.intelgroup.id == report.intelgroup.id){
 							classifications.push(classification);
 						}
 					});
-					return <ReportCard index={index} key={feeditem.id} feeditem={feeditem} feed={itemfeed} indicators={indicators} classifications={classifications} />;
+					return <ReportCard index={index} key={report.id} report={report} indicators={indicators} classifications={classifications} />;
 				})
 			}
 			
@@ -194,6 +189,7 @@ const IntelReports = (props) => {
 	const [feeditems, setFeedItmes] = useState([]);
 	const [feedchannels, setFeedChannels] = useState([]);
 	const [globalindicators, setGlobalIndicators] = useState([]);
+	const [reports, setReports] = useState([]);
 	const history = useHistory();
 	const confidences = [];
 	for (let i=1;i<100;i++){
@@ -201,27 +197,31 @@ const IntelReports = (props) => {
 	}
 
 	useEffect(()=>{
-		fetch('/api/reports', {
-            method: 'get',
-            headers: {
-              'Content-Type': 'application/json',
-              'accept': 'application/json',
-            },
-            credentials: 'same-origin',
-        }).then((res)=> { return res.json();})
-        .then((res)=>{
-			console.log(res);
-			setFeeds(res.feeds);
-			setCategories(res.categories);
-			setClassifications(res.extractions);
-			setIndicators(res.indicators);
-			setFeedItmes(res.feeditems);
-			setFeedChannels(res.feedchannels);
-			setGlobalIndicators(res.globalindicators);
-			setTags(res.tags);
-			setIsLoading(false);
-        });
-	},[]);
+		if(props.currentgroup == '') history.push('/')
+		else{
+			fetch(`/api/reports/${props.currentgroup}`, {
+				method: 'get',
+				headers: {
+				  'Content-Type': 'application/json',
+				  'accept': 'application/json',
+				},
+				credentials: 'same-origin',
+			}).then((res)=> { return res.json();})
+			.then((res)=>{
+				console.log(res);
+				setFeeds(res.feeds);
+				setCategories(res.categories);
+				setClassifications(res.extractions);
+				setIndicators(res.indicators);
+				setFeedItmes(res.feeditems);
+				setFeedChannels(res.feedchannels);
+				setGlobalIndicators(res.globalindicators);
+				setReports(res.reports);
+				setTags(res.tags);
+				setIsLoading(false);
+			});
+		}
+	},[props.currentgroup]);
 
 	const searchReport = (category, indicator, tag, feedname, confidence, classification, intelligence) => {
 		setIsLoading(true);
@@ -263,14 +263,14 @@ const IntelReports = (props) => {
 		else {
 			return <ReportList categories={categories} tags={tags} feeds={feeds} client={props.client} mygroups={props.mygroups}
 				classifications={classifications} indicators={indicators} feeditems={feeditems} searchReport={searchReport}
-				feedchannels={feedchannels} confidences={confidences} globalindicators={globalindicators} />
+				feedchannels={feedchannels} confidences={confidences} globalindicators={globalindicators} reports={reports} />
 		}
 	}
 
 	const getFeedById = (id) => {
-		for(const feeditem of feeditems){
-			if(feeditem.id.toString() == id)
-				return feeditem;
+		for(const report of reports){
+			if(report.id.toString() == id)
+				return report;
 		};
 	}
 
@@ -279,10 +279,10 @@ const IntelReports = (props) => {
 			return <Loading/>;
 		} 
 		else {
-			const feeditem_id = data.match.params.id;
-			const feeditem = getFeedById(feeditem_id);
+			const report_id = data.match.params.id;
+			const report = getFeedById(report_id);
 			return(
-				<ViewReport client={props.client} {...feeditem} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} feeds={feeds} />
+				<ViewReport client={props.client} {...report} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} feeds={feeds} />
 			)
 		}
 	}

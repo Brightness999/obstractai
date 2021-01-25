@@ -13,7 +13,26 @@ const WebhookTable = (props) => {
     const [isAlert, setIsAlert] = useState(false);
 
     const editEndpoint = () => {
-        let params = {'id':props.webhook.id, 'endpoint': endpoint, intelgroup_id: intelgroup, description:description}
+        let params = {id:props.webhook.id, endpoint: endpoint, intelgroup_id: intelgroup, description:description, isenable:props.webhook.isenable}
+        if(intelgroup != '0' && endpoint.trim() != '' && description != '')
+            fetch('/api/webhooks', {
+                method: 'put',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(params),
+            }).then((res)=>{return res.json()})
+            .then((res)=>{
+                props.saveWebhooks(res);
+                setOpen(false);
+            });
+        else setIsAlert(true);
+    }
+
+    const enableWebhook = () => {
+        let params ={id:props.webhook.id, isenable:props.webhook.isenable?false:true, endpoint: endpoint, intelgroup_id: intelgroup, description:description,}
         if(intelgroup != '0' && endpoint.trim() != '' && description != '')
             fetch('/api/webhooks', {
                 method: 'put',
@@ -32,7 +51,7 @@ const WebhookTable = (props) => {
     }
 
     const deleteWebhook = () => {
-        let params = {'id':props.webhook.id}
+        let params = {id:props.webhook.id}
         if(confirm('Are you sure to delete?'))
             fetch('/api/webhooks', {
                 method: 'delete',
@@ -102,7 +121,8 @@ const WebhookTable = (props) => {
                         </button>
                     </DialogActions>
                 </Dialog>
-                <button className="button is-text" onClick={()=>deleteWebhook()} >Delete</button>
+                <button className="button is-text mx-4" onClick={()=>deleteWebhook()} >Delete</button>
+                <button className={props.webhook.isenable?"button is-success":"button is-light"} onClick={()=>enableWebhook()} >{props.webhook.isenable?"Enable":"Disable"}</button>
             </Td>
         </Tr>
     );

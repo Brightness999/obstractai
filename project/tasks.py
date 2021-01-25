@@ -7,6 +7,8 @@ from celery import shared_task
 from celery import Celery
 from celery_progress.backend import ProgressRecorder
 from celery.schedules import crontab
+from datetime import datetime, timedelta
+
 from pega.celery import app
 from .models import (IntelGroups, Feeds, FeedItems, FeedChannels, Indicators, GlobalIndicators,)
 
@@ -35,6 +37,7 @@ def feed(self):
             feedcreated = True
         else:
             channelid = FeedChannels.objects.filter(feed_id=feed.id).last().id
+            FeedChannels.objects.filter(id=channelid).update(updated_at=datetime.now())
         
         for item in xmltodict.parse(contents)['rss']['channel']:
             if(item == 'title'):
@@ -51,7 +54,7 @@ def feed(self):
                 FeedChannels.objects.filter(id=channelid).update(managingeditor=xmltodict.parse(contents)['rss']['channel'][item])
             elif(item == 'webmaster'):
                 FeedChannels.objects.filter(id=channelid).update(webmaster=xmltodict.parse(contents)['rss']['channel'][item])
-            elif(item == 'pubdate'):
+            elif(item == 'pubDate'):
                 FeedChannels.objects.filter(id=channelid).update(pubdate=xmltodict.parse(contents)['rss']['channel'][item])
             elif(item == 'category'):
                 FeedChannels.objects.filter(id=channelid).update(category=xmltodict.parse(contents)['rss']['channel'][item])
@@ -74,7 +77,6 @@ def feed(self):
             elif(item == 'skipdays'):
                 FeedChannels.objects.filter(id=channelid).update(skipdays=xmltodict.parse(contents)['rss']['channel'][item])
         if type(xmltodict.parse(contents)['rss']['channel']['item']) is list:
-            print('aaaaaaaaaaaaaaaaaaa')
             itemids = FeedItems.objects.filter(feed_id=feed.id).order_by('id').all()
             for items in xmltodict.parse(contents)['rss']['channel']['item']:
                 itemid = 0
@@ -83,6 +85,7 @@ def feed(self):
                     itemid = FeedItems.objects.last().id
                 else:
                     itemid = itemids[0].id
+                    FeedItems.objects.filter(id=itemid).update(updated_at=datetime.now())
                     temp = np.array(itemids)
                     itemids = temp[1:]
                 for item in items:
@@ -215,6 +218,8 @@ def feed(self):
                                     Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
                                 else:
                                     Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                            else:
+                                GlobalIndicators.objects.create()
                     elif(item == 'author'):
                         FeedItems.objects.filter(id=itemid).update(author=items[item])
                     elif(item == 'category'):
@@ -225,18 +230,18 @@ def feed(self):
                         FeedItems.objects.filter(id=itemid).update(enclosure=items[item])
                     elif(item == 'guid'):
                         FeedItems.objects.filter(id=itemid).update(guid=items[item])
-                    elif(item == 'pubdate'):
+                    elif(item == 'pubDate'):
                         FeedItems.objects.filter(id=itemid).update(pubdate=items[item])
                     elif(item == 'source'):
                         FeedItems.objects.filter(id=itemid).update(source=items[item])
         if type(xmltodict.parse(contents)['rss']['channel']['item']) is not list:
-            print('bbbbbbbbbbbbbbbbbbbbbb')
             itemid = 0
             if len(FeedItems.objects.filter(feed_id=feed.id).all()) == 0:
                 FeedItems.objects.create(feed_id=feed.id)
                 itemid = FeedItems.objects.last().id
             else:
                 itemid = FeedItems.objects.filter(feed_id=feed.id).last().id
+                FeedItems.objects.filter(id=itemid).update(updated_at=datetime.now())
             for item in xmltodict.parse(contents)['rss']['channel']['item']:
                 if(item == 'title'):
                     FeedItems.objects.filter(id=itemid).update(title=xmltodict.parse(contents)['rss']['channel']['item'][item])
@@ -377,7 +382,7 @@ def feed(self):
                     FeedItems.objects.filter(id=itemid).update(enclosure=xmltodict.parse(contents)['rss']['channel']['item'][item])
                 elif(item == 'guid'):
                     FeedItems.objects.filter(id=itemid).update(guid=xmltodict.parse(contents)['rss']['channel']['item'][item])
-                elif(item == 'pubdate'):
+                elif(item == 'pubDate'):
                     FeedItems.objects.filter(id=itemid).update(pubdate=xmltodict.parse(contents)['rss']['channel']['item'][item])
                 elif(item == 'source'):
                     FeedItems.objects.filter(id=itemid).update(source=xmltodict.parse(contents)['rss']['channel']['item'][item])

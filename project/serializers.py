@@ -2,7 +2,8 @@ from rest_framework import serializers
 import json
 
 from djstripe.models import Product, Plan, Subscription
-from .models import IntelGroups, UserIntelGroupRoles, Categories, Tags, Feeds, Indicators, Whitelists, APIKeys, WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes, Attributes
+from .models import IntelGroups, UserIntelGroupRoles, Categories, Tags, Feeds, Indicators, Whitelists, APIKeys, \
+    WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes, Attributes, IntelReports
 from apps.users.models import CustomUser
 
 class IntelGroupSerializer(serializers.ModelSerializer):
@@ -11,78 +12,29 @@ class IntelGroupSerializer(serializers.ModelSerializer):
         model = IntelGroups
         fields = ('id', 'uniqueid', 'name', 'description', 'plan_id', 'created_at', 'updated_at')
 
-
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = CustomUser
         fields = ('__all__')
 
-class UserIntelGroupRolesSerializer(serializers.ModelSerializer):
-    user = UserSerializer(many=False, read_only=True)
-    class Meta:
-        model = UserIntelGroupRoles
-        fields = ('id', 'user_id', 'intelgroup_id', 'role', 'user')
-
-class RoleGroupSerializer(serializers.ModelSerializer):
-    intelgroup = IntelGroupSerializer(many=False, read_only=True)
-    class Meta:
-        model = UserIntelGroupRoles
-        fields = ('id', 'user_id', 'intelgroup_id', 'role','intelgroup')
-
-class UserGroupRoleSerializer(serializers.ModelSerializer):
-    user = UserSerializer(many=False, read_only=True)
-    intelgroup = IntelGroupSerializer(many=False, read_only=True)
-    class Meta:
-        model = UserIntelGroupRoles
-        fields = ('id', 'user_id', 'intelgroup_id', 'role', 'user', 'intelgroup')
-
-class GroupRoleSerializer(serializers.ModelSerializer):
-    intelgroup = IntelGroupSerializer(many=False, read_only=True)
-    class Meta:
-        model = UserIntelGroupRoles
-        fields = ('id', 'role', 'intelgroup_id', 'intelgroup')
-
 class CategorySerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Categories
         fields = ('__all__' )
 
-class FeedCategorySerializer(serializers.ModelSerializer):
-    category = CategorySerializer(many=False)
-    class Meta:
-        model = Feeds
-        fields = ('id', 'name', 'category_id', 'description', 'tags', 'url', 'confidence', 'manage_enabled', 'intelgroup_id','updated_at', 'category', 'uniqueid' )
-    def add(self, instance, validated_data):
-        instance.category_id = validated_data.get('category', instance.category_id)
-        return instance
 class FeedSerializer(serializers.ModelSerializer):
-
+    
     class Meta:
         model = Feeds
         fields = ('__all__' )
-
-class GroupCategoryFeedSerializer(serializers.ModelSerializer):
-    intelgroup = IntelGroupSerializer(read_only=True)
-    category = CategorySerializer(read_only=True)
-    class Meta:
-        model = Feeds
-        fields = ('__all__')
-
 
 class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
         fields = '__all__'
-
-
-class Comment:
-    def __init__(self, name, description, userids):
-        self.name = name
-        self.description = description
-        self.userids = userids
-        self.data = data
 
 class CommentSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
@@ -123,29 +75,76 @@ class APIKeySerializer(serializers.ModelSerializer):
         model = APIKeys
         fields = ('id', 'name', 'value', 'user_id', 'intelgroup_id')
 
-class GroupAPIkeySerializer(serializers.ModelSerializer):
-    intelgroup = IntelGroupSerializer(many=False)
-    class Meta:
-        model = APIKeys
-        fields = ('id', 'name', 'value', 'user_id', 'intelgroup_id', 'intelgroup')
-
 class WebHookSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WebHooks
         fields = ('id', 'endpoint', 'description', 'user_id', 'intelgroup_id' )
 
+class FeedChannelSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = FeedChannels
+        fields = ('__all__')
+
+class IntelReportSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = IntelReports
+        fields = ('__all__')
+
+class UserIntelGroupRolesSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    class Meta:
+        model = UserIntelGroupRoles
+        fields = ('id', 'user_id', 'intelgroup_id', 'role', 'user')
+
+class RoleGroupSerializer(serializers.ModelSerializer):
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    class Meta:
+        model = UserIntelGroupRoles
+        fields = ('id', 'user_id', 'intelgroup_id', 'role','intelgroup')
+
+class UserGroupRoleSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    class Meta:
+        model = UserIntelGroupRoles
+        fields = ('id', 'user_id', 'intelgroup_id', 'role', 'user', 'intelgroup')
+
+class GroupRoleSerializer(serializers.ModelSerializer):
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    class Meta:
+        model = UserIntelGroupRoles
+        fields = ('id', 'role', 'intelgroup_id', 'intelgroup')
+
+class FeedCategorySerializer(serializers.ModelSerializer):
+    category = CategorySerializer(many=False)
+    class Meta:
+        model = Feeds
+        fields = ('id', 'name', 'category_id', 'description', 'tags', 'url', 'confidence', 'manage_enabled', 'intelgroup_id','updated_at', 'category', 'uniqueid', 'type' )
+    def add(self, instance, validated_data):
+        instance.category_id = validated_data.get('category', instance.category_id)
+        return instance
+
+class GroupCategoryFeedSerializer(serializers.ModelSerializer):
+    intelgroup = IntelGroupSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+    class Meta:
+        model = Feeds
+        fields = ('__all__')
+
+class GroupAPIkeySerializer(serializers.ModelSerializer):
+    intelgroup = IntelGroupSerializer(many=False)
+    class Meta:
+        model = APIKeys
+        fields = ('id', 'name', 'value', 'user_id', 'intelgroup_id', 'intelgroup')
+
 class GroupWebHookSerializer(serializers.ModelSerializer):
     intelgroup = IntelGroupSerializer(many=False, read_only=True)
     class Meta:
         model = WebHooks
-        fields = ('id', 'endpoint', 'description', 'user_id', 'intelgroup_id', 'intelgroup' )
-
-class FeedChannelSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = FeedChannels
-        fields = ('__all__')
+        fields = ('id', 'endpoint', 'description', 'user_id', 'intelgroup_id', 'isenable', 'intelgroup' )
 
 class FeedItemSerializer(serializers.ModelSerializer):
     feed = FeedCategorySerializer(many=False, read_only=True)
@@ -159,8 +158,6 @@ class ItemIndicatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Indicators
         fields = ('id', 'feeditem_id', 'enabled', 'globalindicator_id', 'value', 'feeditem', 'globalindicator')
-
-
 
 class UserGlobalIndicatorSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(many=False, read_only=True)
@@ -200,6 +197,14 @@ class UserGroupAttributeSerializer(serializers.ModelSerializer):
     intelgroup = IntelGroupSerializer(many=False, read_only=True)
     class Meta:
         model = Attributes
+        fields = ('__all__')
+
+class ItemFeedGroupReportSerializer(serializers.ModelSerializer):
+    feeditem = FeedItemSerializer(many=False, read_only=True)
+    feed = GroupCategoryFeedSerializer(many=False, read_only=True)
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    class Meta:
+        model = IntelReports
         fields = ('__all__')
 
 class ChangeEmailSerializer(serializers.Serializer):
@@ -348,4 +353,3 @@ class WhitelistCreateSerializer(serializers.Serializer):
 class APIKeyCreateSerializer(serializers.Serializer):
     intelgroup_id = serializers.IntegerField()
     name = serializers.CharField(max_length=100)
-

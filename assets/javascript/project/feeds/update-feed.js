@@ -18,6 +18,7 @@ const UpdateFeed = (props) => {
 	const [description, setDescription] = useState(props.description || '');
 	const [category, setCategory] = useState(props.category_id || '');
 	const [tags, setTags] = useState(props.tags || '');
+	const [type, setType] = useState(props.type || '');
 	const history = useHistory();
 	const [confidence, setConfidence] = useState(props.confidence || '');
 	const [urlError, setUrlError] = useState(false);
@@ -26,6 +27,7 @@ const UpdateFeed = (props) => {
 	const [categoryError, setCategoryError] = useState(false);
 	const [tagError, setTagError] = useState(false);
 	const [groupError, setGroupError] = useState(false);
+	const [typeError, setTypeError] = useState(false);
 	const [isMessage, setIsMessage] = useState(false);
 	const [fulltext, setFullText] = useState({});
 	const [open, setOpen] = useState(false);
@@ -38,6 +40,7 @@ const UpdateFeed = (props) => {
 			category: category,
 			tags: tags.trim(),
 			confidence: confidence,
+			type:type.trim()
 		}
 		params['intelgroup_id'] = props.currentgroup;
 		params['manage_enabled'] = 'false';
@@ -77,6 +80,7 @@ const UpdateFeed = (props) => {
 			category: category,
 			tags: tags.trim(),
 			confidence: confidence,
+			type:type.trim()
 		}
 
 		if(props.id){
@@ -94,8 +98,9 @@ const UpdateFeed = (props) => {
 		if(description.trim() == '') setDescriptionError(true);
 		if(category == '') setCategoryError(true);
 		if(tags.trim() == '') setTagError(true);
+		if(type.trim() == '') setTypeError(true);
 
-		if(url && name && description && category && tags ){
+		if(url && name && description && category && tags && type ){
 			if(Boolean(props.id)){
 				fetch('/api/feeds', {
 					method: 'put',
@@ -112,26 +117,6 @@ const UpdateFeed = (props) => {
 				})
 			}
 			else{
-				// if(props.currentgroup != '')
-				// 	fetch('/api/feeds', {
-				// 		method: 'post',
-				// 		headers: {
-				// 			'Content-Type': 'application/json',
-				// 			'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-				// 		},
-				// 		credentials: 'same-origin',
-				// 		body: JSON.stringify(params),
-				// 	}).then(res=>{return res.json()})
-				// 	.then(res=>{
-				// 		if(Boolean(res.message)){
-				// 			setIsMessage(true);
-				// 		}
-				// 		else{
-				// 			setIsMessage(false);
-				// 			props.saveFeed(res);
-				// 			history.push('/feeds');
-				// 		}
-				// 	})
 				if(props.currentgroup != ''){
 					fetch('/api/pullfeed', {
 						method: 'post',
@@ -166,7 +151,42 @@ const UpdateFeed = (props) => {
 				<div className="columns">
 					{props.currentrole.role==2&&
 						<div className="column is-two-thirds">
-							{groupError && <Alert severity="error" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
+							{groupError && <Alert severity="error" className="title is-size-4" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
+
+							{Boolean(props.id)?
+							<TextField
+								id="outlined-select-currency-native"
+								select
+								className="mt-4 mb-2 column is-four-fifths"
+								label="Type"
+								value={type}
+								onChange={(event) => {setType(event.target.value); setTypeError(false);}}
+								SelectProps={{
+									native: true,
+								}}
+								variant="outlined"
+							>
+								<option className="has-text-light">Select Type</option>
+								<option value="rss">RSS</option>
+								<option value="curated">Curated</option>
+							</TextField>:
+							<><TextField
+								id="outlined-select-currency-native"
+								select
+								className="mt-4 mb-2 column is-four-fifths"
+								label="Type"
+								value={type}
+								onChange={(event) => {setType(event.target.value); setTypeError(false);}}
+								SelectProps={{
+									native: true,
+								}}
+								variant="outlined"
+							>
+								<option className="has-text-light">Select Type</option>
+								<option value="rss">RSS</option>
+								<option value="curated">Curated</option>
+							</TextField><Tooltip title="Either RSS or Curated" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
+							{typeError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							{Boolean(props.id)?
 							<TextField
 								label="URL"

@@ -11,33 +11,21 @@ const ViewReport = (props) => {
 		tags = props.feed.tags.split(',');
 		else tags.push(props.feed.tags);
 	}
-	const itemfeed = [];
-	props.feeds.forEach(feed => {
-		if(feed.uniqueid == props.feed.uniqueid){
-			itemfeed.push(feed);
-		}
-	});
 	const classifications = [];
 	props.classifications.forEach(classification => {
-		if(classification.intelgroup.id == itemfeed[0].intelgroup_id){
+		if(classification.intelgroup.id == props.intelgroup.id){
 			classifications.push(classification);
 		}
 	});
 	const indicators = [];
 	props.indicators.forEach(indicator => {
-		if(props.id == indicator.feeditem_id){
+		if(props.feeditem.id == indicator.feeditem_id){
 			indicators.push(indicator)
-		}
-	});
-	const currentitem = [];
-	props.feeditems.forEach(feeditem => {
-		if(feeditem.id == props.id){
-			currentitem.push(feeditem);
 		}
 	});
 	
 	useEffect(()=>{
-		let str=currentitem[0].description;
+		let str=props.feeditem.description;
 		indicators.forEach(indicator => {
 			if(indicator.globalindicator.value == 'URL' || indicator.globalindicator.value == 'Email Address' || indicator.globalindicator.value == 'FQDN'){
 				let items = indicator.value.split(',');
@@ -156,13 +144,13 @@ const ViewReport = (props) => {
 							<p>API call</p>
 							<div>
 								<span>Feed: </span>
-								<span>https://www.cyobstract.com/api/v1/report</span>
+								<span>https://www.cyobstract.com/api/v1/feed?UUID={props.feed.uniqueid}</span>
 							</div>
 							<div>
 								<span>Report: </span>
-								<span>https://www.cyobstract.com/api/v1/report</span>
+								<span>https://www.cyobstract.com/api/v1/report?UUID={props.uniqueid}</span>
 							</div>
-							<a href="/docs" className="muted-link">API docs</a>
+							<a href="/api/docs" className="muted-link">API docs</a>
 						</section>
 					</Grid>
 				</Grid>

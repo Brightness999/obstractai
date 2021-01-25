@@ -13,6 +13,7 @@ class WebHooks(BaseModel):
     intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
     description = models.CharField(max_length=100)
     endpoint = models.CharField(max_length=100)
+    isenable = models.BooleanField(default=True)
 
     # def __str__(self):
     #     return self.role

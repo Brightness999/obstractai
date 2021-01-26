@@ -308,6 +308,7 @@ def create_customer(request, subscription_holder=None):
                 name=name,
                 user=user,
             )
+            print(addition_amount)
 
     
     payment_method = request_body['payment_method']

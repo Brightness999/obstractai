@@ -16,6 +16,7 @@ from .models import (IntelGroups, Feeds, FeedItems, FeedChannels, Indicators, Gl
 def feed(self):
     feeds = []
     for feed in Feeds.objects.order_by('id').all():
+        feed.update(updated_at=datetime.now())
         flag = True
         for f in feeds:
             if f.uniqueid == feed.uniqueid:

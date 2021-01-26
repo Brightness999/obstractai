@@ -24,7 +24,14 @@ class ProductMetadata(object):
         defaults = dict(
             stripe_id=stripe_product.id,
             name=stripe_product.name,
-            features=[]
+            description=stripe_product.description,
+            features=[
+                {'label':'Max Feeds:', 'value':stripe_product.metadata['max_feeds']},
+                {'label':'Max Users:', 'value':stripe_product.metadata['max_users']},
+                {'label':'Custom Feeds:', 'value':stripe_product.metadata['custom_feeds']},
+                {'label':'Custom Observables:', 'value':stripe_product.metadata['custom_observables']},
+                {'label':'API Access:', 'value':stripe_product.metadata['api_access']},
+            ]
         )
         defaults.update(kwargs)
         return cls(
@@ -123,43 +130,43 @@ ACTIVE_PLAN_INTERVALS = [
 # These are the products that will be shown to users in the UI and allowed to be associated
 # with plans on your side
 ACTIVE_PRODUCTS = [
-    ProductMetadata(
-        stripe_id='prod_IlpzzY6T9Vok8h',
-        name=_('Starter'),
-        description=_('For hobbyists and side-projects'),
-        features=[
-            {'label':'Max feeds:', 'value':'1~5'},
-            {'label':'Max users:', 'value':'3'},
-            {'label':'Custom feeds:', 'value':'FASLE'},
-            {'label':'Custom observables:', 'value':'FALSE'},
-            {'label':'API access:', 'value':'FASLE'},
-        ],
-    ),
-    ProductMetadata(
-        stripe_id='prod_Ilpx3g4g3izlxt',
-        name=_('Medium'),
-        description=_('For small businesses and teams'),
-        is_default=True,
-        features=[
-            {'label':'Max feeds:', 'value':'10~50'},
-            {'label':'Max users:', 'value':'20'},
-            {'label':'Custom feeds:', 'value':'TRUE'},
-            {'label':'Custom observables:', 'value':'FALSE'},
-            {'label':'API access:', 'value':'FASLE'},
-        ],
-    ),
-    ProductMetadata(
-        stripe_id='prod_IlpvQKIe7ROUXX',
-        name=_('Premium'),
-        description=_('For small businesses and teams'),
-        features=[
-            {'label':'Max feeds:', 'value':'200'},
-            {'label':'Max users:', 'value':'100'},
-            {'label':'Custom feeds:', 'value':'TRUE'},
-            {'label':'Custom observables:', 'value':'TRUE'},
-            {'label':'API access:', 'value':'TRUE'},
-        ],
-    ),
+    # ProductMetadata(
+    #     stripe_id='prod_IlpzzY6T9Vok8h',
+    #     name=_('Starter'),
+    #     description=_('For hobbyists and side-projects'),
+    #     features=[
+    #         {'label':'Max feeds:', 'value':'1~5'},
+    #         {'label':'Max users:', 'value':'3'},
+    #         {'label':'Custom feeds:', 'value':'FASLE'},
+    #         {'label':'Custom observables:', 'value':'FALSE'},
+    #         {'label':'API access:', 'value':'FASLE'},
+    #     ],
+    # ),
+    # ProductMetadata(
+    #     stripe_id='prod_Ilpx3g4g3izlxt',
+    #     name=_('Medium'),
+    #     description=_('For small businesses and teams'),
+    #     is_default=True,
+    #     features=[
+    #         {'label':'Max feeds:', 'value':'10~50'},
+    #         {'label':'Max users:', 'value':'20'},
+    #         {'label':'Custom feeds:', 'value':'TRUE'},
+    #         {'label':'Custom observables:', 'value':'FALSE'},
+    #         {'label':'API access:', 'value':'FASLE'},
+    #     ],
+    # ),
+    # ProductMetadata(
+    #     stripe_id='prod_IlpvQKIe7ROUXX',
+    #     name=_('Premium'),
+    #     description=_('For small businesses and teams'),
+    #     features=[
+    #         {'label':'Max feeds:', 'value':'200'},
+    #         {'label':'Max users:', 'value':'100'},
+    #         {'label':'Custom feeds:', 'value':'TRUE'},
+    #         {'label':'Custom observables:', 'value':'TRUE'},
+    #         {'label':'API access:', 'value':'TRUE'},
+    #     ],
+    # ),
 ]
 
 ACTIVE_PRODUCTS_BY_ID = {
@@ -186,17 +193,17 @@ def get_active_products_with_metadata():
                 ))
     else:
         # otherwise just use whatever is in the DB
-        for product in Product.objects.all():
+        for product in Product.objects.order_by('id').reverse().all():
             yield ProductWithMetadata(
                 product=product,
                 metadata=ACTIVE_PRODUCTS_BY_ID.get(product.id, ProductMetadata.from_stripe_product(product))
             )
-        else:
-            raise SubscriptionConfigError(_(
-                'It looks like you do not have any Products in your database. '
-                'In order to use subscriptions you first have to setup Stripe billing and sync it '
-                'with your local data.'
-            ))
+        # else:
+        #     raise SubscriptionConfigError(_(
+        #         'It looks like you do not have any Products in your database. '
+        #         'In order to use subscriptions you first have to setup Stripe billing and sync it '
+        #         'with your local data.'
+        #     ))
 
 
 def get_product_with_metadata(djstripe_product):

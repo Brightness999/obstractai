@@ -26,6 +26,7 @@ const ViewReport = (props) => {
 	
 	useEffect(()=>{
 		let str=props.feeditem.description;
+		console.log(str.substring(29600, 29800));
 		indicators.forEach(indicator => {
 			if(indicator.globalindicator.value == 'URL' || indicator.globalindicator.value == 'Email Address' || indicator.globalindicator.value == 'FQDN'){
 				let items = indicator.value.split(',');

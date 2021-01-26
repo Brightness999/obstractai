@@ -528,7 +528,7 @@ def apigroups(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def test(request):
+def webhook(request):
 	print('webhooktest')
 	endpoint_secret = os.environ.get('DJSTRIPE_WEBHOOK_SECRET')
 	payload = request.body
@@ -544,16 +544,24 @@ def test(request):
 	except stripe.error.SignatureVerificationError as e:
 		# Invalid signature
 		return HttpResponse(status=400)
-	
 	if event.type == 'product.created':
 		product = event.data.object
 		print(product)
-	elif event.type == 'price.created':
-		price = event.data.object
-		print(price)
+		new_product = Product.objects.create(active=product['active'], attributes=product['attributes'],caption="", created=datetime.fromtimestamp(product['created']), deactivate_on="", description=product['description'], \
+			id=product['id'], images=product['images'], livemode=product['livemode'], metadata=product['metadata'], name=product['name'], package_dimensions="", \
+				statement_descriptor="", type=product['type'], unit_label="", url="")
+		
+	# elif event.type == 'price.created':
+	# 	price = event.data.object
+	# 	print(price)
 	elif event.type == 'plan.created':
 		plan = event.data.object
 		print(plan)
+		Plan.objects.create(active=plan['active'], aggregate_usage="", amount=plan['amount'], billing_scheme=plan['billing_scheme'], created=datetime.fromtimestamp(plan['created']), \
+			currency=plan['currency'], id=plan['id'], interval=plan['interval'], interval_count=plan['interval_count'], livemode=plan['livemode'], metadata=plan['metadata'], \
+				nickname="", product_id=Product.objects.order_by('id').last().djstripe_id, tiers_mode="", transform_usage="", \
+					trial_period_days=0, usage_type=plan['usage_type'])
+		
 
 	return Response({'message': 'ok'})
 
@@ -561,38 +569,6 @@ def test(request):
 @swagger_auto_schema(methods=['get'], responses={200: UserSerializer})
 @api_view(['GET'])
 def account(request):
-	
-	# stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
-	# new_product=stripe.Product.create(
-	# 	name="Professional",
-	# 	description="The description of professional product",
-	# 	active= True,
-	# 	metadata={
-	# 		'max_users':5,
-	# 		'max_feeds':3,
-	# 		'custom_feeds':True,
-	# 		'custom_observables':True,
-	# 		'api_access':True
-	# 	}
-	# )
-	# stripe.Plan.create(
-	# 	amount=30000,
-	# 	currency="usd",
-	# 	interval="year",
-	# 	product=new_product.id,
-	# 	billing_scheme="per_unit",
-	# 	interval_count=1
-	# )
-	# stripe.Plan.create(
-	# 	amount=5000,
-	# 	currency="usd",
-	# 	interval="month",
-	# 	product=new_product.id,
-	# 	billing_scheme="per_unit",
-	# 	interval_count=1
-	# )
-	
-	# progress_bar_task('sdf')
 	profile = CustomUser.objects.filter(id=request.user.id).all()[0]
 	serializer = UserSerializer(profile)
 	profile_data = serializer.data

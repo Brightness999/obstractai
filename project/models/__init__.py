@@ -16,3 +16,4 @@ from .globalattributes import GlobalAttributes
 from .planhistory import PlanHistory
 from .intelreports import IntelReports
 from .groupplans import GroupPlan
+from .groupglobalattributes import GroupGlobalAttributes

@@ -11,11 +11,11 @@ const ExtractionTable = (props) => {
     const [words, setWords] = useState(props.extraction.words_matched || '');
     const [enabled, setEnabled] = useState(props.extraction.enabled || '');
 
-    const EditAttribute = () =>{
+    const editAttribute = () =>{
         if (type.trim() == '' || value == '' || words.trim() == '' || enabled.trim() == '')
             setIsEditAlert(true);
         else{
-            props.EditAttribute(props.index, words, value, type, enabled);
+            props.editAttribute(props.index, words, value, type, enabled);
             setOpen(false);
         }
     }
@@ -65,7 +65,7 @@ const ExtractionTable = (props) => {
                         </div>
                     </DialogContent>
                     <DialogActions>
-                        <button onClick={()=>EditAttribute()} className="button is-success" autoFocus>
+                        <button onClick={()=>editAttribute()} className="button is-success" autoFocus>
                             Confirm
                         </button>
                         <button onClick={()=>setOpen(false)} className="button is-danger" >

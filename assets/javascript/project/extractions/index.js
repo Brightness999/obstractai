@@ -125,7 +125,7 @@ const ExtractionList = (props) => {
 		}
 	}
 
-	const EditAttribute = (index, words, value, type, enabled) => {
+	const editAttribute = (index, words, value, type, enabled) => {
 		if(props.customobservable){
 			let params = {
 				id: props.extractionlist[index].id,
@@ -151,7 +151,28 @@ const ExtractionList = (props) => {
 		if(props.isAutoDown || !props.customobservable){
 			setBannerCustom(true);
 		}
-    }
+	}
+	
+	const enableGlobal = (index) => {
+		if(props.customobservable){
+			let params = {id:props.globalattributes[index].id, isenable:props.globalattributes[index].isenable?false:true}
+			fetch('/api/enableglobal', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				props.saveGlobal(res)
+			})
+		}
+		if(props.isAutoDown || !props.customobservable){
+			setBannerCustom(true);
+		}
+	}
 
 	return (
 		<Container>
@@ -197,7 +218,7 @@ const ExtractionList = (props) => {
 						}
 						{props.extractionlist.map((extraction, index)=>{
 							return <ExtractionTable index={index} key={extraction.id} extraction={extraction} 
-								changeStatus={(index)=>changeStatus(index)} EditAttribute={(index, words, value, type, enabled)=>EditAttribute(index, words, value, type, enabled)} />
+								changeStatus={(index)=>changeStatus(index)} editAttribute={(index, words, value, type, enabled)=>editAttribute(index, words, value, type, enabled)} />
 						})}
 					</Tbody>
 				</Table>
@@ -216,10 +237,10 @@ const ExtractionList = (props) => {
 					<Tbody>
 						{props.globalattributes.map((attribute, index)=>{
 							return <Tr index={index} key={attribute.id}>
-								<Td>{attribute.attribute+'('+attribute.api_attribute+')'}</Td>
-								<Td>{attribute.value+'('+attribute.api_value+')'}</Td>
-								<Td>{attribute.words_matched}</Td>
-								<Td><a className="button is-text" onClick={()=>{}}>{attribute.enabled}</a></Td>
+								<Td>{attribute.globalattribute.attribute+'('+attribute.globalattribute.api_attribute+')'}</Td>
+								<Td>{attribute.globalattribute.value+'('+attribute.globalattribute.api_value+')'}</Td>
+								<Td>{attribute.globalattribute.words_matched}</Td>
+								<Td><a className="button is-text" onClick={()=>{enableGlobal(index)}}>{attribute.isenable?"Enable":"Disable"}</a></Td>
 							</Tr>
 						})}
 					</Tbody>
@@ -252,7 +273,7 @@ const Extractions = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				console.log(res.customobservable)
+				console.log(res)
 				setExtractionList(res.attributes);
 				setGlobalAttributes(res.globalattributes);
 				setCurrentRole(res.currentrole);
@@ -278,6 +299,24 @@ const Extractions = (props) => {
 			newExtractions.push(new_extraction);
 		}
 		setExtractionList(newExtractions);
+	}
+
+	const saveGlobal = (new_global) => {
+		let flag = false;
+		const newGlobals = [];
+		for(const global of globalattributes){
+			if(global.id == new_global.id){
+				newGlobals.push(new_global);
+				flag = true;
+			}
+			else{
+				newGlobals.push(global);
+			}
+		}
+		if(!flag){
+			newGlobals.push(new_global);
+		}
+		setGlobalAttributes(newGlobals);
 	}
 
 	const ExtractionListView = () => {
@@ -309,7 +348,7 @@ const Extractions = (props) => {
 				)
 			if(currentrole.role ==2){
 				if(props.isPlan)
-					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
+					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable} saveGlobal={saveGlobal}
 								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}

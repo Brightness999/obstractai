@@ -4,6 +4,7 @@ import xmltodict
 import json
 import os
 import stripe
+import string, random
 
 from urllib.parse import urlencode
 from django.contrib import messages
@@ -33,18 +34,18 @@ from drf_yasg.utils import swagger_auto_schema
 from Crypto.Cipher import AES
 from pegasus.apps.examples.tasks import progress_bar_task
 
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, FeedChannels, FeedItems, Feeds, \
+from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, FeedChannels, FeedItems, Feeds, GroupGlobalAttributes, \
 	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory, IntelReports
 from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, \
 	CategorySerializer, FeedItemSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
 		TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, \
 			GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, \
-				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, \
+				UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, \
 					UserGlobalIndicatorSerializer, CommentSerializer, ChangeEmailSerializer, IDSerializer, AccepInviteSerializer, AttributeCreateSerializer, AttributeUpdateSerializer, \
 						CategoryUpdateSerializer, ManageEnabledSerializer,FeedCreateSerializer,FeedUpdateSerializer,GlobalAttributeCreateSerializer,GlobalAttributeUpdateSerializer, \
 							GlobalIndicatorCreateSerializer,EnabledSerializer,IntelgroupCreateSerializer,InviteSerializer,RoleUpdateSerializer,SearchFeedSerializer,SearchReportSerializer, \
 								WebhookCreateSerializer,WebhookUpdateSerializer,WhitelistCreateSerializer, APIKeyCreateSerializer, CategoryCreateSerializer, IntelgroupUpdateSerializer, \
-									ItemFeedGroupReportSerializer
+									ItemFeedGroupReportSerializer, GroupGlobalAttributeSerializer, GlobalAttributeSerializer
 
 @csrf_exempt
 def apifeeds(request):
@@ -561,8 +562,6 @@ def webhook(request):
 			currency=plan['currency'], id=plan['id'], interval=plan['interval'], interval_count=plan['interval_count'], livemode=plan['livemode'], metadata=plan['metadata'], \
 				nickname="", product_id=Product.objects.order_by('id').last().djstripe_id, tiers_mode="", transform_usage="", \
 					trial_period_days=0, usage_type=plan['usage_type'])
-		
-
 	return Response({'message': 'ok'})
 
 
@@ -1339,15 +1338,20 @@ def attributes(request):
 					customobservable = False
 			attributes = Attributes.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
 			attribute_serializer = UserGroupAttributeSerializer(attributes, many=True)
-			globalattributes = GlobalAttributes.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-			global_serializer = UserGroupGlobalAttributeSerializer(globalattributes, many=True)
+			enableglobalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['currentgroup']).all(), many=True)
 			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
 			role_serializer = UserGroupRoleSerializer(currentrole[0])
-			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':global_serializer.data, 'customobservable':customobservable})
+			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':enableglobalattributes.data, 'customobservable':customobservable})
 	elif request.method == 'PUT':
 		Attributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).all()[0])
 		return Response(serializer.data)
+
+@api_view(['POST'])
+def enableglobal(request):
+	GroupGlobalAttributes.objects.filter(id=request.data['id']).update(isenable=request.data['isenable'])
+	serializer = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(id=request.data['id']).last())
+	return Response(serializer.data)
 
 @swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
 @swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
@@ -1489,29 +1493,29 @@ def globalindicators(request):
 		serializer = UserGlobalIndicatorSerializer(GlobalIndicators.objects.filter(id=request.data['id']).last())
 		return Response(serializer.data)
 
-@swagger_auto_schema(methods=['post'], request_body=GlobalAttributeCreateSerializer, responses={201: UserGroupGlobalAttributeSerializer})
-@swagger_auto_schema(methods=['put'], request_body=GlobalAttributeUpdateSerializer, responses={200: UserGroupGlobalAttributeSerializer})
-@api_view(['POST', 'PUT'])
-def globalattributes(request):
-	if request.method == 'POST':
-		if not 'attribute' in request.data:
-			if request.data['currentgroup'] == '':
-				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id).order_by('id').all()
-				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
-			else:
-				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).order_by('id').all()
-				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
-			return Response({'globalattributes':attribute_serializer.data})
-		else:
-			GlobalAttributes.objects.create(attribute=request.data['attribute'], api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
-			attribute = GlobalAttributes.objects.filter(user_id=request.user.id).last()
-			attribute_serializer = UserGroupGlobalAttributeSerializer(attribute)
-			return Response(attribute_serializer.data)
-	if request.method == 'PUT':
-		GlobalAttributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
-		attribute = GlobalAttributes.objects.filter(id=request.data['id']).all()
-		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
-		return Response(attribute_serializer.data)
+# @swagger_auto_schema(methods=['post'], request_body=GlobalAttributeCreateSerializer, responses={201: UserGroupGlobalAttributeSerializer})
+# @swagger_auto_schema(methods=['put'], request_body=GlobalAttributeUpdateSerializer, responses={200: UserGroupGlobalAttributeSerializer})
+# @api_view(['POST', 'PUT'])
+# def globalattributes(request):
+# 	if request.method == 'POST':
+# 		if not 'attribute' in request.data:
+# 			if request.data['currentgroup'] == '':
+# 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id).order_by('id').all()
+# 				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
+# 			else:
+# 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).order_by('id').all()
+# 				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
+# 			return Response({'globalattributes':attribute_serializer.data})
+# 		else:
+# 			GlobalAttributes.objects.create(attribute=request.data['attribute'], api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
+# 			attribute = GlobalAttributes.objects.filter(user_id=request.user.id).last()
+# 			attribute_serializer = UserGroupGlobalAttributeSerializer(attribute)
+# 			return Response(attribute_serializer.data)
+# 	if request.method == 'PUT':
+# 		GlobalAttributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
+# 		attribute = GlobalAttributes.objects.filter(id=request.data['id']).all()
+# 		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
+# 		return Response(attribute_serializer.data)
 
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
@@ -1554,6 +1558,7 @@ def leavegroup(request):
 		if len(admins)==1:
 			if len(users)==1:
 				UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
+				IntelGroups.objects.filter(id=intelgroup_id).delete()
 				groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
 				for group in groups:
 					serializer = RoleGroupSerializer(group)
@@ -1592,7 +1597,8 @@ def intelgroups(request):
 		if 'name' in request.data:
 			name = ''
 			if(request.data['name'] == ''):
-				name = 'Intel Group' + str(IntelGroups.objects.last().id+1)
+				letters = string.digits
+				name = 'Intel Group' + ''. join(random.choice(letters) for i in range(10))
 			else:
 				name = request.data['name']
 			message = Mail(
@@ -1736,25 +1742,26 @@ def users(request):
 @api_view(['POST'])
 def changegroup(request, subscription_holder=None):
     
-    isPlan = True
-    isInit = False
-    isAutoDown = False
-    message = ''
-    subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
-    created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
-    if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
-        if subid == None:
-            if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=30):
-                isInit = True
-                date = str(created_at.replace(tzinfo=None)+timedelta(days=30)).split(' ')[0]
-                message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
-            else:
-                isPlan = False
-        else:
-            current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
-            if datetime.now() > current_period_end.replace(tzinfo=None):
-                starterid = Plan.objects.filter(interval='month', amount=0).last().djstripe_id
-                Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
-                isAutoDown = True
+	isPlan = True
+	isInit = False
+	isAutoDown = False
+	message = ''
+	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+	currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last())
+	if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
+		if subid == None:
+			if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=30):
+				isInit = True
+				date = str(created_at.replace(tzinfo=None)+timedelta(days=30)).split(' ')[0]
+				message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
+			else:
+				isPlan = False
+		else:
+			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+			if datetime.now() > current_period_end.replace(tzinfo=None):
+				starterid = Plan.objects.filter(interval='month', amount=0).last().djstripe_id
+				Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+				isAutoDown = True
 		
-    return Response({'isPlan':isPlan, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message})
+	return Response({'isPlan':isPlan, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole.data})

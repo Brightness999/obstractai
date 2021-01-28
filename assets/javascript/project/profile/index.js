@@ -64,11 +64,11 @@ const Profile = (props) => {
             credentials: 'same-origin',
         }).then(res=>{res.json()})
         .then(res=>{
-            if(Boolean(res.message)){
-                setIsAlert(true);
-            }
             if(Boolean(res.delete)){
                 window.location.href="/accounts/logout";
+            }
+            if(Boolean(res.message)){
+                setIsAlert(true);
             }
         })
     }

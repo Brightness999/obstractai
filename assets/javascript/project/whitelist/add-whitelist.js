@@ -72,11 +72,11 @@ const AddWhitelist = (props) => {
                 <div className="section">
                     <span>
                         <button className="button is-success" onClick={AddList} >
-                            <span className="title is-4">Enable</span>
+                            <span>Add</span>
                         </button>
                         <Link to ="/whitelist">
                             <button className="button is-text">
-                                <span className="title is-4">back</span>
+                                <span>back</span>
                             </button>
                         </Link>
                     </span>

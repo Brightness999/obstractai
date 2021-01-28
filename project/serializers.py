@@ -3,7 +3,7 @@ import json
 
 from djstripe.models import Product, Plan, Subscription
 from .models import IntelGroups, UserIntelGroupRoles, Categories, Tags, Feeds, Indicators, Whitelists, APIKeys, \
-    WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes, Attributes, IntelReports
+    WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes, Attributes, IntelReports, GroupGlobalAttributes
 from apps.users.models import CustomUser
 
 class IntelGroupSerializer(serializers.ModelSerializer):
@@ -91,6 +91,12 @@ class IntelReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IntelReports
+        fields = ('__all__')
+
+class GlobalAttributeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GlobalAttributes
         fields = ('__all__')
 
 class UserIntelGroupRolesSerializer(serializers.ModelSerializer):
@@ -185,11 +191,11 @@ class UserIndicatorWhitelistSerializer(serializers.ModelSerializer):
         model = Whitelists
         fields = ('id', 'value', 'indicator_id', 'user_id', 'enabled', 'user', 'indicator')
 
-class UserGroupGlobalAttributeSerializer(serializers.ModelSerializer):
-    user = UserSerializer(many=False, read_only=True)
+class GroupGlobalAttributeSerializer(serializers.ModelSerializer):
     intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    globalattribute = GlobalAttributeSerializer(many=False, read_only=True)
     class Meta:
-        model = GlobalAttributes
+        model = GroupGlobalAttributes
         fields = ('__all__')
 
 class UserGroupAttributeSerializer(serializers.ModelSerializer):

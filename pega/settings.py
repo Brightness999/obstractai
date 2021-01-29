@@ -278,7 +278,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 # replace any values below with specifics for your project
 PROJECT_METADATA = {
     'NAME': 'pega',
-    'URL': 'http://localhost:8000',
+    'URL': 'https://sherlock-staging.obstractai.com',
     'DESCRIPTION': 'pega',
     'IMAGE': 'https://upload.wikimedia.org/wikipedia/commons/2/20/PEO-pegasus_black.svg',
     'KEYWORDS': 'SaaS, django',

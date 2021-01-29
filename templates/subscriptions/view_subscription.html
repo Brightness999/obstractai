@@ -52,7 +52,7 @@
       <form id="subscription-form">
         {% include 'stripe/components/card_element.html' %}
         <button type="submit" id="subscribe-button" class="button is-primary">Submit</button>
-        <button class="button is-outlined" onclick="Cancel()">Cancel</button>
+        <button class="button is-outlined" id="cancel-button" onclick="Cancel()">Cancel</button>
         <div class="my-1" id="payment-details" ></div>
       </form>
     </div>
@@ -84,10 +84,12 @@
   const subscriptionSuccessUrl = "{{ subscription_urls.subscription_intelgroup }}";
   // const paymentDetailsElement = document.getElementById('payment-details');
   const form = document.getElementById('subscription-form');
+  const cancel = document.getElementById('cancel-button');
   const subscribeButton = document.getElementById('subscribe-button');
   const cardElement = Payments.createCardElement(stripe);
   const groupid = '{{groupid}}'
   const current_product_id = '{{current_product_id}}'
+  let stripeToken = '';
 
   let submissionPending = false;
   const getSelectedPlanElement = function () {
@@ -112,8 +114,8 @@
       const paymentParams = {...paymentMetadata};
       paymentParams.plan_id = selectedPlan;
       paymentParams.payment_method = result.paymentMethod.id;
-      paymentParams.groupid = groupid
-      
+      paymentParams.groupid = groupid;
+      paymentParams.stripeToken = stripeToken;
       fetch(createCustomerUrl, {
         method: 'post',
         headers: {
@@ -128,7 +130,12 @@
         console.log(result);
         if(Boolean(result.feeds) || Boolean(result.users)){
           helpLabel.innerHTML = `<h1 class="is-size-4">You can't downgrade your plan until you correct the features where quota is exceeded.</h1>`;
-          // document.querySelector('section').innerHTML=`<h1>You can't downgrade your plan until you correct the features where quota is exceeded.</h1>`
+        }
+        if(Boolean(result.monthyear)){
+          helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from monthly plan to yearly plan!</h1>`;
+        }
+        if(Boolean(result.yearmonth)){
+          helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from yearly plan to monthly plan!</h1>`;
         }
         if (result.error) {
           handleError(result.error.message);
@@ -295,14 +302,30 @@
       if (getSelectedPlanElement() && !submissionPending) {
         submissionPending = true;
         subscribeButton.classList.add('is-loading');
-        stripe.createPaymentMethod({
-          type: 'card',
-          card: cardElement,
-          billing_details: {
-            email: userEmail,
-          },
-        }).then(handlePaymentMethodCreated);
+        stripe.createToken(cardElement).then(function (result) {
+          if (result.error) {
+            // Inform the customer that there was an error.
+            Payments.showOrClearError(result.error.message);
+          } else {
+            // Send the token to your server.
+            stripeToken = result.token.id;
+            console.log(stripeToken);
+          }
+        }).then(
+          stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+            billing_details: {
+              email: userEmail,
+            },
+          }).then(handlePaymentMethodCreated)
+
+        )
       }
   });
+
+  cancel.addEventListener('click', function(event){
+    event.preventDefault();
+  })
 </script>
 {% endblock %}

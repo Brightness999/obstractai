@@ -68,11 +68,32 @@ from django.conf.urls import url
 # from rest_framework_swagger.views import get_swagger_view
 from project.api.swagger import get_swagger_view
 
-schema_view = get_swagger_view(title='API')
+
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Snippets API",
+      default_version='v1',
+      description="Test description",
+      terms_of_service="https://www.google.com/policies/terms/",
+      contact=openapi.Contact(email="contact@snippets.local"),
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
+
+schema_views = get_swagger_view(title='API')
 schemajs_view = get_schemajs_view(title="API")
 
 
 urlpatterns = [
+    url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    url(r'^api/docs/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('users/', include('apps.users.urls')),
@@ -80,7 +101,7 @@ urlpatterns = [
 
 
     # path('', include('project.urls')),
-    url(r'api/docs', schema_view),
+    # url(r'api/docs', schema_views),
     path('home/', include('project.urls')),
     path('api/', include('project.api.urls')),
     path('', include('apps.web.urls')),

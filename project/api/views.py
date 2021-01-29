@@ -1181,6 +1181,10 @@ def feedlist(request):
 		tag_serializer = TagSerializer(tags, many=True)
 		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data})
 
+# @api_view(['POST'])
+# def feedlists(request):
+	
+
 @swagger_auto_schema(methods=['post'], request_body=SearchFeedSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def searchfeeds(request):

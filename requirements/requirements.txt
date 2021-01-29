@@ -62,4 +62,4 @@ sendgrid==6.5.0
 django-two-factor-auth==1.13
 phonenumbers==8.12.16
 redis-server==6.0.9
-drf_yasg=1.20.0
+drf_yasg==1.20.0

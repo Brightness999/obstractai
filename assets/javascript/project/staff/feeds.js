@@ -146,7 +146,7 @@ const StaffFeeds = (props) => {
 
 	useEffect(()=>{
         let params = {
-            currentgroup: props.currentgroup
+            id: props.currentgroup
         }
         fetch('/api/feedlist', {
             method: 'post',

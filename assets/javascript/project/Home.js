@@ -16,6 +16,7 @@ const Welcome = (props) => {
 						<p className="subtitle is-4">! You have an invitation to <span className="title is-3 has-text-primary">{mygroup.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-4 has-text-danger" to="/intelgroups" >Click here to accept.</Link></p>
 					</div> 
 			})}
+			{/* <div><pre>{JSON.stringify(props.re, null, 2) }</pre></div> */}
 		</div>
 	);
 }
@@ -77,7 +78,7 @@ const AddIntelgroup = (props) => {
 			}).then(res=>{return res.json()})
 			.then(res=>{
 				props.intelgroupSave(res);
-				history.push('/intelgroups')
+				history.push('/intelgroup')
 			})
 		}
 	};
@@ -147,6 +148,6 @@ const HomePage = (props) =>{
 	if(props.mygroups.length == 0)
 		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />
 	else
-		return <Welcome mygroups={props.mygroups} />
+		return <Welcome mygroups={props.mygroups} re={props.re} />
 }
 export default HomePage;

@@ -79,7 +79,9 @@ PROJECT_APPS = [
 
 SWAGGER_APPS = [
     'rest_framework_swagger',
+    'drf_yasg',
 ]
+
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS
 
@@ -142,7 +144,10 @@ DATABASES = {
 # future changes much easier.
 AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_REDIRECT_URL = '/'
+# LOGIN_URL = 'two_factor:login'
 
+# this one is optional
+# LOGIN_REDIRECT_URL = 'two_factor:profile'
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 
@@ -261,8 +266,11 @@ REST_FRAMEWORK = {
 
 
 # Celery setup (using redis)
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_TIMEZONE = "Europe/London"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
 
 
 # Pegasus config
@@ -270,11 +278,11 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 # replace any values below with specifics for your project
 PROJECT_METADATA = {
     'NAME': 'pega',
-    'URL': 'http://pega',
+    'URL': 'http://localhost:8000',
     'DESCRIPTION': 'pega',
     'IMAGE': 'https://upload.wikimedia.org/wikipedia/commons/2/20/PEO-pegasus_black.svg',
     'KEYWORDS': 'SaaS, django',
-    'CONTACT_EMAIL': 'pega',
+    'CONTACT_EMAIL': 'kardzavaryan@gmail.com',
 }
 
 
@@ -293,6 +301,6 @@ STRIPE_LIVE_MODE = False  # Change to True in production
 
 # Get it from the section in the Stripe dashboard where you added the webhook endpoint
 # or from the stripe CLI when testing
-DJSTRIPE_WEBHOOK_SECRET = "whsec_xxx"
+DJSTRIPE_WEBHOOK_SECRET = "whsec_wAo9D0lTNnQqSA0cqS5yeQOnD7KJuU1r"
 
 

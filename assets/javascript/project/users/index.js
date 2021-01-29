@@ -93,31 +93,36 @@ const Loading = function() {
 }
 
 const User = (props) => {
-	const group_id = useParams().id;
 	const [isLoading, setIsLoading] = useState(true);
 	const [users, setUsers] = useState([]);
 	const [myId, setMyId] = useState([]);
-	const [groupRole, setGroupRole] = useState([]);
-	let params = {
-		groupid: group_id
-	}
+	const [groupRole, setGroupRole] = useState({});
+	const history = useHistory();
+	
 	useEffect(() => {
-		fetch('/api/users', {
-			method: 'post',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': props.client.transports[0].auth.csrfToken
-			},
-			credentials: 'same-origin',
-			body: JSON.stringify(params)
-		}).then(res=>{return res.json()})
-		.then(res=>{
-			setUsers(res.users);
-			setMyId(res.myId);
-			setGroupRole(res.grouprole);
-			setIsLoading(false);
-		})
-	}, []);
+		if(props.currentgroup == '') history.push('/');
+		else{
+			let params = {
+				id: props.currentgroup
+			}
+			fetch('/api/users', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				console.log(res);
+				setUsers(res.users);
+				setMyId(res.myId);
+				setGroupRole(res.grouprole);
+				setIsLoading(false);
+			})
+		}
+	}, [props.currentgroup]);
 
 	const handleUserSaved = function(invitedUsers) {
 		const newUsers = [];
@@ -154,7 +159,7 @@ const User = (props) => {
 		let params = {
 			id: ugr_id,
 			role: role,
-			groupid: group_id
+			groupid: props.currentgroup
 		}
 		fetch('/api/role',{
 			method: 'put',
@@ -180,15 +185,33 @@ const User = (props) => {
 		if (users.length === 0) {
 			return <EmptyUserList/>;
 		} else {
-			return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole} />
+			if(groupRole.role ==0)
+				return (
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{groupRole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+					</div>
+                )
+            if(groupRole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{groupRole.intelgroup.name}</span>.</p>
+					</div>
+				)
+			if(groupRole.role ==2){
+				// if(props.isPlan)
+					return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} />
+				// else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+			}
+			// return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} />
 		}
   };
 	
 	return (
-	<Router basename={`/home/intelgroups/manage/${group_id}`}>
+	<Router basename="users">
 	  <Switch>
 		<Route path="/new">
-		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={group_id} />
+		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}

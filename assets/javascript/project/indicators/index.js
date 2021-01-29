@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Switch, Route, useHistory, Link } from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 import { Table, Thead, Tbody, Tr, Th, Td } from "react-super-responsive-table";
 import Alert from '@material-ui/lab/Alert';
 
 import IndicatorTable from "./indicator-table";
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
 
 const Loading = () => {
 	return (
@@ -84,7 +82,7 @@ const IndicatorList = (props) => {
                     <span>Add Indicator</span>
                 </button>
             </div>
-            {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
+            {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
             <Table className="table is-striped is-fullwidth has-vcentered-cells">
                 <Thead>
                     <Tr>

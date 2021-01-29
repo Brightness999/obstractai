@@ -3,6 +3,8 @@ import urllib
 import xmltodict
 import json
 import os
+import stripe
+import string, random
 
 from urllib.parse import urlencode
 from django.contrib import messages
@@ -11,7 +13,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from cyobstract import extract
 from django.core.mail import send_mail
@@ -26,14 +29,22 @@ from rest_framework import generics
 from apps.users.models import CustomUser
 from djstripe.models import Product, Plan, Subscription
 from dateutil import parser as dateutil_parser
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from pegasus.apps.examples.tasks import progress_bar_task
 
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, Extractions, FeedChannels, FeedItems, Feeds, \
-	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory
+from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, FeedChannels, FeedItems, Feeds, GroupGlobalAttributes, \
+	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory, IntelReports
 from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, \
-	CategorySerializer, FeedItemSerializer, UserExtractionSerializer, UserExtractionSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
+	CategorySerializer, FeedItemSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
 		TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, \
 			GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, \
-				UserGroupGlobalAttributeSerializer, UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, UserGlobalIndicatorSerializer
+				UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, \
+					UserGlobalIndicatorSerializer, CommentSerializer, ChangeEmailSerializer, IDSerializer, AccepInviteSerializer, AttributeCreateSerializer, AttributeUpdateSerializer, \
+						CategoryUpdateSerializer, ManageEnabledSerializer,FeedCreateSerializer,FeedUpdateSerializer,GlobalAttributeCreateSerializer,GlobalAttributeUpdateSerializer, \
+							GlobalIndicatorCreateSerializer,EnabledSerializer,IntelgroupCreateSerializer,InviteSerializer,RoleUpdateSerializer,SearchFeedSerializer,SearchReportSerializer, \
+								WebhookCreateSerializer,WebhookUpdateSerializer,WhitelistCreateSerializer, APIKeyCreateSerializer, CategoryCreateSerializer, IntelgroupUpdateSerializer, \
+									ItemFeedGroupReportSerializer, GroupGlobalAttributeSerializer, GlobalAttributeSerializer
 
 @csrf_exempt
 def apifeeds(request):
@@ -456,7 +467,7 @@ def apireports(request):
 		else:
 			if not 'updated_at' in body:
 				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, uniqueid__in=feedids, created_at__date=body['created_at']):
-    					feedids.append(feed.id)
+						feedids.append(feed.id)
 			else:
 				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, uniqueid__in=feedids, created_at__date=body['created_at'], updated_at__date=body['created_at']):
 					feedids.append(feed.id)
@@ -515,35 +526,83 @@ def apigroups(request):
 	group_serializer = GroupRoleSerializer(groups[0])
 	return render(request, 'project/intel_groups.html', {'groups':json.dumps(group_serializer.data)})
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def webhook(request):
+	print('webhooktest')
+	endpoint_secret = os.environ.get('DJSTRIPE_WEBHOOK_SECRET')
+	payload = request.body
+	sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+	event = None
+	try:
+		event = stripe.Webhook.construct_event(
+		payload, sig_header, endpoint_secret
+		)
+	except ValueError as e:
+		# Invalid payload
+		return HttpResponse(status=400)
+	except stripe.error.SignatureVerificationError as e:
+		# Invalid signature
+		return HttpResponse(status=400)
+	if event.type == 'product.created':
+		product = event.data.object
+		print(product)
+		new_product = Product.objects.create(active=product['active'], attributes=product['attributes'],caption="", created=datetime.fromtimestamp(product['created']), deactivate_on="", description=product['description'], \
+			id=product['id'], images=product['images'], livemode=product['livemode'], metadata=product['metadata'], name=product['name'], package_dimensions="", \
+				statement_descriptor="", type=product['type'], unit_label="", url="")
+		
+	# elif event.type == 'price.created':
+	# 	price = event.data.object
+	# 	print(price)
+	elif event.type == 'plan.created':
+		plan = event.data.object
+		print(plan)
+		Plan.objects.create(active=plan['active'], aggregate_usage="", amount=plan['amount'], billing_scheme=plan['billing_scheme'], created=datetime.fromtimestamp(plan['created']), \
+			currency=plan['currency'], id=plan['id'], interval=plan['interval'], interval_count=plan['interval_count'], livemode=plan['livemode'], metadata=plan['metadata'], \
+				nickname="", product_id=Product.objects.order_by('id').last().djstripe_id, tiers_mode="", transform_usage="", \
+					trial_period_days=0, usage_type=plan['usage_type'])
+	return Response({'message': 'ok'})
+
+
+@swagger_auto_schema(methods=['get'], responses={200: UserSerializer})
 @api_view(['GET'])
 def account(request):
-    profile = CustomUser.objects.filter(id=request.user.id).all()[0]
-    serializer = UserSerializer(profile)
-    profile_data = serializer.data
-    intelgroups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
-    intelgroup_data = []
-    for intelgroup in intelgroups:
-        serializer = RoleGroupSerializer(intelgroup)
-        intelgroup_data.append(serializer.data)
-    apikeys = APIKeys.objects.order_by('id').filter(user_id=request.user.id).all()
-    apikey_data = []
-    for apikey in apikeys:
-        serializer = GroupAPIkeySerializer(apikey)
-        apikey_data.append(serializer.data)
-    webhooks = WebHooks.objects.order_by('id').filter(user_id=request.user.id).all()
-    webhook_data = []
-    for webhook in webhooks:
-        serializer = GroupWebHookSerializer(webhook)
-        webhook_data.append(serializer.data)
-    
-    return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
+	profile = CustomUser.objects.filter(id=request.user.id).all()[0]
+	serializer = UserSerializer(profile)
+	profile_data = serializer.data
+	intelgroups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
+	intelgroup_data = []
+	for intelgroup in intelgroups:
+		serializer = RoleGroupSerializer(intelgroup)
+		intelgroup_data.append(serializer.data)
+	apikeys = APIKeys.objects.order_by('id').filter(user_id=request.user.id).all()
+	apikey_data = []
+	for apikey in apikeys:
+		serializer = GroupAPIkeySerializer(apikey)
+		apikey_data.append(serializer.data)
+	webhooks = WebHooks.objects.order_by('id').filter(user_id=request.user.id).all()
+	webhook_data = []
+	for webhook in webhooks:
+		serializer = GroupWebHookSerializer(webhook)
+		webhook_data.append(serializer.data)
+	
+	return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
 
+@swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['POST'])
 def emailchange(request):
+	users = CustomUser.objects.filter(email=request.data['email']).all()
+	if len(users) > 1:
+		return Response({'isExist':True})
+	elif len(users) == 1:
+		if users[0].email != request.user.email:
+			return Response({'isExist': True})
 	CustomUser.objects.filter(id=request.data['id']).update(email=request.data['email'])
 	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=APIKeyCreateSerializer, responses={201: GroupAPIkeySerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupAPIkeySerializer})
 @api_view(['POST', 'DELETE'])
 def apikeys(request):
 	if request.method == 'POST':
@@ -561,6 +620,9 @@ def apikeys(request):
 		apikey_serializer = GroupAPIkeySerializer(apikeys, many=True)
 		return Response(apikey_serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=WebhookCreateSerializer, responses={201: GroupWebHookSerializer})
+@swagger_auto_schema(methods=['put'], request_body=WebhookUpdateSerializer, responses={200: GroupWebHookSerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupWebHookSerializer})
 @api_view(['POST', 'PUT', 'DELETE'])
 def webhooks(request):
 	if request.method == 'POST':
@@ -571,7 +633,7 @@ def webhooks(request):
 			webhooks.append(serializer.data)
 		return Response(webhooks)
 	elif request.method == 'PUT':
-		WebHooks.objects.filter(id=request.data['id']).update(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id)
+		WebHooks.objects.filter(id=request.data['id']).update(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id, isenable=request.data['isenable'])
 		webhooks = []
 		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
 			serializer = GroupWebHookSerializer(webhook)
@@ -585,8 +647,9 @@ def webhooks(request):
 			webhooks.append(serializer.data)
 		return Response(webhooks)
 
+@swagger_auto_schema(methods=['get'], responses={201: FeedCategorySerializer})
 @api_view(['GET'])
-def reports(request):
+def reports(request, id):
 	feeds = []
 	groupids = []
 	feedids = []
@@ -617,9 +680,15 @@ def reports(request):
 	tag_serializer = TagSerializer(tags, many=True)
 	globalindicators = GlobalIndicators.objects.order_by('id').all()
 	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
+	feed_ids = []
+	for feed in Feeds.objects.filter(intelgroup_id=id, manage_enabled='true').order_by('id').all():
+		feed_ids.append(feed.id)
+	reports = ItemFeedGroupReportSerializer(IntelReports.objects.filter(feed_id__in=feed_ids).order_by('id').all(), many=True)
 
-	return Response({'feeds':feeds, 'feedchannels':feedchannels, 'feeditems':feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
+	return Response({'feeds':feeds, 'feedchannels':feedchannels, 'feeditems':feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data, 'reports':reports.data})
+
+@swagger_auto_schema(methods=['post'], request_body=SearchReportSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def searchreports(request):
 	feeds = []
@@ -785,6 +854,19 @@ def searchreports(request):
 
 	return Response({'feeds':search_serializer.data, 'feedchannels':search_feedchannels, 'feeditems':search_feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
+
+@api_view(['POST'])
+def pullfeed(request):
+	ftr = "http://ftr-premium.fivefilters.org/"
+	encode = urllib.parse.quote_plus(request.data['url'])
+	key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
+	req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key)
+	contents = urllib.request.urlopen(req).read()
+	return Response({'fulltext':xmltodict.parse(contents)})
+
+
+@swagger_auto_schema(methods=['post'], request_body=FeedCreateSerializer, responses={201: FeedCategorySerializer})
+@swagger_auto_schema(methods=['put'], request_body=FeedUpdateSerializer, responses={200: FeedCategorySerializer})
 @api_view(['POST', 'PUT'])
 def feeds(request):
 	if request.method == 'POST':
@@ -798,7 +880,7 @@ def feeds(request):
 				isUrlExist = True
 				if feed.intelgroup_id == int(groupid):
 					isEqualGroup = True
-					Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], updated_at=datetime.now())
+					Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], updated_at=datetime.now(), type=data['type'])
 					for tag in tags:
 						flag = False
 						for existingtag in Tags.objects.all():
@@ -816,7 +898,9 @@ def feeds(request):
 			max_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['max_feeds']
 			feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
 			if len(feeds) < int(max_feeds):
-				Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])    
+				Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], type=data['type'])
+				for item in FeedItems.objects.filter(feed_id=Feeds.objects.filter(url=data['url']).order_by('id').first().id).order_by('id').all():
+					IntelReports.objects.create(feed_id=Feeds.objects.last().id, intelgroup_id=groupid, feeditem_id=item.id)
 				for tag in tags:
 					flag = False
 					for existingtag in Tags.objects.all():
@@ -837,7 +921,7 @@ def feeds(request):
 			max_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['max_feeds']
 			feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
 			if len(feeds) < int(max_feeds):
-				Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'])
+				Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], type=data['type'])
 				for tag in tags:
 					flag = False
 					for existingtag in Tags.objects.all():
@@ -850,7 +934,8 @@ def feeds(request):
 							Tags.objects.create(name=tag.strip(), state='custom', user_id=request.user.id)
 				ftr = "http://ftr-premium.fivefilters.org/"
 				encode = urllib.parse.quote_plus(data['url'])
-				req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key=KSF8GH22GZRKA8")
+				key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
+				req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key)
 				contents = urllib.request.urlopen(req).read()
 				FeedChannels.objects.create(feed_id=Feeds.objects.last().id)
 				for item in xmltodict.parse(contents)['rss']['channel']:
@@ -893,6 +978,7 @@ def feeds(request):
 				
 				if type(xmltodict.parse(contents)['rss']['channel']['item']) is not list:
 					FeedItems.objects.create(feed_id=Feeds.objects.last().id)
+					IntelReports.objects.create(feeditem_id=FeedItems.objects.last().id, feed_id=Feeds.objects.last().id, intelgroup_id=groupid)
 					for item in xmltodict.parse(contents)['rss']['channel']['item']:
 						if(item == 'title'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=xmltodict.parse(contents)['rss']['channel']['item'][item])
@@ -904,53 +990,53 @@ def feeds(request):
 							results = extract.extract_observables(text)
 							for result in results:
 								if result == 'ipv4addr' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'ipv4cidr' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'ipv4range' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'ipv6addr' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'ipv6cidr' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'ipv6range' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'md5' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'sha1' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'sha256' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'ssdeep' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'fqdn' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'url' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'useragent' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'email' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'filename' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'filepath' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'regkey' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'asn' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'asnown' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'country' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'isp' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'cve' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'malware' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 								elif result == 'attacktype' and len(results[result])>0:
-									Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 						elif(item == 'author'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=xmltodict.parse(contents)['rss']['channel']['item'][item])
 						elif(item == 'category'):
@@ -968,6 +1054,7 @@ def feeds(request):
 				if type(xmltodict.parse(contents)['rss']['channel']['item']) is list:
 					for items in xmltodict.parse(contents)['rss']['channel']['item']:
 						FeedItems.objects.create(feed_id=Feeds.objects.last().id)
+						IntelReports.objects.create(feeditem_id=FeedItems.objects.last().id, feed_id=Feeds.objects.last().id, intelgroup_id=groupid)
 						for item in items:
 							if(item == 'title'):
 								FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=items[item])
@@ -979,53 +1066,53 @@ def feeds(request):
 								results = extract.extract_observables(text)
 								for result in results:
 									if result == 'ipv4addr' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'ipv4cidr' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'ipv4range' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'ipv6addr' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'ipv6cidr' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'ipv6range' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'md5' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'sha1' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'sha256' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'ssdeep' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'fqdn' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'url' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'useragent' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'email' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'filename' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'filepath' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'regkey' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'asn' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'asnown' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'country' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'isp' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'cve' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'malware' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 									elif result == 'attacktype' and len(results[result])>0:
-										Indicators.objects.create(value=results[result], feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
 							elif(item == 'author'):
 								FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=items[item])
 							elif(item == 'category'):
@@ -1054,11 +1141,12 @@ def feeds(request):
 		serializer = FeedCategorySerializer(Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(id=request.data['id']).values()[0]['intelgroup_id']).order_by('id').all(), many=True)
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def feedlist(request):
 	if not request.user.is_staff:
-		created_at = IntelGroups.objects.filter(id=request.data['currentgroup']).last().created_at
-		subid = IntelGroups.objects.filter(id=request.data['currentgroup']).last().plan_id
+		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
 		customfeeds = True
 		message = ''
 		if subid != None:
@@ -1066,26 +1154,26 @@ def feedlist(request):
 			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 			if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
 				customfeeds = False
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 2:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 1:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).last().role == 0:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).filter(manage_enabled='true').order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 2:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 1:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).filter(manage_enabled='true').order_by('id').all()
+		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 0:
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).filter(manage_enabled='true').order_by('id').all()
 		feed_serializer = FeedCategorySerializer(feeds, many=True)
 		categories = Categories.objects.order_by('id').all()
 		category_serializer = CategorySerializer(categories, many=True)
 		tags = Tags.objects.order_by('id').all()
 		tag_serializer = TagSerializer(tags, many=True)
-		currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+		currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
 		role_serializer = UserGroupRoleSerializer(currentrole[0])
 		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data,'customfeeds':customfeeds})
 
 	if request.user.is_staff:
-		if request.data['currentgroup'] == '':
+		if request.data['id'] == '':
 			feeds = Feeds.objects.order_by('id').all()
 		else:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all()
 		feed_serializer = FeedCategorySerializer(feeds, many=True)
 		categories = Categories.objects.order_by('id').all()
 		category_serializer = CategorySerializer(categories, many=True)
@@ -1093,6 +1181,7 @@ def feedlist(request):
 		tag_serializer = TagSerializer(tags, many=True)
 		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data})
 
+@swagger_auto_schema(methods=['post'], request_body=SearchFeedSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def searchfeeds(request):
 	data = []
@@ -1224,11 +1313,16 @@ def searchfeeds(request):
 			serializer = FeedCategorySerializer(data, many=True)
 			return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
+@swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
 @api_view(['POST', 'PUT'])
 def attributes(request):
 	if request.method == 'POST':
 		if 'attribute' in request.data:
-			Attributes.objects.create(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup']);
+			for attribute in Attributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']):
+				if attribute.attribute == request.data['attribute'] and attribute.value == request.data['value']:
+					return Response({'message':True})
+			Attributes.objects.create(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 			create_data = Attributes.objects.filter(user_id=request.user.id).last()
 			serializer = UserGroupAttributeSerializer(create_data)
 			return Response(serializer.data)
@@ -1243,16 +1337,23 @@ def attributes(request):
 					customobservable = False
 			attributes = Attributes.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
 			attribute_serializer = UserGroupAttributeSerializer(attributes, many=True)
-			globalattributes = GlobalAttributes.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
-			global_serializer = UserGroupGlobalAttributeSerializer(globalattributes, many=True)
+			enableglobalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['currentgroup']).all(), many=True)
 			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
 			role_serializer = UserGroupRoleSerializer(currentrole[0])
-			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':global_serializer.data, 'customobservable':customobservable})
+			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':enableglobalattributes.data, 'customobservable':customobservable})
 	elif request.method == 'PUT':
-		Attributes.objects.filter(id=request.data['extraction_id']).update(enabled=request.data['enabled'])
-		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['extraction_id']).values()[0])
+		Attributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
+		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).all()[0])
 		return Response(serializer.data)
 
+@api_view(['POST'])
+def enableglobal(request):
+	GroupGlobalAttributes.objects.filter(id=request.data['id']).update(isenable=request.data['isenable'])
+	serializer = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(id=request.data['id']).last())
+	return Response(serializer.data)
+
+@swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
+@swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
 @api_view(['POST', 'PUT'])
 def whitelist(request):
 	if request.method == 'POST':
@@ -1282,12 +1383,14 @@ def whitelist(request):
 		serializer = UserIndicatorWhitelistSerializer(Whitelists.objects.filter(id=request.data['id']).last())
 		return Response(serializer.data)
 
-@api_view(['POST'])
+@swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: GlobalItemIndicatorSerializer})
+@api_view(['PUT'])
 def indicators(request):
 	Indicators.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
 	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=InviteSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def invite(request):
 	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
@@ -1301,7 +1404,7 @@ def invite(request):
 		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 		max_users = Product.objects.filter(djstripe_id=productid).last().metadata['max_users']
 		users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id']).all()
-		if len(users) < max_users:
+		if len(users) < int(max_users):
 			flag = True
 	if flag:
 		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
@@ -1337,13 +1440,19 @@ def invite(request):
 		if(len(data) == 0):
 				data=[{'role': 'success'}]
 		return Response(data)
+	else:
+		return Response({'message':True})
 
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
 @api_view(['POST'])
 def currentrole(request):
-	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
+	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
 	serializer = UserGroupRoleSerializer(currentrole[0])
 	return Response({'currentrole':serializer.data})
 
+@swagger_auto_schema(methods=['post'], request_body=CategoryCreateSerializer, responses={201: CategorySerializer})
+@swagger_auto_schema(methods=['put'], request_body=CategoryUpdateSerializer, responses={200: CategorySerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: CategorySerializer})
 @api_view(['POST', 'PUT', 'DELETE'])
 def categories(request):
 	if request.method == 'POST':
@@ -1365,6 +1474,9 @@ def categories(request):
 		Categories.objects.filter(id=request.data['id']).delete()
 		return Response({"Successfully deleted!"})
 
+@swagger_auto_schema(methods=['get'], responses={200: GlobalIndicatorSerializer})
+@swagger_auto_schema(methods=['post'], request_body=GlobalIndicatorCreateSerializer, responses={201: UserGlobalIndicatorSerializer})
+@swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: UserGlobalIndicatorSerializer})
 @api_view(['GET', 'POST', 'PUT'])
 def globalindicators(request):
 	if request.method == 'GET':
@@ -1380,37 +1492,55 @@ def globalindicators(request):
 		serializer = UserGlobalIndicatorSerializer(GlobalIndicators.objects.filter(id=request.data['id']).last())
 		return Response(serializer.data)
 
-@api_view(['POST', 'PUT'])
-def globalattributes(request):
-	if request.method == 'POST':
-		if not 'attribute' in request.data:
-			if request.data['currentgroup'] == '':
-				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id).order_by('id').all()
-				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
-			else:
-				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).order_by('id').all()
-				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
-			return Response({'globalattributes':attribute_serializer.data})
-		else:
-			GlobalAttributes.objects.create(attribute=request.data['attribute'], api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
-			attribute = GlobalAttributes.objects.filter(user_id=request.user.id).last()
-			attribute_serializer = UserGroupGlobalAttributeSerializer(attribute)
-			return Response(attribute_serializer.data)
-	if request.method == 'PUT':
-		GlobalAttributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
-		attribute = GlobalAttributes.objects.filter(id=request.data['id']).all()
-		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
-		return Response(attribute_serializer.data)
+# @swagger_auto_schema(methods=['post'], request_body=GlobalAttributeCreateSerializer, responses={201: UserGroupGlobalAttributeSerializer})
+# @swagger_auto_schema(methods=['put'], request_body=GlobalAttributeUpdateSerializer, responses={200: UserGroupGlobalAttributeSerializer})
+# @api_view(['POST', 'PUT'])
+# def globalattributes(request):
+# 	if request.method == 'POST':
+# 		if not 'attribute' in request.data:
+# 			if request.data['currentgroup'] == '':
+# 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id).order_by('id').all()
+# 				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
+# 			else:
+# 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).order_by('id').all()
+# 				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
+# 			return Response({'globalattributes':attribute_serializer.data})
+# 		else:
+# 			GlobalAttributes.objects.create(attribute=request.data['attribute'], api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
+# 			attribute = GlobalAttributes.objects.filter(user_id=request.user.id).last()
+# 			attribute_serializer = UserGroupGlobalAttributeSerializer(attribute)
+# 			return Response(attribute_serializer.data)
+# 	if request.method == 'PUT':
+# 		GlobalAttributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
+# 		attribute = GlobalAttributes.objects.filter(id=request.data['id']).all()
+# 		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
+# 		return Response(attribute_serializer.data)
 
+@swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def home(request):
+	ftr = "http://ftr-premium.fivefilters.org/"
+	# encode = urllib.parse.quote_plus("https://apnews.com/apf-topnews")
+	# encode = urllib.parse.quote_plus("http://feeds.bbci.co.uk/news/rss.xml")
+	encode = urllib.parse.quote_plus("https://www.microsoft.com/security/blog/security-blog-series/")
+	key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
+	req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key)
+	# req = urllib.request.Request("http://ftr-premium.fivefilters.org/makefulltextfeed.php?url=http://feeds.bbci.co.uk/news/rss.xml&key=KSF8GH22GZRKA8&summary=1&max=1&links=remove&content=1&xss=1&lang=2&parser=html5php&accept=application/json")
+	contents = urllib.request.urlopen(req).read()
+	text = json.dumps(xmltodict.parse(contents)['rss']['channel']['item'])
+	# text = json.dumps(xmltodict.parse(contents))
+	results = extract.extract_observables(text)
+	print(','.join(results['cc']))
+	for observable in extract.extract(text, 'ipv4addr'):
+		print(observable)
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all(), many=True)
 	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True)
 	userinfo = CustomUserSerializer(CustomUser.objects.filter(id=request.user.id).all()[0])
 	intelgroups = IntelGroupSerializer(IntelGroups.objects.order_by('id').all(), many=True)
-	return Response({'mygroups':groups.data, 'users':users.data, 'userinfo':userinfo.data, 'intelgroups':intelgroups.data})
+	return Response({'mygroups':groups.data, 'users':users.data, 'userinfo':userinfo.data, 'intelgroups':intelgroups.data, 're':xmltodict.parse(contents)})
 
-@api_view(['POST'])
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={200: RoleGroupSerializer})
+@api_view(['DELETE'])
 def leavegroup(request):
 	result = []
 	role = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().role
@@ -1427,6 +1557,7 @@ def leavegroup(request):
 		if len(admins)==1:
 			if len(users)==1:
 				UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
+				IntelGroups.objects.filter(id=intelgroup_id).delete()
 				groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
 				for group in groups:
 					serializer = RoleGroupSerializer(group)
@@ -1442,6 +1573,7 @@ def leavegroup(request):
 
 	return Response(result)
 
+@swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def deleteaccount(request):
 	groups = UserIntelGroupRoles.objects.filter(user_id=request.user.id).all()
@@ -1451,6 +1583,9 @@ def deleteaccount(request):
 		CustomUser.objects.filter(id=request.user.id).delete()
 		return Response({'delete':True})
 
+@swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
+@swagger_auto_schema(methods=['post'], request_body=IntelgroupCreateSerializer, responses={201: RoleGroupSerializer})
+@swagger_auto_schema(methods=['put'], request_body=IntelgroupUpdateSerializer, responses={200: RoleGroupSerializer})
 @api_view(['GET', 'POST', 'PUT'])
 def intelgroups(request):
 	if request.method == 'GET':
@@ -1458,47 +1593,55 @@ def intelgroups(request):
 		users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True)
 		return Response({'intelgroups':groups.data, 'users':users.data})
 	if request.method == 'POST':
-		name = ''
-		if(request.data['name'] == ''):
-			name = 'Intel Group' + str(IntelGroups.objects.last().id+1)
+		if 'name' in request.data:
+			name = ''
+			if(request.data['name'] == ''):
+				letters = string.digits
+				name = 'Intel Group' + ''. join(random.choice(letters) for i in range(10))
+			else:
+				name = request.data['name']
+			message = Mail(
+				from_email='kardzavaryan@gmail.com',
+				to_emails=request.data['emails'],
+				subject=f'You’ve been invited to join the {name} Intel Group on Cyobstract',
+				html_content=f'''<strong>From:</strong><span>sherlock@mg.cyobstract.com</span><br/>
+				<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
+				<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
+				<strong>Title:</strong><span>You've been invited to join the {name} Intel Group on Cyobstract</span><br/>
+				<p>Hello!</p>
+				<p>kardzavaryan@gmail.com has invited to join the {name} Intel Group on Cyobstract as a Member.</p>
+				<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.</p>
+				<p>To confirm or reject this invitation, click the link below.</p>
+				<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
+				<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
+				<p>Sherlock and the Cyobstract Team</p>''')
+			try:
+				sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+				response = sg.send(message)
+				print(response.status_code)
+			except Exception as e:
+				print(str(e))
+			IntelGroups.objects.create(name=name, description=request.data['description'])
+			new_group = IntelGroups.objects.filter(name=name).all().values()
+			UserIntelGroupRoles.objects.create(intelgroup_id=new_group[0]['id'], user_id=request.user.id, role=2)
+			for invite_id in request.data['userids']:
+				if invite_id != request.user.id:
+					UserIntelGroupRoles.objects.create(intelgroup_id=new_group[0]['id'], user_id=invite_id, role=0)
+			new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=new_group[0]['id'], user_id=request.user.id).all()
+			serializer = RoleGroupSerializer(new_role[0])
+			return Response(serializer.data)
 		else:
-			name = request.data['name']
-		message = Mail(
-			from_email='kardzavaryan@gmail.com',
-			to_emails=request.data['emails'],
-			subject=f'You’ve been invited to join the {name} Intel Group on Cyobstract',
-			html_content=f'''<strong>From:</strong><span>sherlock@mg.cyobstract.com</span><br/>
-			<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-			<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
-			<strong>Title:</strong><span>You've been invited to join the {name} Intel Group on Cyobstract</span><br/>
-			<p>Hello!</p>
-			<p>kardzavaryan@gmail.com has invited to join the {name} Intel Group on Cyobstract as a Member.</p>
-			<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.</p>
-			<p>To confirm or reject this invitation, click the link below.</p>
-			<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
-			<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
-			<p>Sherlock and the Cyobstract Team</p>''')
-		try:
-			sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-			response = sg.send(message)
-			print(response.status_code)
-		except Exception as e:
-			print(str(e))
-		IntelGroups.objects.create(name=name, description=request.data['description'])
-		new_group = IntelGroups.objects.filter(name=name).all().values()
-		UserIntelGroupRoles.objects.create(intelgroup_id=new_group[0]['id'], user_id=request.user.id, role=2)
-		for invite_id in request.data['userids']:
-			if invite_id != request.user.id:
-				UserIntelGroupRoles.objects.create(intelgroup_id=new_group[0]['id'], user_id=invite_id, role=0)
-		new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=new_group[0]['id'], user_id=request.user.id).all()
-		serializer = RoleGroupSerializer(new_role[0])
-		return Response(serializer.data)
+			name = IntelGroups.objects.filter(id=request.data['id']).last().name
+			description = IntelGroups.objects.filter(id=request.data['id']).last().description
+			role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()[0])
+			return Response({'name':name, 'description':description, 'currentrole':role.data})
 	if request.method == 'PUT':
 		IntelGroups.objects.filter(id=request.data['id']).update(name=request.data['name'],description=request.data['description'])
 		new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id'], user_id=request.user.id).all()
 		serializer = RoleGroupSerializer(new_role[0])
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['put'], request_body=ManageEnabledSerializer, responses={200: FeedCategorySerializer})
 @api_view(['PUT'])
 def feedenable(request):
 	Feeds.objects.filter(id=request.data['id']).update(manage_enabled=request.data['manage_enabled'])
@@ -1506,6 +1649,7 @@ def feedenable(request):
 	serializer = FeedCategorySerializer(feeds, many=True)
 	return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=AccepInviteSerializer, responses={201: RoleGroupSerializer})
 @api_view(['POST'])
 def acceptinvite(request):
 	UserIntelGroupRoles.objects.filter(id=request.data['id']).update(role = '1')
@@ -1536,7 +1680,8 @@ def acceptinvite(request):
 	result = RoleGroupSerializer(groups, many=True)
 	return Response(result.data)
 
-@api_view(['POST'])
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: RoleGroupSerializer})
+@api_view(['DELETE'])
 def rejectinvite(request):
 	userid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().user_id
 	useremail = CustomUser.objects.filter(id=userid).last().email
@@ -1567,6 +1712,8 @@ def rejectinvite(request):
 	result = RoleGroupSerializer(groups, many=True)
 	return Response(result.data)
 
+@swagger_auto_schema(methods=['put'], request_body=RoleUpdateSerializer, responses={200: UserIntelGroupRolesSerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: UserIntelGroupRolesSerializer})
 @api_view(['PUT', 'DELETE'])
 def role(request):
 	if request.method == 'PUT':
@@ -1578,24 +1725,29 @@ def role(request):
 		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 		return Response('Success')
 
+@swagger_auto_schema(methods=['get'], responses={200: CustomUserSerializer})
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
 @api_view(['GET', 'POST'])
 def users(request):
 	if request.method == 'GET':
 		serializer = CustomUserSerializer(CustomUser.objects.all(), many=True)
 		return Response(serializer.data)
 	if request.method == 'POST':
-		user_role = UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['groupid'], user_id=request.user.id).last().role
-		serializer = UserIntelGroupRolesSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid']).all(), many=True)
-		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role})
+		user_role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['id'], user_id=request.user.id).last())
+		serializer = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
+		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role.data})
 
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def changegroup(request, subscription_holder=None):
+    
 	isPlan = True
 	isInit = False
 	isAutoDown = False
 	message = ''
-	subid = IntelGroups.objects.filter(id=request.data['groupid']).last().plan_id
-	created_at = IntelGroups.objects.filter(id=request.data['groupid']).last().created_at
+	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+	currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last())
 	if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
 		if subid == None:
 			if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=30):
@@ -1611,6 +1763,4 @@ def changegroup(request, subscription_holder=None):
 				Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
 				isAutoDown = True
 		
-	return Response({'isPlan':isPlan, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message': message})
-
-
+	return Response({'isPlan':isPlan, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole.data})

@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
     Dialog, DialogActions, DialogContent, DialogTitle,
-    TextField, Image, Container
+    TextField, Container
 } from '@material-ui/core';
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 import Alert from '@material-ui/lab/Alert';
 
-import { getAction } from "../../api";
-import { API_ROOT } from "../const";
 import IntelgroupTable from "./intelgroup-table";
 import APIKeyTable from "./apikey-table";
 import WebhookTable from "./webhook-table";
@@ -26,6 +24,7 @@ const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
     const [isSuccess, setIsSuccess] = useState(false);
     const [isAlert, setIsAlert] = useState(false);
+    const [isExist, setIsExist] = useState(false);
 
     const changeEmail =() => {
         let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
@@ -44,8 +43,13 @@ const Profile = (props) => {
                 body: JSON.stringify(params)
             }).then(res=>{return res.json()})
             .then(res=>{
-                setEmail(res.email);
-                setIsSuccess(true);
+                if(Boolean(res.isExist)){
+                    setIsExist(true);
+                }
+                else{
+                    setEmail(res.email);
+                    setIsSuccess(true);
+                }
             })
         }
     }
@@ -60,11 +64,11 @@ const Profile = (props) => {
             credentials: 'same-origin',
         }).then(res=>{res.json()})
         .then(res=>{
-            if(Boolean(res.message)){
-                setIsAlert(true);
-            }
             if(Boolean(res.delete)){
                 window.location.href="/accounts/logout";
+            }
+            if(Boolean(res.message)){
+                setIsAlert(true);
             }
         })
     }
@@ -72,8 +76,9 @@ const Profile = (props) => {
     return (
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
-            {isSuccess && <Alert severity="success" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
-            {isAlert && <Alert severity="danger" className="column is-one-third my-4" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
+            {isSuccess && <Alert severity="success" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
+            {isExist && <Alert severity="warning" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsExist(false)}>This email already exists. Please input another email.</Alert>}
+            {isAlert && <Alert severity="danger" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
                     setEmail(e.target.value);
@@ -109,7 +114,7 @@ const Intelgroups = (props) => {
     const rejectInvite = (index) => {
         const params = {id: intelgroups[index].id};
 		fetch('/api/rejectinvite',{
-			method: 'post',
+			method: 'delete',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': props.client.transports[0].auth.csrfToken
@@ -124,7 +129,7 @@ const Intelgroups = (props) => {
         const params = {id: intelgroups[index].id};
         if(confirm('Are you sure to leave this group?'))
             fetch('/api/leavegroup', {
-                method: 'post',
+                method: 'delete',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': props.client.transports[0].auth.csrfToken
@@ -148,7 +153,7 @@ const Intelgroups = (props) => {
     return (
         <section className="semisection">
             <h1 className="title is-5 py-4">Intel groups you belong to</h1>
-            {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>{message}</Alert>}
+            {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>{message}</Alert>}
             <Table className="table is-striped is-fullwidth has-vcentered-cells">
                 <Thead>
                     <Tr>
@@ -226,7 +231,7 @@ const APIKeys = (props) => {
             >
                 <DialogTitle id="alert-dialog-title">Create new API key</DialogTitle>
                 <DialogContent>
-                    {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
+                    {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
                     <div className="semisection">
                         <TextField id="outlined-basic" size="small" placeholder="name" variant="outlined" onChange={(e)=>setName(e.target.value)} />
                     </div>
@@ -326,7 +331,7 @@ const WebHooks = (props) => {
             >
                 <DialogTitle id="alert-dialog-title">Add a webhook endpoint</DialogTitle>
                 <DialogContent>
-                    {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
+                    {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
                     <div className="semisection">
                         <TextField id="outlined-basic1" size="small" placeholder="https://..." variant="outlined" onChange={(e)=>setEndpoint(e.target.value)} />
                     </div>

@@ -27,14 +27,7 @@ SECRET_KEY = 'mTMhZsVDjurGMIIswFuMKjxiBjomVaFEddqLmpCk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '178.62.35.174',
-    'sherlock-staging.obstractai.com',
-    'www.sherlock-staging.obstractai.com',
-    '0.0.0.0',
-    'localhost',
-    '127.0.0.1'
-]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

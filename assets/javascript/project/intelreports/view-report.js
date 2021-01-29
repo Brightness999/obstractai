@@ -11,33 +11,22 @@ const ViewReport = (props) => {
 		tags = props.feed.tags.split(',');
 		else tags.push(props.feed.tags);
 	}
-	const itemfeed = [];
-	props.feeds.forEach(feed => {
-		if(feed.uniqueid == props.feed.uniqueid){
-			itemfeed.push(feed);
-		}
-	});
 	const classifications = [];
 	props.classifications.forEach(classification => {
-		if(classification.intelgroup.id == itemfeed[0].intelgroup_id){
+		if(classification.intelgroup.id == props.intelgroup.id){
 			classifications.push(classification);
 		}
 	});
 	const indicators = [];
 	props.indicators.forEach(indicator => {
-		if(props.id == indicator.feeditem_id){
+		if(props.feeditem.id == indicator.feeditem_id){
 			indicators.push(indicator)
-		}
-	});
-	const currentitem = [];
-	props.feeditems.forEach(feeditem => {
-		if(feeditem.id == props.id){
-			currentitem.push(feeditem);
 		}
 	});
 	
 	useEffect(()=>{
-		let str=currentitem[0].description;
+		let str=props.feeditem.description;
+		console.log(str.substring(29600, 29800));
 		indicators.forEach(indicator => {
 			if(indicator.globalindicator.value == 'URL' || indicator.globalindicator.value == 'Email Address' || indicator.globalindicator.value == 'FQDN'){
 				let items = indicator.value.split(',');
@@ -49,7 +38,9 @@ const ViewReport = (props) => {
 					while ( (result = alastreg.exec(str)) ) {
 						alast.push(result.index);
 					}
-					let url = item.replace("(", "").replace(/'/gi, "").replace(")", "").replace(/\\/gi, "").trim();
+					let url = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
+					if(url.search(RegExp('x(.)?'))>-1)
+						url = url.substring(0,url.search(RegExp('x(.)?')))
 					let re = new RegExp(url);
 					let index = str.search(re);
 					for(let i=0;i<astart.length;i++){
@@ -72,7 +63,7 @@ const ViewReport = (props) => {
 			else words.push(classification.words_matched);
 		});
 		words.forEach(word => {
-			let reg = new RegExp(word.trim(), 'g');
+			let reg = new RegExp(word.trim(), "g");
 			str = str.replace(reg, `<span style="background:#00e7ff;">${word.trim()}</span>`)
 		});
 		document.querySelector("#extraction").innerHTML=str;
@@ -154,13 +145,13 @@ const ViewReport = (props) => {
 							<p>API call</p>
 							<div>
 								<span>Feed: </span>
-								<span>https://www.cyobstract.com/api/v1/report</span>
+								<span>https://www.cyobstract.com/api/v1/feed?UUID={props.feed.uniqueid}</span>
 							</div>
 							<div>
-								<span>Object: </span>
-								<span>https://www.cyobstract.com/api/v1/report</span>
+								<span>Report: </span>
+								<span>https://www.cyobstract.com/api/v1/report?UUID={props.uniqueid}</span>
 							</div>
-							<a href="/docs" className="muted-link">API docs</a>
+							<a href="/api/docs" className="muted-link">API docs</a>
 						</section>
 					</Grid>
 				</Grid>

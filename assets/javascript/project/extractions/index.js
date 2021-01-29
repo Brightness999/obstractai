@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
-import { Container, Grid, TextField, Tooltip } from "@material-ui/core";
+import { 
+	Container, Grid, TextField, Tooltip, Dialog, 
+	DialogActions, DialogContent, DialogTitle 
+} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
+import ExtractionTable from "./extraction-table";
 
 const Loading = () => {
 	return (
@@ -25,7 +29,7 @@ const Plan = (props) => {
 	}
 
 	return <div className="my-6">
-			<h1 className="title is-size-3 has-text-centered py-6">No plan! You must select a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
+			<h1 className="title is-size-3 has-text-centered py-6">You must upgrade a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
 			{isAlert&& <Grid container direction="row" justify="center" alignItems="center">
 				<Grid item xs={6}>
 					<Alert className="has-text-centered title is-size-4" severity="error" onClose={()=>setIsAlert(false)}>! Please contact the feed group administrator to manage intel group plan payment to reinstate access.</Alert>
@@ -41,34 +45,47 @@ const ExtractionList = (props) => {
 	const [words, setWords] = useState('');
 	const [isAlert, setIsAlert] = useState(false);
 	const [groupError, setGroupError] = useState(false);
+	const [bannerCustom, setBannerCustom] = useState(false);
+	const [bannerAdd, setBannerAdd] = useState(false);
 	
 	const saveExtraction = () => {
-		let params = {
-			attribute: type.trim(),
-			value: value.trim(),
-			words_matched: words.trim(),
-			enabled: 'Enable',
-			currentgroup: props.currentgroup
+
+		if(props.customobservable){
+			let params = {
+				attribute: type.trim(),
+				value: value.trim(),
+				words_matched: words.trim(),
+				enabled: 'Enable',
+				currentgroup: props.currentgroup
+			}
+			if(props.currentgroup == '') setGroupError(true);
+			if(type == '' || value == '' || words == '') setIsAlert(true);
+			if(type != '' && value != '' && words != '' && props.currentgroup != ''){
+				setIsAdd(false);
+				setType('');
+				setValue('');
+				setWords('');
+				fetch('/api/attributes', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					if(Boolean(res.message)){
+						setBannerAdd(true);
+					}
+					else{
+						props.saveExtraction(res);
+					}
+				})
+			}
 		}
-		if(props.currentgroup == '') setGroupError(true);
-		if(type == '' || value == '' || words == '') setIsAlert(true);
-		if(type != '' && value != '' && words != '' && props.currentgroup != ''){
-			setIsAdd(false);
-			setType('');
-			setValue('');
-			setWords('');
-			fetch('/api/attributes', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res=>{return res.json()})
-			.then(res=>{
-				props.saveExtraction(res);
-			})
+		if(props.isAutoDown || !props.customobservable){
+			setBannerCustom(true);
 		}
 	}
 
@@ -80,22 +97,81 @@ const ExtractionList = (props) => {
 	}
 
 	const changeStatus = (index) => {
-		let params = {
-			extraction_id: props.extractionlist[index].id,
-			enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
+		if(props.customobservable){
+			let params = {
+				id: props.extractionlist[index].id,
+				attribute: props.extractionlist[index].attribute,
+				value: props.extractionlist[index].value,
+				words_matched: props.extractionlist[index].words_matched,
+				currentgroup: props.extractionlist[index].intelgroup.id,
+				enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
+			}
+			fetch('/api/attributes',{
+				method: 'put',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				console.log(res);
+				props.saveExtraction(res);
+			})
 		}
-		fetch('/api/attributes',{
-			method: 'put',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': props.client.transports[0].auth.csrfToken,
-			},
-			credentials: 'same-origin',
-			body: JSON.stringify(params)
-		}).then(res=>{return res.json()})
-		.then(res=>{
-			props.saveExtraction(res);
-		})
+		if(props.isAutoDown || !props.customobservable){
+			setBannerCustom(true);
+		}
+	}
+
+	const editAttribute = (index, words, value, type, enabled) => {
+		if(props.customobservable){
+			let params = {
+				id: props.extractionlist[index].id,
+				attribute: type.trim(),
+				value: value.trim(),
+				words_matched: words.trim(),
+				currentgroup: props.extractionlist[index].intelgroup.id,
+				enabled: enabled.trim()
+			}
+			fetch('/api/attributes',{
+				method: 'put',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				props.saveExtraction(res);
+			})
+		}
+		if(props.isAutoDown || !props.customobservable){
+			setBannerCustom(true);
+		}
+	}
+	
+	const enableGlobal = (index) => {
+		if(props.customobservable){
+			let params = {id:props.globalattributes[index].id, isenable:props.globalattributes[index].isenable?false:true}
+			fetch('/api/enableglobal', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				props.saveGlobal(res)
+			})
+		}
+		if(props.isAutoDown || !props.customobservable){
+			setBannerCustom(true);
+		}
 	}
 
 	return (
@@ -106,24 +182,26 @@ const ExtractionList = (props) => {
 					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
 					<span className="subtitle is-5">{props.message}</span>
 				</Alert>}
+				{bannerCustom && <Alert severity="error" className="title is-size-4" onClose={()=>setBannerCustom(false)}>Sorry, your plan does not currently cover custom attribute abstractions. You can upgrade now to enable this feature here.</Alert>}
+				{bannerAdd && <Alert severity="error" className="title is-size-4" onClose={()=>setBannerAdd(false)}>The attribute already exists! Please find out it and edit.</Alert>}
 				<h1 className="title is-3">Manage Observable extractions</h1>
 				<Grid container>
 					<Grid item xs={9}>
 						<label className="title is-5">Custom extractions</label>
 					</Grid>
 					<Grid item xs={3}>
-						{props.customobservable&&<button className="button is-link is-rounded is-medium has-pulled-right" onClick={()=>setIsAdd(true)} >
+						<button className="button is-link is-rounded is-medium has-pulled-right" onClick={()=>setIsAdd(true)} >
 							Add extraction
-						</button>}
+						</button>
 					</Grid>
 				</Grid>
-				{isAlert && <Alert severity="warning" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
-				{groupError && <Alert severity="warning" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
+				{isAlert && <Alert severity="warning" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
+				{groupError && <Alert severity="warning" className="title is-size-4" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
 						<Tr>
-							<Th>Observable Type</Th>
-							<Th>Observable Value</Th>
+							<Th>Observable Type(API)</Th>
+							<Th>Observable Value(API)</Th>
 							<Th>Words to match on</Th>
 							<Th>Actions</Th>
 						</Tr>
@@ -139,12 +217,8 @@ const ExtractionList = (props) => {
 							</Tr>
 						}
 						{props.extractionlist.map((extraction, index)=>{
-							return <Tr index={index} key={extraction.id}>
-								<Td>{extraction.attribute+'('+extraction.api_attribute+')'}</Td>
-								<Td>{extraction.value+'('+extraction.api_value+')'}</Td>
-								<Td>{extraction.words_matched}</Td>
-								<Td><a className="button is-text" onClick={()=>changeStatus(index)}>{extraction.enabled}</a></Td>
-							</Tr>
+							return <ExtractionTable index={index} key={extraction.id} extraction={extraction} 
+								changeStatus={(index)=>changeStatus(index)} editAttribute={(index, words, value, type, enabled)=>editAttribute(index, words, value, type, enabled)} />
 						})}
 					</Tbody>
 				</Table>
@@ -163,10 +237,10 @@ const ExtractionList = (props) => {
 					<Tbody>
 						{props.globalattributes.map((attribute, index)=>{
 							return <Tr index={index} key={attribute.id}>
-								<Td>{attribute.attribute+'('+attribute.api_attribute+')'}</Td>
-								<Td>{attribute.value+'('+attribute.api_value+')'}</Td>
-								<Td>{attribute.words_matched}</Td>
-								<Td><a className="button is-text" onClick={()=>{}}>{attribute.enabled}</a></Td>
+								<Td>{attribute.globalattribute.attribute+'('+attribute.globalattribute.api_attribute+')'}</Td>
+								<Td>{attribute.globalattribute.value+'('+attribute.globalattribute.api_value+')'}</Td>
+								<Td>{attribute.globalattribute.words_matched}</Td>
+								<Td><a className="button is-text" onClick={()=>{enableGlobal(index)}}>{attribute.isenable?"Enable":"Disable"}</a></Td>
 							</Tr>
 						})}
 					</Tbody>
@@ -199,7 +273,7 @@ const Extractions = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				console.log(res.customobservable)
+				console.log(res)
 				setExtractionList(res.attributes);
 				setGlobalAttributes(res.globalattributes);
 				setCurrentRole(res.currentrole);
@@ -227,6 +301,24 @@ const Extractions = (props) => {
 		setExtractionList(newExtractions);
 	}
 
+	const saveGlobal = (new_global) => {
+		let flag = false;
+		const newGlobals = [];
+		for(const global of globalattributes){
+			if(global.id == new_global.id){
+				newGlobals.push(new_global);
+				flag = true;
+			}
+			else{
+				newGlobals.push(global);
+			}
+		}
+		if(!flag){
+			newGlobals.push(new_global);
+		}
+		setGlobalAttributes(newGlobals);
+	}
+
 	const ExtractionListView = () => {
 		if(isLoading){
 			return <Loading/>
@@ -239,28 +331,26 @@ const Extractions = (props) => {
 						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/intelgroups" >Click here to accept.</Link></p>
 					</div>
 				)
-			else{
-				if(props.isPlan){
-					if(currentrole.role == 1)
-						if(props.isAutoDown){
-							return <div className='section has-text-centered my-6'>
-                                <p className="title is-3 py-6">Please contact the feed group administrator to manage intel group plan payment.</p>
-                            </div>
-						}
-						else{
-							return(
-								<div className='section has-text-centered'>
-									<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
-								</div>
-							)
-						}
-					if(currentrole.role ==2)
-						return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
-							currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
-				}
-				else{
-					return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
-				}
+			// else{
+			// 	if(props.isPlan){
+			// 		return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
+			// 			currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
+			// 	}
+			// 	else{
+			// 		return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+			// 	}
+			// }
+			if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+					</div>
+				)
+			if(currentrole.role ==2){
+				if(props.isPlan)
+					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable} saveGlobal={saveGlobal}
+								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
 		}
 	}

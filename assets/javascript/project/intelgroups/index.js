@@ -42,7 +42,7 @@ const IntelgroupList = function(props) {
 		if(confirm("Are you sure you want to delete?")){
 			const params = {id: props.intelgroups[index].id};
 			fetch('/api/leavegroup', {
-				method: 'post',
+				method: 'delete',
 				headers: {
 					'Content-Type': 'application/json',
 					'X-CSRFToken': props.client.transports[0].auth.csrfToken
@@ -55,7 +55,7 @@ const IntelgroupList = function(props) {
 					setIsAlert(true);
 				}
 				else{
-					props.saveIntelgroup(result);
+					props.saveIntelgroup(res);
 				}
 			})
 		}
@@ -103,7 +103,7 @@ const Loading = function() {
 	)
 }
 
-const IntelGroup = (props) => {
+const IntelGroups = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [intelgroups, setIntelgroups] = useState([]);
 	const [users, setUsers] = useState([]);
@@ -159,7 +159,7 @@ const IntelGroup = (props) => {
 	const rejectInvite = (index) => {
 		const params = {id: intelgroups[index].id};
 		fetch('/api/rejectinvite',{
-			method: 'post',
+			method: 'delete',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': props.client.transports[0].auth.csrfToken
@@ -170,7 +170,7 @@ const IntelGroup = (props) => {
 		.then(res=>setIntelgroups(res))
 	}
 
-	const saveIntelgroup = (data) => {setIntelgroups(data);}
+	const saveIntelgroup = (data) => {setIntelgroups(data); props.deleteIntelGroup(data)}
 
 	const getDefaultView = () => {
 		if (isLoading) {
@@ -206,7 +206,7 @@ const IntelGroup = (props) => {
 	return (
 	  	<Switch  >
 			<Route path="/intelgroups/manage/:id">
-				<User client={props.client} />
+				<User client={props.client} currentgroup={props.currentgroup} />
 			</Route>
 			<Route path="/intelgroups/new">
 				<UpdateIntelGroup client={props.client} intelgroupSaved={handleIntelGroupSaved} users={users} />
@@ -218,4 +218,4 @@ const IntelGroup = (props) => {
 	   </Switch>
   );
 };
-export default IntelGroup;
+export default IntelGroups;

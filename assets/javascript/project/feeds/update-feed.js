@@ -1,17 +1,16 @@
 import React, {useState, useEffect} from 'react';
 import { Link, useHistory, useLocation } from 'react-router-dom';
 import {
-	Container,
-	TextField,
-	Button,
-	Tooltip,
+	Container,TextField,Button,Tooltip,Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, 
 } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
 import { yellow } from '@material-ui/core/colors';
-
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import CloseIcon from '@material-ui/icons/Close';
 
 const UpdateFeed = (props) => {
 	const [url, setUrl] = useState(props.url || '');
@@ -19,6 +18,7 @@ const UpdateFeed = (props) => {
 	const [description, setDescription] = useState(props.description || '');
 	const [category, setCategory] = useState(props.category_id || '');
 	const [tags, setTags] = useState(props.tags || '');
+	const [type, setType] = useState(props.type || '');
 	const history = useHistory();
 	const [confidence, setConfidence] = useState(props.confidence || '');
 	const [urlError, setUrlError] = useState(false);
@@ -27,8 +27,46 @@ const UpdateFeed = (props) => {
 	const [categoryError, setCategoryError] = useState(false);
 	const [tagError, setTagError] = useState(false);
 	const [groupError, setGroupError] = useState(false);
+	const [typeError, setTypeError] = useState(false);
 	const [isMessage, setIsMessage] = useState(false);
+	const [fulltext, setFullText] = useState({});
+	const [open, setOpen] = useState(false);
 	
+	const saveFeed = () => {
+		let params ={
+			url: url.trim(),
+			name: name.trim(),
+			description: description.trim(),
+			category: category,
+			tags: tags.trim(),
+			confidence: confidence,
+			type:type.trim()
+		}
+		params['intelgroup_id'] = props.currentgroup;
+		params['manage_enabled'] = 'false';
+		if(props.currentgroup == '') setGroupError(true);
+		if(props.currentgroup != '')
+			fetch('/api/feeds', {
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params),
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				if(Boolean(res.message)){
+					setIsMessage(true);
+				}
+				else{
+					setIsMessage(false);
+					props.saveFeed(res);
+					history.push('/feeds');
+				}
+			})
+	}
+
 	const updateFeed = () => {
 		let data;
 		props.categories.forEach(cate => {
@@ -42,9 +80,9 @@ const UpdateFeed = (props) => {
 			category: category,
 			tags: tags.trim(),
 			confidence: confidence,
+			type:type.trim()
 		}
 
-		let action;
 		if(props.id){
 			params['id'] = props.id;
 			params['manage_enabled'] = 'true';
@@ -60,8 +98,9 @@ const UpdateFeed = (props) => {
 		if(description.trim() == '') setDescriptionError(true);
 		if(category == '') setCategoryError(true);
 		if(tags.trim() == '') setTagError(true);
+		if(type.trim() == '') setTypeError(true);
 
-		if(url && name && description && category && tags ){
+		if(url && name && description && category && tags && type ){
 			if(Boolean(props.id)){
 				fetch('/api/feeds', {
 					method: 'put',
@@ -78,33 +117,26 @@ const UpdateFeed = (props) => {
 				})
 			}
 			else{
-				if(props.currentgroup != '')
-					fetch('/api/feeds', {
+				if(props.currentgroup != ''){
+					fetch('/api/pullfeed', {
 						method: 'post',
 						headers: {
 							'Content-Type': 'application/json',
-							'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+							'X-CSRFToken': props.client.transports[0].auth.csrfToken
 						},
 						credentials: 'same-origin',
-						body: JSON.stringify(params),
+						body: JSON.stringify(params)
 					}).then(res=>{return res.json()})
 					.then(res=>{
-						if(Boolean(res.message)){
-							setIsMessage(true);
-						}
-						else{
-							setIsMessage(false);
-							props.saveFeed(res);
-							history.push('/feeds');
-						}
+						console.log(res.fulltext);
+						setFullText(res.fulltext);
+						setOpen(true)
 					})
+				}
 			}
 		}
 	}
 
-	useEffect(() => {
-
-	},[]);
 
 	
 	return (
@@ -119,7 +151,42 @@ const UpdateFeed = (props) => {
 				<div className="columns">
 					{props.currentrole.role==2&&
 						<div className="column is-two-thirds">
-							{groupError && <Alert severity="error" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
+							{groupError && <Alert severity="error" className="title is-size-4" onClose={()=>setGroupError(false)}>Please select Intel Group.</Alert>}
+
+							{Boolean(props.id)?
+							<TextField
+								id="outlined-select-currency-native"
+								select
+								className="mt-4 mb-2 column is-four-fifths"
+								label="Type"
+								value={type}
+								onChange={(event) => {setType(event.target.value); setTypeError(false);}}
+								SelectProps={{
+									native: true,
+								}}
+								variant="outlined"
+							>
+								<option className="has-text-light">Select Type</option>
+								<option value="rss">RSS</option>
+								<option value="curated">Curated</option>
+							</TextField>:
+							<><TextField
+								id="outlined-select-currency-native"
+								select
+								className="mt-4 mb-2 column is-four-fifths"
+								label="Type"
+								value={type}
+								onChange={(event) => {setType(event.target.value); setTypeError(false);}}
+								SelectProps={{
+									native: true,
+								}}
+								variant="outlined"
+							>
+								<option className="has-text-light">Select Type</option>
+								<option value="rss">RSS</option>
+								<option value="curated">Curated</option>
+							</TextField><Tooltip title="Either RSS or Curated" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
+							{typeError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							{Boolean(props.id)?
 							<TextField
 								label="URL"
@@ -334,6 +401,19 @@ const UpdateFeed = (props) => {
 							</TextField><Tooltip title="Value between 1 and 100 for how reliable is source" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 						</div>
 					}
+					<Dialog fullScreen open={open} onClose={()=>setOpen(false)}>
+					<DialogTitle>
+						<button onClick={()=>{setOpen(false); saveFeed()}} className="button is-success mx-4" autoFocus>
+							Save
+						</button>
+						<button onClick={()=>{setOpen(false); }} className="button is-danger" >
+							Cancel
+						</button>
+					</DialogTitle>
+						<DialogContent>
+							<pre>{JSON.stringify(fulltext, null, 2) }</pre>
+						</DialogContent>
+					</Dialog>
 				</div>
 				{ (()=>{
 					if(Boolean(props.id)){

@@ -52,7 +52,9 @@ def accept_payment(request):
         raise ValueError('Received unexpected payment amount {}'.format(amount))
 
     name = request.POST['name']
+    print(name)
     token = request.POST['stripeToken']
+    print(token)
     stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
     user = request.user
     email = request.user.email

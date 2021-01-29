@@ -1,15 +1,6 @@
 import React, {useState, useEffect} from "react";
-import {
-	Switch,
-	Route,
-	Link,
-	useHistory
-} from "react-router-dom";
-import {
-	Container,
-	TextField,
-	Grid
-} from "@material-ui/core";
+import { Switch,Route,Link,useHistory} from "react-router-dom";
+import { Container,TextField,Grid} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 
 import UpdateFeed from "./update-feed";
@@ -134,7 +125,6 @@ const FeedList = (props) => {
 							<button className="button is-success is-rounded mx-2" onClick={search} >
 								Filter
 							</button>
-							
 						</span>
 					</Grid>
 				</Grid>
@@ -164,9 +154,6 @@ const Feeds = (props) => {
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [currentrole, setCurrentRole] = useState({});
-	const [isMessage, setIsMessage] = useState(false);
-	const [message, setMessage] = useState('');
-	const [isPlan, setIsPlan] = useState(true);
 	const [customfeeds, setCustomFeeds] = useState(true);
 	const history = useHistory();
 	const confidences = [];
@@ -178,7 +165,7 @@ const Feeds = (props) => {
 		if(props.currentgroup == '') history.push('/');
 		else{
 			let params = {
-				currentgroup: props.currentgroup
+				id: props.currentgroup
 			}
 			fetch('/api/feedlist', {
 				method: 'post',
@@ -234,16 +221,28 @@ const Feeds = (props) => {
 					</div>
 				)
 			}
-			else{
-				if(props.isPlan){
+			if(currentrole.role == 1)
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+					</div>
+				)
+			if(currentrole.role ==2){
+				if(props.isPlan)
 					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
-						Search={Search} confidences={confidences} currentrole={currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
-				}
-				else{
-					return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
-				}
-
+							Search={Search} confidences={confidences} currentrole={currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
+			// else{
+			// 	if(props.isPlan){
+			// 		return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
+			// 			Search={Search} confidences={confidences} currentrole={currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+			// 	}
+			// 	else{
+			// 		return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+			// 	}
+
+			// }
 		}
 	}
 

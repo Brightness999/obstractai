@@ -13,7 +13,7 @@ class Attributes(BaseModel):
     words_matched = models.CharField(max_length=100, default='')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
-    enabled = models.CharField(max_length=100, default='Enable')
+    isenable = models.BooleanField(default=True)
     
     class Meta:
         verbose_name_plural = "Attributes"

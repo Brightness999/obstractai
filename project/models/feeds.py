@@ -7,20 +7,22 @@ from apps.utils.models import BaseModel
 from .categories import Categories
 from .intelgroups import IntelGroups
 
+TYPE_CHOICES = [
+    ('rss', 'RSS'),
+    ('curated', 'Curated')
+]
+
 class Feeds(BaseModel):
     uniqueid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    type = models.CharField(max_length=100, null=True)
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES, null=True)
     url = models.TextField(default='')
     name = models.CharField(max_length=100)
     description = models.TextField(default='', blank=True)
     category = models.ForeignKey(Categories, on_delete=models.CASCADE)
     tags = models.CharField(max_length=100, blank=True)
     confidence = models.PositiveIntegerField(default=0, blank=True)
-    manage_enabled = models.CharField(max_length=100, blank=True)
-    intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
     isglobal = models.BooleanField(default=False)
     time = models.PositiveIntegerField(default=60)
-    # def save(self, *args, **kwargs):
         
 
     class Meta:

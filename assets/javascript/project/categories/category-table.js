@@ -4,7 +4,7 @@ import { Tr, Td } from 'react-super-responsive-table';
 const CategoryTable = (props) => {
 	return (
 		<Tr>
-			<Td>{props.category? props.category.id: ''}</Td>
+			<Td>{props.category? props.index+1: ''}</Td>
 			<Td>{props.category? props.category.name: ''}</Td>
 			<Td>
 				<button className="button is-outlined" onClick={() => props.editCategory(props.index)}>

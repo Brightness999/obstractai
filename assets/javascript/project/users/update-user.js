@@ -1,10 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {Link, useHistory} from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
-
-import {getAction} from "../../api";
-import {API_ROOT} from "../const";
-
 
 const UpdateUser = function(props) {
   const [isLoading, setIsLoading] = useState(true);

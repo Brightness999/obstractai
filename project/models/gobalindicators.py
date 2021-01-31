@@ -8,6 +8,4 @@ class GlobalIndicators(BaseModel):
     type_api = models.CharField(max_length=100, default='')
     value = models.CharField(max_length=100, default='')
     value_api = models.CharField(max_length=100, default='')
-    enabled = models.CharField(max_length=100, default='')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     

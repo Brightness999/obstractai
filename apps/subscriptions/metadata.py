@@ -193,7 +193,7 @@ def get_active_products_with_metadata():
                 ))
     else:
         # otherwise just use whatever is in the DB
-        for product in Product.objects.order_by('id').reverse().all():
+        for product in Product.objects.order_by('id').all():
             yield ProductWithMetadata(
                 product=product,
                 metadata=ACTIVE_PRODUCTS_BY_ID.get(product.id, ProductMetadata.from_stripe_product(product))

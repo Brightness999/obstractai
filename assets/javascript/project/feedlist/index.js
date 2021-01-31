@@ -3,7 +3,6 @@ import { Switch,Route,Link,useHistory} from "react-router-dom";
 import { Container,TextField,Grid} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 
-import UpdateFeed from "./update-feed";
 import FeedCard from "./feed-card";
 
 const Loading = () => {
@@ -55,7 +54,7 @@ const FeedList = (props) => {
 				</Alert>}
 				<Grid container>
 					<Grid item xs={3}>
-							<label className="title is-3">Feed Store</label>
+							<label className="title is-3">Feed List</label>
 					</Grid>
 					<Grid item xs={1}>
 						<div style={{paddingTop:16+'px'}}>
@@ -129,14 +128,6 @@ const FeedList = (props) => {
 					</Grid>
 				</Grid>
 			</section>
-			{props.currentrole.role==2 && props.customfeeds &&
-			<section className="section" >
-				<Link to="/feeds/new">
-					{props.customfeeds && <button className="button is-medium is-link is-rounded">
-						<span>Create custom feed</span>
-					</button>}
-				</Link>
-			</section>}
 			{
 				props.feedlist.map((feed, index) => {
 					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
@@ -148,12 +139,11 @@ const FeedList = (props) => {
 }
 
 
-const Feeds = (props) => {
+const FeedLists = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [feedlist, setFeedList] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
-	const [currentrole, setCurrentRole] = useState({});
 	const [customfeeds, setCustomFeeds] = useState(true);
 	const history = useHistory();
 	const confidences = [];
@@ -181,7 +171,6 @@ const Feeds = (props) => {
 				setCategories(res.categories);
 				setTags(res.tags);
 				setCustomFeeds(res.customfeeds);
-				setCurrentRole(res.currentrole);
 				setIsLoading(false);
 			});
 		}
@@ -213,46 +202,25 @@ const Feeds = (props) => {
 			return <Loading/>
 		}
 		else {
-			if(currentrole.role==0){
+			if(props.currentrole.role==0){
 				return(
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
 					</div>
 				)
             }
             else{
 				if(props.isPlan)
 					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
-                        Search={Search} confidences={confidences} currentrole={currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
-				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+                        Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
             }
 		}
 	}
 
-	const getFeedById = (id) => {
-		for(const feed of feedlist){
-			if(feed.id.toString() == id)
-				return feed;
-		};
-	}
-
 	const saveFeed = (result) => {
 		setFeedList(result);
-	}
-
-	const renderUpdateFeed = (data) => {
-		if(isLoading){
-			return <Loading/>;
-		}
-		else {
-		const feed_id = data.match.params.id;
-			const feed = getFeedById(feed_id);			
-			return(
-				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={currentrole}
-					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
-			) ;
-		}
 	}
 
 	return (
@@ -264,4 +232,4 @@ const Feeds = (props) => {
 	);
 }
 
-export default Feeds;
+export default FeedLists;

@@ -40,7 +40,6 @@ const TopNavBar = (props) => {
 						<TextField id="outlined-basic" placeholder="Search for intelligence" variant="outlined" />
 					</div> */}
 					<div className="navbar-end">
-						{!props.userinfo.is_staff &&
 						<TextField
 							id="outlined-select-currency-native"
 							fullWidth
@@ -48,7 +47,7 @@ const TopNavBar = (props) => {
 							value={intelgroup}
 							onChange={(event) => {
 								if(event.target.value == 'add'){
-									history.push('/intelgroups/new');
+									history.push('/newgroup');
 								}
 								else{
 									setIntelGroup(event.target.value); 
@@ -67,29 +66,7 @@ const TopNavBar = (props) => {
 								</option>
 							))}
 							<option value="add" className="has-text-primary">Create New Group</option>
-						</TextField>}
-						{props.userinfo.is_staff &&
-						<TextField
-							id="outlined-select-currency-native"
-							fullWidth
-							select
-							value={intelgroup}
-							onChange={(event) => {
-								setIntelGroup(event.target.value); 
-								if(event.target.value != "")
-									props.currentIntelgroup(event.target.value);}}
-							SelectProps={{
-								native: true,
-							}}
-							variant="outlined"
-						>
-							<option value="" className="has-text-light">Select Group</option>
-							{props.mygroups.map((mygroup) => (
-								<option key={mygroup.id} value={mygroup.id}>
-									{mygroup.name}
-								</option>
-							))}
-						</TextField>}
+						</TextField>
 						<div className="navbar-item has-dropdown is-hoverable">
 							<a className="navbar-link">
 								<span className="is-show-desktop">My Account</span>

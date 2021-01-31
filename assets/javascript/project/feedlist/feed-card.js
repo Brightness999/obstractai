@@ -1,8 +1,6 @@
 import React from "react";
 import {Link} from "react-router-dom";
-import {
-  Grid
-} from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 
 import Styles from "../styles";
 
@@ -35,12 +33,33 @@ const FeedCard = function (props) {
     })
   }
 
+  const deleteFeed = () => {
+    let params = {
+      id: props.feed.id
+    };
+    if(props.feed.manage_enabled=='false')
+      params['manage_enabled'] = 'true';
+    else params['manage_enabled'] = 'false';
+    fetch('/api/feedenable', {
+      method: 'put',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': props.client.transports[0].auth.csrfToken
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(params)
+    }).then(res=>{return res.json()})
+    .then(res=>{
+      props.saveFeed(res);
+    })
+  }
+
   return (
     <section className="section app-card" style={Styles.FeedStoreCard}>
       <div className="columns">
         <div className="column is-one-thirds">
           <Grid container>
-            <Grid item xs={12} md={10}>
+            <Grid item xs={12} md={8}>
               <div>
                 <span> Name: </span>
                 <span> {props.feed? props.feed.name : ""} </span>
@@ -70,8 +89,29 @@ const FeedCard = function (props) {
                 </span>
               </div>
             </Grid>
+            <Grid item xs={12} md={2}>
+              <div>
+                <span> Last polled: </span>
+                <span> {props.feed? props.feed.name : ""} </span>
+              </div>
+              <div>
+                <span> Last data: </span>
+                <span> {props.feed? props.feed.description: ""} </span>
+              </div>
+              <div>
+                <span> Total intel collected: </span>
+                <span> {props.feed? props.feed.url : ""} </span>
+              </div>
+            </Grid>
             <Grid item xs={12} md={2} >
-              <Link to="/feeds" >
+              {props.currentrole.role == 2 && <button className={props.feed.manage_enabled=='true' ? "button is-fullwidth is-success" : "button is-fullwidth is-outlined"} onClick={enableFeed}>
+                <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
+              </button>}
+              {props.currentrole.role == 2 && <button className="button is-fullwidth is-text" onClick={deleteFeed}>
+                <span>Delete</span>
+              </button>}
+              
+              {/* <Link to="/feeds" >
                 {props.feed.manage_enabled == 'true' && props.currentrole.role == 2 &&
                 <button className={props.feed.manage_enabled=='true' ? "button is-fullwidth is-success" : "button is-fullwidth is-outlined"} onClick={enableFeed}>
                   <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
@@ -84,10 +124,10 @@ const FeedCard = function (props) {
                 <button className="button is-fullwidth is-static">
                   <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
                 </button>}
-              </Link>
-              <Link to={`/feeds/edit/${props.feed.id}`} className="button is-text">
+              </Link> */}
+              {/* <Link to={`/feeds/edit/${props.feed.id}`} className="button is-text">
                 <span>{props.currentrole.role == 2? "Custom settings and enable" : "See in feed list"}</span>
-              </Link>
+              </Link> */}
             </Grid>
           </Grid>
         </div>

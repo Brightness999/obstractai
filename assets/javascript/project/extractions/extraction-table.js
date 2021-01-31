@@ -9,13 +9,13 @@ const ExtractionTable = (props) => {
     const [type, setType] = useState(props.extraction.attribute || '');
     const [value, setValue] = useState(props.extraction.value || '');
     const [words, setWords] = useState(props.extraction.words_matched || '');
-    const [enabled, setEnabled] = useState(props.extraction.enabled || '');
+    const [isenable, setIsEnable] = useState(props.extraction.isenable?'Enable':'Disable' || '');
 
     const editAttribute = () =>{
-        if (type.trim() == '' || value == '' || words.trim() == '' || enabled.trim() == '')
+        if (type.trim() == '' || value == '' || words.trim() == '' || isenable == '')
             setIsEditAlert(true);
         else{
-            props.editAttribute(props.index, words, value, type, enabled);
+            props.editAttribute(props.index, words, value, type, isenable);
             setOpen(false);
         }
     }
@@ -27,7 +27,7 @@ const ExtractionTable = (props) => {
             <Td>{props.extraction.words_matched}</Td>
             <Td>
                 <a className="button is-primary" onClick={()=>setOpen(true)}>Edit</a>
-                <a className="button is-text" onClick={()=>props.changeStatus(props.index)}>{props.extraction.enabled}</a>
+                <a className="button is-text" onClick={()=>props.changeStatus(props.index)}>{props.extraction.isenable?'Enable':'Disable'}</a>
                 <Dialog
                     open={open}
                     onClose={()=>setOpen(false)}
@@ -52,8 +52,8 @@ const ExtractionTable = (props) => {
                                 select
                                 fullWidth
                                 size="small"
-                                value={enabled}
-                                onChange={(e)=>setEnabled(e.target.value)}
+                                value={isenable}
+                                onChange={(e)=>setIsEnable(e.target.value)}
                                 SelectProps={{
                                     native: true,
                                 }}

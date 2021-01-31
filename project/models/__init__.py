@@ -1,6 +1,5 @@
 from .intelgroups import IntelGroups
 from .attributes import Attributes
-from .extractions import Extractions
 from .feed_channels import FeedChannels
 from .feeds import Feeds
 from .feed_items import FeedItems
@@ -17,3 +16,4 @@ from .planhistory import PlanHistory
 from .intelreports import IntelReports
 from .groupplans import GroupPlan
 from .groupglobalattributes import GroupGlobalAttributes
+from .groupfeeds import GroupFeeds

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Route, Switch, Link, useHistory } from "react-router-dom";
 import { Container, TextField, Grid } from "@material-ui/core";
+import { Alert, AlertTitle } from '@material-ui/lab';
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 
 import CategoryTable from "./category-table";
@@ -95,6 +96,11 @@ const CategoryList = (props) => {
 		<Container>
 			<section className="section app-card">
 				<h1 className="title is-3">All Categories</h1>
+				{props.isInit&&
+				<Alert severity="info" className="my-5">
+					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+					<span className="subtitle is-5">{props.message}</span>
+				</Alert>}
 				<div className="section">
 					<Grid container>
 						<Grid item xs={4}>
@@ -167,7 +173,7 @@ const Categories = (props) => {
 				return (
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
 					</div>
 				)
 			if(props.currentrole.role == 1)
@@ -178,7 +184,7 @@ const Categories = (props) => {
 				)
 			if(props.currentrole.role ==2){
 				if(props.isPlan)
-					return <CategoryList client={props.client} categorylist={categorylist} saveCategory={saveCategory} deleteCategory={deleteCategory} />
+					return <CategoryList client={props.client} categorylist={categorylist} saveCategory={saveCategory} deleteCategory={deleteCategory} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 		}
@@ -202,20 +208,22 @@ const Categories = (props) => {
 	}
 
 	const deleteCategory = (index) => {
-		let params = {id: categorylist[index].id};
-		fetch('/api/categories',{
-			method: 'delete',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': props.client.transports[0].auth.csrfToken
-			},
-			credentials: 'same-origin',
-			body: JSON.stringify(params)
-		}).then(res=>{return res.json()})
-		.then(res=>{
-			const newCategoryList = categorylist.splice(0, index).concat(categorylist.splice(index+1));
-			setCategoryList(newCategoryList);
-		})
+		if(confirm('Are you sure to delete this category?')){
+			let params = {id: categorylist[index].id};
+			fetch('/api/categories',{
+				method: 'delete',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				const newCategoryList = categorylist.splice(0, index).concat(categorylist.splice(index+1));
+				setCategoryList(newCategoryList);
+			})
+		}
 	}
 
 	return (

@@ -4,10 +4,10 @@ import {
 		Switch,
 		Route,
 		Link,
-		useParams,
 		useHistory,
 } from "react-router-dom";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 import UserTable from './user-table';
 import UpdateUser from "./update-user";
@@ -42,8 +42,13 @@ const UserList = function(props) {
 	else action = '';
 	return (
 		<section className="section app-card">
+			{props.isInit&&
+			<Alert severity="info" className="my-5">
+				<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+				<span className="subtitle is-5">{props.message}</span>
+			</Alert>}
 			<div>
-				<label className="title is-4">Manage Intel Group Users</label>
+				<label className="title is-3">Manage Intel Group Users</label>
 				<button className="button is-outlined is-pulled-right mx-4" onClick={()=>history.goBack()}>
 					<span>Back</span>
 				</button>
@@ -189,7 +194,7 @@ const User = (props) => {
 				return (
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{groupRole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{groupRole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
 					</div>
                 )
             if(groupRole.role == 1)
@@ -200,7 +205,7 @@ const User = (props) => {
 				)
 			if(groupRole.role ==2){
 				// if(props.isPlan)
-					return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} />
+					return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
 				// else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
 			// return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} />

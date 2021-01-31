@@ -10,3 +10,5 @@ class GlobalAttributes(BaseModel):
     api_value = models.CharField(max_length=100, default='')
     words_matched = models.CharField(max_length=100, default='')
     
+    class Meta:
+        verbose_name_plural = "GlobalAttributes"

@@ -10,18 +10,12 @@ import Feeds from '../feeds';
 import Categories from '../categories';
 import Extractions from '../extractions';
 import IntelReports from '../intelreports';
-import GlobalIndicators from '../indicators';
 import WhiteLists from '../whitelist';
-import Plan from '../plans';
-import CurrentPlan from '../plans/current-plan';
 import { useScrollTrigger } from '@material-ui/core';
 import Account from '../profile';
-import GlobalAttributes from '../globalattributes';
-import Layout from './Layout';
-import Pending from '../staff/pending';
-import StaffFeeds from '../staff/feeds';
 import User from '../users';
 import IntelGroups from '../intelgroups';
+import FeedLists from '../feedlist';
 
 
 const Loading = () => {
@@ -44,7 +38,6 @@ const App = () => {
   const [intelgroups, setIntelGroups] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentgroup, setCurrentGroup] = useState('');
-  const [userinfo, setUserInfo] = useState({});
   const [isPlan, setIsPlan] = useState(true);
   const [isInit, setIsInit] = useState(false);
   const [isAutoDown, setIsAutoDown] = useState(false);
@@ -65,7 +58,6 @@ const App = () => {
       setMyGroups(res.mygroups);
       setIntelGroups(res.intelgroups);
       setUsers(res.users);
-      setUserInfo(res.userinfo);
       setRe(res.re);
       setIsLoading(false);
     })
@@ -117,28 +109,26 @@ const App = () => {
     return (
       <Provider store={store}>
         <BrowserRouter basename='/home/'>
-          {!userinfo.is_staff &&
-          <>
-          <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} userinfo={userinfo} />
-          <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} userinfo={userinfo} />
+          <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
+          <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} />
           <Switch>
-            {/* <Route exact path="/">
-              <Layout mygroups={mygroups} />
-            </Route> */}
             <Route exact path="/">
               <HomePage re={re} currentrole={currentrole} mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
-            <Route path="/intelgroups" >
-              <IntelGroups currentgroup={currentgroup} currentrole={currentrole} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)} deleteIntelGroup={(data)=>deleteIntelGroup(data)}/>
+            <Route path="/newgroup" >
+              <IntelGroups currentgroup={currentgroup} currentrole={currentrole} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
             </Route>
             <Route path="/intelgroup">
-              <IntelGroup client={client} currentgroup={currentgroup} currentrole={currentrole}/>
+              <IntelGroup client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
             </Route>
             <Route path="/users" >
               <User isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />
             </Route>
             <Route path="/feeds">
               <Feeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+            </Route>
+            <Route path="/feedlist">
+              <FeedLists currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/categories" >
               <Categories client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
@@ -152,32 +142,10 @@ const App = () => {
             <Route path="/whitelist" >
               <WhiteLists client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
-            {/* <Route path="/plans" component={Plan} /> */}
-            {/* <Route path="/manageplan" component={CurrentPlan} /> */}
             <Route path="/account" >
               <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
-            <Route path="/pending">
-              <Pending />
-            </Route>
-          </Switch></>}
-          {userinfo.is_staff && 
-          <>
-          <TopNavbar mygroups={intelgroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} userinfo={userinfo} />
-          <MenuBar currentgroup={currentgroup} client={client} userinfo={userinfo} />
-          <Switch>
-            <Route path="/globalattributes" >
-              <GlobalAttributes client={client} currentgroup={currentgroup} />
-            </Route>
-            <Route path="/globalindicators" >
-              <GlobalIndicators client={client} currentgroup={currentgroup}/>
-            </Route>
-            <Route path="/feeds">
-              <StaffFeeds currentgroup={currentgroup} client={client}/>
-            </Route>
           </Switch>
-          </>
-          }
         </BrowserRouter>
       </Provider>
     );

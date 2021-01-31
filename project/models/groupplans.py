@@ -16,3 +16,6 @@ class GroupPlan(BaseModel):
     custom_feeds = models.BooleanField(default=False)
     custom_observables = models.BooleanField(default=False)
     api_access = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = "GroupPlan"

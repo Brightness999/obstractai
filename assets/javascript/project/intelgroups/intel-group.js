@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react";
 import { Link, useHistory } from "react-router-dom";
 import { Tooltip, TextField, Dialog, DialogTitle, DialogContent, DialogContentText } from "@material-ui/core";
+import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
@@ -17,7 +18,6 @@ const IntelGroup = function(props) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    const [currentrole, setCurrentRole] = useState({});
     const [open, setOpen] = useState(false);
     const history = useHistory();  
   
@@ -37,7 +37,6 @@ const IntelGroup = function(props) {
             .then(res=>{
                 setName(res.name);
                 setDescription(res.description);
-                setCurrentRole(res.currentrole);
                 setIsLoading(false);
             })
 
@@ -64,6 +63,7 @@ const IntelGroup = function(props) {
             }).then(res=>{return res.json()})
             .then(res=>{
                 if(Boolean(res.id)){
+                    props.intelgroupSave(res);
                     setOpen(true);
                 }
             })
@@ -73,23 +73,28 @@ const IntelGroup = function(props) {
         return <Loading/>
     }
     else{
-        if(currentrole.role ==0)
+        if(props.currentrole.role ==0)
             return (
                 <div className='app-card has-text-centered'>
                     <div className="lds-ripple"><div></div><div></div></div>
-                    <p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/intelgroups" >Click here to accept.</Link></p>
+                    <p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
                 </div>
             )
-        if(currentrole.role == 1)
+        if(props.currentrole.role == 1)
             return(
                 <div className='section has-text-centered'>
-                    <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+                    <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
                 </div>
             )
-        if(currentrole.role == 2)
+        if(props.currentrole.role == 2)
             return (
                 <section className="section app-card">
-                    <h2 className="subtitle">Intel Group Details</h2>
+                    {props.isInit&&
+                    <Alert severity="info" className="my-5">
+                        <AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+                        <span className="subtitle is-5">{props.message}</span>
+                    </Alert>}
+                    <h2 className="title is-size-3">Intel Group Details</h2>
                     <div className="field column is-two-thirds">
                         <label className="label">Name</label>
                         <TextField
@@ -138,10 +143,10 @@ const IntelGroup = function(props) {
                             aria-labelledby="alert-dialog-title"
                             aria-describedby="alert-dialog-description"
                         >
-                            <DialogTitle id="alert-dialog-title">{"Information"}</DialogTitle>
+                            <DialogTitle className="has-text-centered"><span className="subtitle is-3">Information</span></DialogTitle>
                             <DialogContent >
-                            <DialogContentText id="alert-dialog-description">
-                                Your intel group is successfully changed!!!
+                            <DialogContentText id="alert-dialog-description" className="has-text-centered">
+                                <span className="subtitle is-4">Your intel group is successfully changed.</span>
                             </DialogContentText>
                             </DialogContent>
                         </Dialog>

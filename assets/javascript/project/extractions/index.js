@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { 
-	Container, Grid, TextField, Tooltip, Dialog, 
-	DialogActions, DialogContent, DialogTitle 
+	Container, Grid, TextField, Tooltip
 } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
@@ -55,7 +54,7 @@ const ExtractionList = (props) => {
 				attribute: type.trim(),
 				value: value.trim(),
 				words_matched: words.trim(),
-				enabled: 'Enable',
+				isenable: true,
 				currentgroup: props.currentgroup
 			}
 			if(props.currentgroup == '') setGroupError(true);
@@ -104,7 +103,7 @@ const ExtractionList = (props) => {
 				value: props.extractionlist[index].value,
 				words_matched: props.extractionlist[index].words_matched,
 				currentgroup: props.extractionlist[index].intelgroup.id,
-				enabled: props.extractionlist[index].enabled == 'Enable' ? 'Disable' : 'Enable'
+				isenable: props.extractionlist[index].isenable?false:true
 			}
 			fetch('/api/attributes',{
 				method: 'put',
@@ -125,7 +124,7 @@ const ExtractionList = (props) => {
 		}
 	}
 
-	const editAttribute = (index, words, value, type, enabled) => {
+	const editAttribute = (index, words, value, type, isenable) => {
 		if(props.customobservable){
 			let params = {
 				id: props.extractionlist[index].id,
@@ -133,7 +132,7 @@ const ExtractionList = (props) => {
 				value: value.trim(),
 				words_matched: words.trim(),
 				currentgroup: props.extractionlist[index].intelgroup.id,
-				enabled: enabled.trim()
+				isenable: isenable=='Enable'?true:false
 			}
 			fetch('/api/attributes',{
 				method: 'put',
@@ -218,7 +217,7 @@ const ExtractionList = (props) => {
 						}
 						{props.extractionlist.map((extraction, index)=>{
 							return <ExtractionTable index={index} key={extraction.id} extraction={extraction} 
-								changeStatus={(index)=>changeStatus(index)} editAttribute={(index, words, value, type, enabled)=>editAttribute(index, words, value, type, enabled)} />
+								changeStatus={(index)=>changeStatus(index)} editAttribute={(index, words, value, type, isenable)=>editAttribute(index, words, value, type, isenable)} />
 						})}
 					</Tbody>
 				</Table>
@@ -328,7 +327,7 @@ const Extractions = (props) => {
 				return (
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/intelgroups" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/account" >Click here to accept.</Link></p>
 					</div>
 				)
 			// else{
@@ -349,7 +348,7 @@ const Extractions = (props) => {
 			if(currentrole.role ==2){
 				if(props.isPlan)
 					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable} saveGlobal={saveGlobal}
-								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
+								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
 		}

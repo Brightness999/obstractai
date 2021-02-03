@@ -73,7 +73,7 @@ const FeedCard = function (props) {
                 </span>
               </div>
             </Grid>
-            <Grid item xs={12} md={2} >
+            <Grid item xs={12} md={2} className="has-text-centered" >
               <Link to="/feeds" >
                 {Boolean(props.feed.feed)?
                 <button className="button is-fullwidth is-static">
@@ -83,9 +83,13 @@ const FeedCard = function (props) {
                   <span className="is-size-4">Enable</span>
                 </button>}
               </Link>
+              {props.feed.feed?
+              <Link to="/feedlist" className="button is-text">
+                <span>See in feed list</span>
+              </Link>:
               <Link to={`/feeds/edit/${props.feed.id}`} className="button is-text">
-                <span>{props.feed.feed? "See in feed list" : "Custom settings and enable"}</span>
-              </Link>
+                <span>Custom settings and enable</span>
+              </Link>}
             </Grid>
           </Grid>
         </div>

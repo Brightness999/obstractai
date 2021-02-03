@@ -62,12 +62,12 @@ class GlobalIndicatorSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = GlobalIndicators
-        fields = ('id', 'type', 'type_api', 'value', 'value_api', 'enabled')
+        fields = ('id', 'type', 'type_api', 'value', 'value_api')
 
 class IndicatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Indicators
-        fields = ('id', 'globalindicator_id', 'feeditem_id', 'enabled', 'value')
+        fields = ('id', 'globalindicator_id', 'feeditem_id', 'isenable', 'value')
 
 class APIKeySerializer(serializers.ModelSerializer):
 
@@ -81,11 +81,7 @@ class WebHookSerializer(serializers.ModelSerializer):
         model = WebHooks
         fields = ('id', 'endpoint', 'description', 'user_id', 'intelgroup_id' )
 
-class FeedChannelSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = FeedChannels
-        fields = ('__all__')
+
 
 class IntelReportSerializer(serializers.ModelSerializer):
 
@@ -146,6 +142,12 @@ class GroupCategoryFeedSerializer(serializers.ModelSerializer):
         model = GroupFeeds
         fields = ('__all__')
 
+class FeedChannelSerializer(serializers.ModelSerializer):
+    feed = GroupCategoryFeedSerializer(many=False, read_only=True)    
+    class Meta:
+        model = FeedChannels
+        fields = ('__all__')
+
 class GroupAPIkeySerializer(serializers.ModelSerializer):
     intelgroup = IntelGroupSerializer(many=False)
     class Meta:
@@ -169,26 +171,26 @@ class ItemIndicatorSerializer(serializers.ModelSerializer):
     globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
     class Meta:
         model = Indicators
-        fields = ('id', 'feeditem_id', 'enabled', 'globalindicator_id', 'value', 'feeditem', 'globalindicator')
+        fields = ('id', 'feeditem_id', 'isenable', 'globalindicator_id', 'value', 'feeditem', 'globalindicator')
 
 class UserGlobalIndicatorSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(many=False, read_only=True)
     class Meta:
         model = GlobalIndicators
-        fields = ('id', 'type', 'type_api', 'value', 'value_api', 'enabled', 'user')
+        fields = ('id', 'type', 'type_api', 'value', 'value_api', 'user')
 
 class IndicatorGlobalSerializer(serializers.ModelSerializer):
     globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
     class Meta:
         model = Indicators
-        fields = ('id', 'value', 'enabled', 'feeditem_id', 'globalindicator_id', 'globalindicator' )
+        fields = ('id', 'value', 'isenable', 'feeditem_id', 'globalindicator_id', 'globalindicator' )
 
 class GlobalItemIndicatorSerializer(serializers.ModelSerializer):
     globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
     feeditem = FeedItemSerializer(many=False, read_only=True)
     class Meta:
         model = Indicators
-        fields = ('id', 'value', 'enabled', 'feeditem_id', 'globalindicator_id', 'globalindicator', 'feeditem' )
+        fields = ('id', 'value', 'isenable', 'feeditem_id', 'globalindicator_id', 'globalindicator', 'feeditem' )
 
 class UserIndicatorWhitelistSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)

@@ -74,7 +74,7 @@ const FeedList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="">Confidence</option>
+								<option value="" className="has-text-white">Confidence</option>
 								{props.confidences.map((confidence) => (
 									<option key={confidence} value={confidence}>
 										{confidence}
@@ -92,7 +92,7 @@ const FeedList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="">Category</option>
+								<option value="" className="has-text-white">Category</option>
 								{props.categories.map((category) => (
 									<option key={category.id} value={category.id}>
 										{category.name}
@@ -110,7 +110,7 @@ const FeedList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="">Tag</option>
+								<option value="" className="has-text-white">Tag</option>
 								{props.tags.map((tag) => (
 									<option key={tag.id} value={tag.id}>
 										{tag.name}
@@ -124,13 +124,42 @@ const FeedList = (props) => {
 							<button className="button is-success is-rounded mx-2" onClick={search} >
 								Filter
 							</button>
+							{props.currentrole.role==2 &&
+							<Link to="/feeds">
+								<button className="button is-success is-rounded mx-2">
+									Feed library
+								</button>
+							</Link>}
 						</span>
 					</Grid>
 				</Grid>
 			</section>
-			{
+			{props.currentrole.role==2&&
 				props.feedlist.map((feed, index) => {
-					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
+					let feedchannel = {}
+					props.channels.forEach(channel => {
+						if(channel.feed.id==feed.feed.id) feedchannel=channel;
+					});
+					let count = 0;
+					props.collections.forEach(collection => {
+						if(feed.feed.id == collection.feedid) count = collection.count;
+					});
+					return <FeedCard index={index} key={feed.id} feed={feed} channel={feedchannel} count={count} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
+				})
+			}
+			{props.currentrole.role==1&&
+				props.feedlist.map((feed, index) => {
+					console.log(feed);
+					let feedchannel = {}
+					props.channels.forEach(channel => {
+						if(channel.feed.id==feed.feed.id) feedchannel=channel;
+					});
+					let count = 0;
+					props.collections.forEach(collection => {
+						if(feed.feed.id == collection.feedid) count = collection.count;
+					});
+					if(feed.isenable)
+						return <FeedCard index={index} key={feed.id} feed={feed} channel={feedchannel} count={count} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
 				})
 			}
 			
@@ -142,6 +171,8 @@ const FeedList = (props) => {
 const FeedLists = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [feedlist, setFeedList] = useState([]);
+	const [channels, setChannels] = useState([]);
+	const [collections, setCollections] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [customfeeds, setCustomFeeds] = useState(true);
@@ -157,7 +188,7 @@ const FeedLists = (props) => {
 			let params = {
 				id: props.currentgroup
 			}
-			fetch('/api/feedlists', {
+			fetch('/api/configuredfeeds', {
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json',
@@ -167,7 +198,9 @@ const FeedLists = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				setFeedList(res.feedlist);
+				setFeedList(res.configuredfeeds);
+				setChannels(res.channels);
+				setCollections(res.collections);
 				setCategories(res.categories);
 				setTags(res.tags);
 				setCustomFeeds(res.customfeeds);
@@ -183,8 +216,8 @@ const FeedLists = (props) => {
 			confidence: confidence,
 			currentgroup: props.currentgroup
 		}
-		fetch('/api/searchfeeds', {
-			method: 'post',
+		fetch('/api/configuredfeeds', {
+			method: 'patch',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': props.client.transports[0].auth.csrfToken
@@ -212,7 +245,7 @@ const FeedLists = (props) => {
             }
             else{
 				if(props.isPlan)
-					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
+					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} channels={channels} collections={collections}
                         Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
             }
@@ -220,7 +253,8 @@ const FeedLists = (props) => {
 	}
 
 	const saveFeed = (result) => {
-		setFeedList(result);
+		if(props.currentrole.role == 2) setFeedList(result);
+		if(props.currentrole.role == 1) setMemberFeeds(result);
 	}
 
 	return (

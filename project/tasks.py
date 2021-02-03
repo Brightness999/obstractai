@@ -14,21 +14,13 @@ from .models import (IntelGroups, Feeds, FeedItems, FeedChannels, Indicators, Gl
 
 @app.task(bind=True)
 def feed(self):
-    feeds = []
+    feeds = Feeds.objects.order_by('id').all()
+    feeds.update(updated_at=datetime.now())
     for feed in Feeds.objects.order_by('id').all():
-        feed.update(updated_at=datetime.now())
-        flag = True
-        for f in feeds:
-            if f.uniqueid == feed.uniqueid:
-                flag = False
-        if flag:
-            feeds.append(feed)
-    print(feeds)
-    for feed in feeds:
         ftr = "http://ftr-premium.fivefilters.org/"
         encode = urllib.parse.quote_plus(feed.url)
         key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
-        req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key)
+        req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
         contents = urllib.request.urlopen(req).read()
         channelid = 0
         feedcreated = False
@@ -101,126 +93,124 @@ def feed(self):
                         for result in results:
                             if result == 'ipv4addr' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'ipv4cidr' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'ipv4range' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'ipv6addr' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'ipv6cidr' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'ipv6range' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'md5' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'sha1' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'sha256' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'ssdeep' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'fqdn' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'url' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'useragent' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'email' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'filename' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'filepath' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'regkey' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'asn' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'asnown' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'country' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'isp' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'cve' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'malware' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'attacktype' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
-                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
-                            else:
-                                GlobalIndicators.objects.create()
+                                    Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                     elif(item == 'author'):
                         FeedItems.objects.filter(id=itemid).update(author=items[item])
                     elif(item == 'category'):
@@ -255,124 +245,124 @@ def feed(self):
                     for result in results:
                         if result == 'ipv4addr' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'ipv4cidr' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'ipv4range' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'ipv6addr' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'ipv6cidr' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'ipv6range' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'md5' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'sha1' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'sha256' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'ssdeep' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'fqdn' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'url' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'useragent' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'email' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'filename' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'filepath' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'regkey' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'asn' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'asnown' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'country' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'isp' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'cve' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'malware' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'attacktype' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
-                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), enabled='Enable')
+                                Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                 elif(item == 'author'):
                     FeedItems.objects.filter(id=itemid).update(author=xmltodict.parse(contents)['rss']['channel']['item'][item])
                 elif(item == 'category'):

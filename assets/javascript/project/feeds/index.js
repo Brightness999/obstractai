@@ -75,7 +75,7 @@ const FeedList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="">Confidence</option>
+								<option value="" className="has-text-white">Confidence</option>
 								{props.confidences.map((confidence) => (
 									<option key={confidence} value={confidence}>
 										{confidence}
@@ -93,7 +93,7 @@ const FeedList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="">Category</option>
+								<option value="" className="has-text-white">Category</option>
 								{props.categories.map((category) => (
 									<option key={category.id} value={category.id}>
 										{category.name}
@@ -111,7 +111,7 @@ const FeedList = (props) => {
 								}}
 								variant="outlined"
 							>
-								<option value="">Tag</option>
+								<option value="" className="has-text-white">Tag</option>
 								{props.tags.map((tag) => (
 									<option key={tag.id} value={tag.id}>
 										{tag.name}

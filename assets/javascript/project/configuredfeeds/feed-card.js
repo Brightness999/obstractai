@@ -26,7 +26,6 @@ const FeedCard = function (props) {
       body: JSON.stringify(params)
     }).then(res=>{return res.json()})
     .then(res=>{
-      console.log(res);
       props.saveFeed(res);
     })
   }

@@ -16,6 +16,7 @@ import Account from '../profile';
 import User from '../users';
 import IntelGroups from '../intelgroups';
 import FeedLists from '../feedlist';
+import ConfiguredFeeds from '../configuredfeeds';
 
 
 const Loading = () => {
@@ -126,6 +127,9 @@ const App = () => {
             </Route>
             <Route path="/feeds">
               <Feeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+            </Route>
+            <Route path="/configuredfeeds">
+              <ConfiguredFeeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/feedlist">
               <FeedLists currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>

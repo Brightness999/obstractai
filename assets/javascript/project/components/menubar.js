@@ -21,7 +21,15 @@ const MenuBar = (props) => {
                 }
                 {props.currentrole.role == 2 &&
                 <div className="navbar-end">
-                    <Link to="/feeds/" className="navbar-item">Manage feeds</Link>
+                    <div className="navbar-item has-dropdown is-hoverable">
+                        <a className="navbar-link">
+                            <span className="is-show-desktop">Manage Feeds</span>
+                        </a>
+                        <div className="navbar-dropdown is-left">
+                            <Link to="/feeds/" className="navbar-item">Feed Store</Link>
+                            <Link to="/configuredfeeds/" className="navbar-item">Configured Feeds</Link>
+                        </div>
+                    </div>
                     <div className="navbar-item has-dropdown is-hoverable">
                         <a className="navbar-link">
                             <span className="is-show-desktop">Manage Group</span>

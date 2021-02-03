@@ -14,7 +14,7 @@ import djstripe, stripe
 @admin.register(Feeds)
 class FeedAdmin(admin.ModelAdmin):
 	list_display = ('id', 'url', 'name', 'description', 'category', 'tags')
-
+	readonly_fields = ('intelgroup',)
 	def save_model(self, request, obj, form, change):
 		flag = True
 		for feed in Feeds.objects.all():

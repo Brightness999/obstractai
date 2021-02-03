@@ -33,7 +33,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from pegasus.apps.examples.tasks import progress_bar_task
 
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, FeedChannels, FeedItems, Feeds, GroupGlobalAttributes, \
+from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, FeedChannels, FeedItems, Feeds, GroupGlobalAttributes, GroupFeeds, \
 	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory, IntelReports
 from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, \
 	CategorySerializer, FeedItemSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
@@ -557,7 +557,6 @@ def webhook(request):
 					trial_period_days=0, usage_type=plan['usage_type'])
 	return Response({'message': 'ok'})
 
-
 @swagger_auto_schema(methods=['get'], responses={200: UserSerializer})
 @api_view(['GET'])
 def account(request):
@@ -848,7 +847,6 @@ def searchreports(request):
 
 	return Response({'feeds':search_serializer.data, 'feedchannels':search_feedchannels, 'feeditems':search_feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
-
 @api_view(['POST'])
 def pullfeed(request):
 	ftr = "http://ftr-premium.fivefilters.org/"
@@ -872,44 +870,10 @@ def feeds(request):
 		for feed in Feeds.objects.all():
 			if(data['url'] in feed.url):
 				isUrlExist = True
-				if feed.intelgroup_id == int(groupid):
-					isEqualGroup = True
-					Feeds.objects.filter(id=feed.id).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], updated_at=datetime.now(), type=data['type'])
-					for tag in tags:
-						flag = False
-						for existingtag in Tags.objects.all():
-							if tag.strip() == existingtag.name:
-								flag = True
-						if not flag:
-							if request.user.is_staff:
-								Tags.objects.create(name=tag.strip(), isglobal=True, user_id=request.user.id)
-							else:
-								Tags.objects.create(name=tag.strip(), isglobal=False, user_id=request.user.id)
-		if isUrlExist and not isEqualGroup:
-			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
-			max_feeds = 0
-			if not subid == None:
-				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-				max_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['max_feeds']
-			feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
-			if len(feeds) > int(max_feeds):
-				return Response({'message':True})
-			Feeds.objects.create(uniqueid=Feeds.objects.filter(url=data['url']).order_by('id').first().uniqueid, url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], type=data['type'])
-			for item in FeedItems.objects.filter(feed_id=Feeds.objects.filter(url=data['url']).order_by('id').first().id).order_by('id').all():
-				IntelReports.objects.create(feed_id=Feeds.objects.last().id, intelgroup_id=groupid, feeditem_id=item.id)
-			for tag in tags:
-				flag = False
-				for existingtag in Tags.objects.all():
-					if tag.strip() == existingtag.name:
-						flag = True
-				if not flag:
-					if request.user.is_staff:
-						Tags.objects.create(name=tag.strip(), isglobal=True, user_id=request.user.id)
-					else:
-						Tags.objects.create(name=tag.strip(), isglobal=False, user_id=request.user.id)
-			isUrlExist = True
-
+				if len(GroupFeeds.objects.filter(feed_id=feed.id).all())>0:
+					return Response({'isUrlExist':True})
+				else:
+					GroupFeeds.objects.create(feed_id=feed.id, intelgroup_id=groupid, name=feed.name, description=name.description, category_id=name.category_id, tags=name.tags, confidence=name.confidence, isenable=True)
 		if not isUrlExist:
 			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			max_feeds = 0
@@ -917,10 +881,11 @@ def feeds(request):
 				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
 				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 				max_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['max_feeds']
-			feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
-			if len(feeds) > int(max_feeds):
-				return Response({'message':True})
-			Feeds.objects.create(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled='false', intelgroup_id=groupid, confidence=data['confidence'], type=data['type'])
+				feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
+				if len(feeds) > int(max_feeds):
+					return Response({'message':True})
+			Feeds.objects.create(type=data['type'], url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isglobal=False, confidence=data['confidence'], intelgroup_id=groupid)
+			GroupFeeds.objects.create(feed_id=Feeds.objects.last().id, intelgroup_id=groupid, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], confidence=data['confidence'], isenable=True)
 			for tag in tags:
 				flag = False
 				for existingtag in Tags.objects.all():
@@ -934,7 +899,7 @@ def feeds(request):
 			ftr = "http://ftr-premium.fivefilters.org/"
 			encode = urllib.parse.quote_plus(data['url'])
 			key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
-			req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key)
+			req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
 			contents = urllib.request.urlopen(req).read()
 			FeedChannels.objects.create(feed_id=Feeds.objects.last().id)
 			for item in xmltodict.parse(contents)['rss']['channel']:
@@ -977,7 +942,6 @@ def feeds(request):
 			
 			if type(xmltodict.parse(contents)['rss']['channel']['item']) is not list:
 				FeedItems.objects.create(feed_id=Feeds.objects.last().id)
-				IntelReports.objects.create(feeditem_id=FeedItems.objects.last().id, feed_id=Feeds.objects.last().id, intelgroup_id=groupid)
 				for item in xmltodict.parse(contents)['rss']['channel']['item']:
 					if(item == 'title'):
 						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=xmltodict.parse(contents)['rss']['channel']['item'][item])
@@ -989,53 +953,111 @@ def feeds(request):
 						results = extract.extract_observables(text)
 						for result in results:
 							if result == 'ipv4addr' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv4cidr' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 CIDR', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv4range' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv6addr' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv6cidr' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv6range' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'md5' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='MD5', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'sha1' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA1', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'sha256' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA256', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ssdeep' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='Ssdeep', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'fqdn' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='System', type_api='system', value='FQDN', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'url' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='System', type_api='system', value='URL', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'useragent' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='System', type_api='system', value='user agent', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'email' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='System', type_api='system', value='email address', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'filename' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='System', type_api='system', value='filename', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'filepath' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'regkey' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='System', type_api='system', value='registry key', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'asn' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'asnown' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-							elif result == 'country' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN owner', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+							elif result == 'cc' and len(results[result])>0:
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='country', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'isp' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ISP', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'cve' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='CVE', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'malware' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='malware', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'attacktype' and len(results[result])>0:
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='attack type', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+							elif result == 'incident' and len(results[result])>0:
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='incident', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+							elif result == 'topic' and len(results[result])>0:
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='topic', value_api=result)
+								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+							else:
+								print(result)
 					elif(item == 'author'):
 						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'category'):
@@ -1046,14 +1068,15 @@ def feeds(request):
 						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(enclosure=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'guid'):
 						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(guid=xmltodict.parse(contents)['rss']['channel']['item'][item])
-					elif(item == 'pubdate'):
+					elif(item == 'pubDate'):
 						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(pubdate=xmltodict.parse(contents)['rss']['channel']['item'][item])
 					elif(item == 'source'):
 						FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=xmltodict.parse(contents)['rss']['channel']['item'][item])
+					else:
+						print(item)
 			if type(xmltodict.parse(contents)['rss']['channel']['item']) is list:
 				for items in xmltodict.parse(contents)['rss']['channel']['item']:
 					FeedItems.objects.create(feed_id=Feeds.objects.last().id)
-					IntelReports.objects.create(feeditem_id=FeedItems.objects.last().id, feed_id=Feeds.objects.last().id, intelgroup_id=groupid)
 					for item in items:
 						if(item == 'title'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(title=items[item])
@@ -1065,53 +1088,111 @@ def feeds(request):
 							results = extract.extract_observables(text)
 							for result in results:
 								if result == 'ipv4addr' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv4cidr' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 CIDR', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv4range' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv6addr' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv6cidr' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv6range' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'md5' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='MD5', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'sha1' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA1', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'sha256' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA256', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ssdeep' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='Ssdeep', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'fqdn' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='System', type_api='system', value='FQDN', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'url' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='System', type_api='system', value='URL', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'useragent' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='System', type_api='system', value='user agent', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'email' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='System', type_api='system', value='email address', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'filename' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='System', type_api='system', value='filename', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'filepath' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'regkey' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='System', type_api='system', value='registry key', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'asn' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'asnown' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
-								elif result == 'country' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN owner', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+								elif result == 'cc' and len(results[result])>0:
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='country', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'isp' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ISP', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'cve' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='CVE', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'malware' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='malware', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'attacktype' and len(results[result])>0:
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], enabled='Enable')
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='attack type', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+								elif result == 'incident' and len(results[result])>0:
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='incident', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+								elif result == 'topic' and len(results[result])>0:
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='topic', value_api=result)
+									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+								else:
+									print('indicator->', result)
 						elif(item == 'author'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=items[item])
 						elif(item == 'category'):
@@ -1122,62 +1203,114 @@ def feeds(request):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(enclosure=items[item])
 						elif(item == 'guid'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(guid=items[item])
-						elif(item == 'pubdate'):
+						elif(item == 'pubDate'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(pubdate=items[item])
 						elif(item == 'source'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=items[item])
-		groupids = []
-		for role in UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['intelgroup_id']).order_by('id').all():
-			groupids.append(role.intelgroup_id)
-		queryset = Feeds.objects.filter(intelgroup_id__in=groupids).order_by('id').all()
-		serializer = FeedCategorySerializer(queryset, many=True)
-		return Response(serializer.data)
+						else:
+							print('item->', item)
+		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
+			IntelReports.objects.create(feed_id=Feeds.objects.last().id, intelgroup_id=groupid, feeditem_id=item.id)
+		groupfeeds = []
+		groupfeedids = []
+		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all():
+			serializer = GroupCategoryFeedSerializer(groupfeed)
+			if serializer.data['feed']['isglobal']:
+				groupfeeds.append(serializer.data)
+			groupfeedids.append(groupfeed.feed_id)
+		feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
+		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data})
 	if request.method == 'PUT':
 		data = request.data
-		Feeds.objects.filter(id=data['id']).update(url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], manage_enabled=data['manage_enabled'], confidence=data['confidence'], updated_at=datetime.now())
-		serializer = FeedCategorySerializer(Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(id=request.data['id']).values()[0]['intelgroup_id']).order_by('id').all(), many=True)
-		return Response(serializer.data)
+		feed = Feeds.objects.filter(id=data['id']).last()
+		GroupFeeds.objects.create(feed_id=data['id'], intelgroup_id=data['groupid'], isenable=True)
+		groupfeed = GroupFeeds.objects.last()
+		if data['name'] == '':
+			GroupFeeds.objects.filter(id=groupfeed.id).update(name=feed.name)
+		else:
+			GroupFeeds.objects.filter(id=groupfeed.id).update(name=data['name'])
+		if data['description'] == '':
+			GroupFeeds.objects.filter(id=groupfeed.id).update(description=feed.description)
+		else:
+			GroupFeeds.objects.filter(id=groupfeed.id).update(description=data['description'])
+		if data['tags'] == '':
+			GroupFeeds.objects.filter(id=groupfeed.id).update(tags=feed.tags)
+		else:
+			GroupFeeds.objects.filter(id=groupfeed.id).update(tags=data['tags'])
+		if data['confidence'] == '':
+			GroupFeeds.objects.filter(id=groupfeed.id).update(confidence=feed.confidence)
+		else:
+			GroupFeeds.objects.filter(id=groupfeed.id).update(confidence=data['confidence'])
+		if data['category'] == '':
+			GroupFeeds.objects.filter(id=groupfeed.id).update(category_id=feed.category_id)
+		else:
+			GroupFeeds.objects.filter(id=groupfeed.id).update(category_id=data['category'])
+		for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
+			IntelReports.objects.create(feeditem_id=item.id, feed_id=request.data['id'], intelgroup_id=request.data['groupid'])
+		groupfeeds = []
+		groupfeedids = []
+		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=data['groupid']).order_by('id').all():
+			serializer = GroupCategoryFeedSerializer(groupfeed)
+			if serializer.data['feed']['isglobal']:
+				groupfeeds.append(serializer.data)
+			groupfeedids.append(groupfeed.feed_id)
+		feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
+		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data})
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def feedlist(request):
-	if not request.user.is_staff:
-		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
-		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
-		customfeeds = True
-		message = ''
-		if subid != None:
-			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-			if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
-				customfeeds = False
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 2:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all()
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 1:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).filter(manage_enabled='true').order_by('id').all()
-		if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last().role == 0:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).filter(manage_enabled='true').order_by('id').all()
-		feed_serializer = FeedCategorySerializer(feeds, many=True)
-		categories = Categories.objects.order_by('id').all()
-		category_serializer = CategorySerializer(categories, many=True)
-		tags = Tags.objects.order_by('id').all()
-		tag_serializer = TagSerializer(tags, many=True)
-		currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
-		role_serializer = UserGroupRoleSerializer(currentrole[0])
-		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'currentrole': role_serializer.data,'customfeeds':customfeeds})
+	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+	customfeeds = True
+	if subid != None:
+		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+		if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
+			customfeeds = False
+	groupfeeds = []
+	groupfeedids = []
+	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+		serializer = GroupCategoryFeedSerializer(groupfeed)
+		if serializer.data['feed']['isglobal']:
+			groupfeeds.append(serializer.data)
+		groupfeedids.append(groupfeed.feed_id)
+	feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
+	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
+	tags = TagSerializer(Tags.objects.order_by('id').all(), many=True)
+	return Response({'feedlist':feeds.data, 'groupfeeds':groupfeeds, 'categories':categories.data, 'tags':tags.data, 'customfeeds':customfeeds})
 
-	if request.user.is_staff:
-		if request.data['id'] == '':
-			feeds = Feeds.objects.order_by('id').all()
+
+@api_view(['POST', 'PUT'])
+def configuredfeeds(request):
+	if request.method == 'POST':
+		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all(), many=True)
+		categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
+		tags = TagSerializer(Tags.objects.order_by('id').all(), many=True)
+		return Response({'configuredfeeds':configuredfeeds.data, 'categories':categories.data, 'tags':tags.data})
+	elif request.method == 'PUT':
+		if 'name' in request.data:
+			if request.data['name'] != '':
+				GroupFeeds.objects.filter(id=request.data['id']).update(name=request.data['name'])
+			if request.data['description'] != '':
+				GroupFeeds.objects.filter(id=request.data['id']).update(description=request.data['description'])
+			if request.data['category'] != '':
+				GroupFeeds.objects.filter(id=request.data['id']).update(category_id=request.data['category'])
+			if request.data['tags'] != '':
+				GroupFeeds.objects.filter(id=request.data['id']).update(tags=request.data['tags'])
+			if request.data['confidence'] != '':
+				GroupFeeds.objects.filter(id=request.data['id']).update(confidence=request.data['confidence'])
+			if not GroupFeeds.objects.filter(id=request.data['id']).last().isenable:
+				GroupFeeds.objects.filter(id=request.data['id']).update(isenable=True)
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=GroupFeeds.objects.filter(id=request.data['id']).last().intelgroup_id).order_by('id').all(), many=True)
+			return Response(configuredfeeds.data)
 		else:
-			feeds = Feeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all()
-		feed_serializer = FeedCategorySerializer(feeds, many=True)
-		categories = Categories.objects.order_by('id').all()
-		category_serializer = CategorySerializer(categories, many=True)
-		tags = Tags.objects.order_by('id').all()
-		tag_serializer = TagSerializer(tags, many=True)
-		return Response({'feedlist':feed_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data})
-
+			if GroupFeeds.objects.filter(id=request.data['id']).last().isenable:
+				GroupFeeds.objects.filter(id=request.data['id']).update(isenable=False)
+			else:
+				GroupFeeds.objects.filter(id=request.data['id']).update(isenable=True)
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=GroupFeeds.objects.filter(id=request.data['id']).last().intelgroup_id).order_by('id').all(), many=True)
+			return Response(configuredfeeds.data)
 @api_view(['POST'])
 def feedlists(request):
 	feeds = FeedCategorySerializer(Feeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all(), many=True)
@@ -1316,6 +1449,24 @@ def searchfeeds(request):
 						data.append(t)
 			serializer = FeedCategorySerializer(data, many=True)
 			return Response(serializer.data)
+
+@swagger_auto_schema(methods=['put'], request_body=ManageEnabledSerializer, responses={200: FeedCategorySerializer})
+@api_view(['PUT'])
+def feedenable(request):
+	print(request.data)
+	feed = Feeds.objects.filter(id=request.data['id']).last()
+	GroupFeeds.objects.create(feed_id=request.data['id'], intelgroup_id=request.data['groupid'], name=feed.name, description=feed.description, tags=feed.tags, confidence=feed.confidence, category_id=feed.category_id, isenable=True )
+	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
+		IntelReports.objects.create(feeditem_id=item.id, feed_id=request.data['id'], intelgroup_id=request.data['groupid'])
+	groupfeeds = []
+	groupfeedids = []
+	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['groupid']).order_by('id').all():
+		serializer = GroupCategoryFeedSerializer(groupfeed)
+		if serializer.data['feed']['isglobal']:
+			groupfeeds.append(serializer.data)
+		groupfeedids.append(groupfeed.feed_id)
+	feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).order_by('id').all(), many=True)
+	return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data})
 
 @swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
 @swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
@@ -1478,69 +1629,27 @@ def categories(request):
 		Categories.objects.filter(id=request.data['id']).delete()
 		return Response({"Successfully deleted!"})
 
-# @swagger_auto_schema(methods=['get'], responses={200: GlobalIndicatorSerializer})
-# @swagger_auto_schema(methods=['post'], request_body=GlobalIndicatorCreateSerializer, responses={201: UserGlobalIndicatorSerializer})
-# @swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: UserGlobalIndicatorSerializer})
-# @api_view(['GET', 'POST', 'PUT'])
-# def globalindicators(request):
-# 	if request.method == 'GET':
-# 		globalindicators = GlobalIndicators.objects.order_by('id').all()
-# 		globalindicator_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
-# 		return Response({'globalindicators':globalindicator_serializer.data})
-# 	if request.method == 'POST':
-# 		GlobalIndicators.objects.create(type=request.data['type'], type_api=request.data['type_api'], value=request.data['value'], value_api=request.data['value_api'], user_id=request.user.id, enabled=request.data['enabled'])
-# 		serializer = UserGlobalIndicatorSerializer(GlobalIndicators.objects.last())
-# 		return Response(serializer.data)
-# 	if request.method == 'PUT':
-# 		GlobalIndicators.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
-# 		serializer = UserGlobalIndicatorSerializer(GlobalIndicators.objects.filter(id=request.data['id']).last())
-# 		return Response(serializer.data)
-
-# @swagger_auto_schema(methods=['post'], request_body=GlobalAttributeCreateSerializer, responses={201: UserGroupGlobalAttributeSerializer})
-# @swagger_auto_schema(methods=['put'], request_body=GlobalAttributeUpdateSerializer, responses={200: UserGroupGlobalAttributeSerializer})
-# @api_view(['POST', 'PUT'])
-# def globalattributes(request):
-# 	if request.method == 'POST':
-# 		if not 'attribute' in request.data:
-# 			if request.data['currentgroup'] == '':
-# 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id).order_by('id').all()
-# 				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
-# 			else:
-# 				attributelist = GlobalAttributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).order_by('id').all()
-# 				attribute_serializer = UserGroupGlobalAttributeSerializer(attributelist, many=True)
-# 			return Response({'globalattributes':attribute_serializer.data})
-# 		else:
-# 			GlobalAttributes.objects.create(attribute=request.data['attribute'], api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
-# 			attribute = GlobalAttributes.objects.filter(user_id=request.user.id).last()
-# 			attribute_serializer = UserGroupGlobalAttributeSerializer(attribute)
-# 			return Response(attribute_serializer.data)
-# 	if request.method == 'PUT':
-# 		GlobalAttributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'], value=request.data['value'], words_matched=request.data['words_matched'], enabled=request.data['enabled'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
-# 		attribute = GlobalAttributes.objects.filter(id=request.data['id']).all()
-# 		attribute_serializer = UserGroupGlobalAttributeSerializer(attribute[0])
-# 		return Response(attribute_serializer.data)
-
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def home(request):
-	ftr = "http://ftr-premium.fivefilters.org/"
-	# encode = urllib.parse.quote_plus("https://apnews.com/apf-topnews")
-	encode = urllib.parse.quote_plus("http://feeds.bbci.co.uk/news/rss.xml")
-	# encode = urllib.parse.quote_plus("https://www.microsoft.com/security/blog/security-blog-series/")
-	key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
-	req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
-	# req = urllib.request.Request("http://ftr-premium.fivefilters.org/makefulltextfeed.php?url=http://feeds.bbci.co.uk/news/rss.xml&key=KSF8GH22GZRKA8&summary=1&max=1&links=remove&content=1&xss=1&lang=2&parser=html5php&accept=application/json")
-	contents = urllib.request.urlopen(req).read()
-	text = json.dumps(xmltodict.parse(contents)['rss']['channel']['item'])
-	# text = json.dumps(xmltodict.parse(contents))
-	results = extract.extract_observables(text)
-	print(','.join(results['topic']))
-	for result in results:
-		print(result)
+	# ftr = "http://ftr-premium.fivefilters.org/"
+	# # encode = urllib.parse.quote_plus("https://apnews.com/apf-topnews")
+	# encode = urllib.parse.quote_plus("http://feeds.bbci.co.uk/news/rss.xml")
+	# # encode = urllib.parse.quote_plus("https://www.microsoft.com/security/blog/security-blog-series/")
+	# key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
+	# req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
+	# # req = urllib.request.Request("http://ftr-premium.fivefilters.org/makefulltextfeed.php?url=http://feeds.bbci.co.uk/news/rss.xml&key=KSF8GH22GZRKA8&summary=1&max=1&links=remove&content=1&xss=1&lang=2&parser=html5php&accept=application/json")
+	# contents = urllib.request.urlopen(req).read()
+	# text = json.dumps(xmltodict.parse(contents)['rss']['channel']['item'])
+	# # text = json.dumps(xmltodict.parse(contents))
+	# results = extract.extract_observables(text)
+	# print(','.join(results['topic']))
+	# for result in results:
+	# 	print(result)
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all(), many=True)
 	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True)
 	intelgroups = IntelGroupSerializer(IntelGroups.objects.order_by('id').all(), many=True)
-	return Response({'mygroups':groups.data, 'users':users.data, 'intelgroups':intelgroups.data, 're':results})
+	return Response({'mygroups':groups.data, 'users':users.data, 'intelgroups':intelgroups.data, 're':'result'})
 
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={200: RoleGroupSerializer})
 @api_view(['DELETE'])
@@ -1643,14 +1752,6 @@ def intelgroups(request):
 		new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id'], user_id=request.user.id).all()
 		serializer = RoleGroupSerializer(new_role[0])
 		return Response(serializer.data)
-
-@swagger_auto_schema(methods=['put'], request_body=ManageEnabledSerializer, responses={200: FeedCategorySerializer})
-@api_view(['PUT'])
-def feedenable(request):
-	Feeds.objects.filter(id=request.data['id']).update(manage_enabled=request.data['manage_enabled'])
-	feeds = Feeds.objects.filter(intelgroup_id=Feeds.objects.filter(id=request.data['id']).last().intelgroup_id).order_by('id').all()
-	serializer = FeedCategorySerializer(feeds, many=True)
-	return Response(serializer.data)
 
 @swagger_auto_schema(methods=['post'], request_body=AccepInviteSerializer, responses={201: RoleGroupSerializer})
 @api_view(['POST'])

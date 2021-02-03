@@ -138,6 +138,11 @@ const FeedList = (props) => {
 				</Link>
 			</section>}
 			{
+				props.groupfeeds.map((groupfeed, index) => {
+					return <FeedCard index={index} key={groupfeed.id} feed={groupfeed} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
+				})
+			}
+			{
 				props.feedlist.map((feed, index) => {
 					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
 				})
@@ -151,9 +156,9 @@ const FeedList = (props) => {
 const Feeds = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [feedlist, setFeedList] = useState([]);
+	const [groupfeeds, setGroupFeeds] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
-	const [currentrole, setCurrentRole] = useState({});
 	const [customfeeds, setCustomFeeds] = useState(true);
 	const history = useHistory();
 	const confidences = [];
@@ -178,10 +183,10 @@ const Feeds = (props) => {
 			}).then(res=>{return res.json()})
 			.then(res=>{
 				setFeedList(res.feedlist);
+				setGroupFeeds(res.groupfeeds)
 				setCategories(res.categories);
 				setTags(res.tags);
 				setCustomFeeds(res.customfeeds);
-				setCurrentRole(res.currentrole);
 				setIsLoading(false);
 			});
 		}
@@ -213,25 +218,25 @@ const Feeds = (props) => {
 			return <Loading/>
 		}
 		else {
-			if(currentrole.role==0){
+			if(props.currentrole.role==0){
 				return(
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
 					</div>
 				)
 			}
-			if(currentrole.role == 1)
+			if(props.currentrole.role == 1)
 				return(
 					<div className='section has-text-centered'>
-						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
 					</div>
 				)
-			if(currentrole.role ==2){
+			if(props.currentrole.role ==2){
 				if(props.isPlan)
-					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
-							Search={Search} confidences={confidences} currentrole={currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
-				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} groupfeeds={groupfeeds}
+							Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			// else{
 			// 	if(props.isPlan){
@@ -254,7 +259,8 @@ const Feeds = (props) => {
 	}
 
 	const saveFeed = (result) => {
-		setFeedList(result);
+		setFeedList(result.feeds);
+		setGroupFeeds(result.groupfeeds);
 	}
 
 	const renderUpdateFeed = (data) => {
@@ -265,7 +271,7 @@ const Feeds = (props) => {
 		const feed_id = data.match.params.id;
 			const feed = getFeedById(feed_id);			
 			return(
-				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={currentrole}
+				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole}
 					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 			) ;
 		}
@@ -274,7 +280,7 @@ const Feeds = (props) => {
 	return (
 		<Switch>
 			<Route path="/feeds/new">
-				<UpdateFeed client={props.client} categories={categories}  currentrole={currentrole}
+				<UpdateFeed client={props.client} categories={categories}  currentrole={props.currentrole}
 					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 			</Route>
 			<Route path="/feeds/edit/:id" render={(props) => renderUpdateFeed(props)} >

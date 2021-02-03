@@ -191,7 +191,7 @@ class FeedAdmin(admin.ModelAdmin):
 										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='topic', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								else:
-									print(result)
+									print('indicator->', result)
 						elif(item == 'author'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(author=xmltodict.parse(contents)['rss']['channel']['item'][item])
 						elif(item == 'category'):
@@ -207,7 +207,7 @@ class FeedAdmin(admin.ModelAdmin):
 						elif(item == 'source'):
 							FeedItems.objects.filter(id=FeedItems.objects.last().id).update(source=xmltodict.parse(contents)['rss']['channel']['item'][item])
 						else:
-							print(item)
+							print('item->', item)
 				if type(xmltodict.parse(contents)['rss']['channel']['item']) is list:
 					for items in xmltodict.parse(contents)['rss']['channel']['item']:
 						FeedItems.objects.create(feed_id=Feeds.objects.last().id)

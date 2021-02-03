@@ -55,7 +55,7 @@ const UserList = function(props) {
 				{ props.group_role == 2 ? 
 						<Link to="/new" >
 							<button className="button is-primary is-pulled-right">
-								<span>Invite Users</span>
+								<span>Add New Users</span>
 							</button>
 						</Link>
 					:null

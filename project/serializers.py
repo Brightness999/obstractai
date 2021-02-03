@@ -2,7 +2,7 @@ from rest_framework import serializers
 import json
 
 from djstripe.models import Product, Plan, Subscription
-from .models import IntelGroups, UserIntelGroupRoles, Categories, Tags, Feeds, Indicators, Whitelists, APIKeys, \
+from .models import IntelGroups, UserIntelGroupRoles, Categories, Tags, Feeds, Indicators, Whitelists, APIKeys, GroupFeeds, \
     WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes, Attributes, IntelReports, GroupGlobalAttributes
 from apps.users.models import CustomUser
 
@@ -56,7 +56,7 @@ class TagSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Tags
-        fields = ('id', 'name', 'user_id', 'state')
+        fields = ('__all__')
 
 class GlobalIndicatorSerializer(serializers.ModelSerializer):
     
@@ -99,6 +99,14 @@ class GlobalAttributeSerializer(serializers.ModelSerializer):
         model = GlobalAttributes
         fields = ('__all__')
 
+class GroupCategoryFeedSerializer(serializers.ModelSerializer):
+    feed = FeedSerializer(many=False, read_only=True)
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    category = CategorySerializer(many=False, read_only=True)
+    class Meta:
+        model = GroupFeeds
+        fields = ('__all__')
+
 class UserIntelGroupRolesSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
     class Meta:
@@ -128,13 +136,14 @@ class FeedCategorySerializer(serializers.ModelSerializer):
     category = CategorySerializer(many=False)
     class Meta:
         model = Feeds
-        fields = ('id', 'name', 'category_id', 'description', 'tags', 'url', 'confidence', 'updated_at', 'category', 'uniqueid', 'type', 'isglobal' )
+        fields = ('__all__' )
 
 class GroupCategoryFeedSerializer(serializers.ModelSerializer):
-    intelgroup = IntelGroupSerializer(read_only=True)
-    category = CategorySerializer(read_only=True)
+    intelgroup = IntelGroupSerializer(many=False, read_only=True)
+    category = CategorySerializer(many=False, read_only=True)
+    feed = FeedCategorySerializer(many=False, read_only=True)
     class Meta:
-        model = Feeds
+        model = GroupFeeds
         fields = ('__all__')
 
 class GroupAPIkeySerializer(serializers.ModelSerializer):

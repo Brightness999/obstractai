@@ -8,7 +8,12 @@ import Styles from "../styles";
 
 const FeedCard = function (props) {
   let tags = [];
-  if(props.feed){
+  if(props.feed.feed){
+    if(props.feed.feed.tags.indexOf(",") > -1)
+      tags = props.feed.feed.tags.split(',');
+    else tags.push(props.feed.feed.tags);
+  }
+  else{
     if(props.feed.tags.indexOf(",") > -1)
       tags = props.feed.tags.split(',');
     else tags.push(props.feed.tags);
@@ -16,11 +21,9 @@ const FeedCard = function (props) {
 
   const enableFeed = () => {
     let params = {
-      id: props.feed.id
+      id: props.feed.id,
+      groupid: props.currentrole.intelgroup_id
     };
-    if(props.feed.manage_enabled=='false')
-      params['manage_enabled'] = 'true';
-    else params['manage_enabled'] = 'false';
     fetch('/api/feedenable', {
       method: 'put',
       headers: {
@@ -43,20 +46,20 @@ const FeedCard = function (props) {
             <Grid item xs={12} md={10}>
               <div>
                 <span> Name: </span>
-                <span> {props.feed? props.feed.name : ""} </span>
+                <span> {props.feed.feed? props.feed.feed.name : props.feed.name} </span>
               </div>
               <div>
                 <span> Description: </span>
-                <span> {props.feed? props.feed.description: ""} </span>
+                <span> {props.feed.feed? props.feed.feed.description: props.feed.description} </span>
               </div>
               <div>
                 <span> URL: </span>
-                <span> {props.feed? props.feed.url : ""} </span>
+                <span> {props.feed.feed? props.feed.feed.url : props.feed.url} </span>
               </div>
               <div>
                 <span>
                   <button className="button is-primary is-rounded mx-1" >
-                    <span>{props.feed.category ? props.feed.category.name : ""}</span>
+                    <span>{props.feed.feed ? props.feed.feed.category.name : props.feed.category.name}</span>
                   </button>
                   {
                     tags.map((tag, index) => {
@@ -72,21 +75,16 @@ const FeedCard = function (props) {
             </Grid>
             <Grid item xs={12} md={2} >
               <Link to="/feeds" >
-                {props.feed.manage_enabled == 'true' && props.currentrole.role == 2 &&
-                <button className={props.feed.manage_enabled=='true' ? "button is-fullwidth is-success" : "button is-fullwidth is-outlined"} onClick={enableFeed}>
-                  <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
-                </button>}
-                {props.feed.manage_enabled == 'false' && props.currentrole.role ==2 && 
-                <button className="button is-fullwidth is-outlined" onClick={enableFeed}>
-                  <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
-                </button>}
-                {props.currentrole.role == 1 &&
+                {Boolean(props.feed.feed)?
                 <button className="button is-fullwidth is-static">
-                  <span>{props.feed.manage_enabled == 'true'? "Enable": "Disable"}</span>
+                  <span className="is-size-4">Enabled</span>
+                </button>:
+                <button className="button is-fullwidth is-success" onClick={enableFeed}>
+                  <span className="is-size-4">Enable</span>
                 </button>}
               </Link>
               <Link to={`/feeds/edit/${props.feed.id}`} className="button is-text">
-                <span>{props.currentrole.role == 2? "Custom settings and enable" : "See in feed list"}</span>
+                <span>{props.feed.feed? "See in feed list" : "Custom settings and enable"}</span>
               </Link>
             </Grid>
           </Grid>

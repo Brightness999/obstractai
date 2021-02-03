@@ -16,6 +16,7 @@ urlpatterns = [
     path(r'reports/<int:id>', views.reports, name='reports'),
     path(r'searchreports', views.searchreports, name='searchreports'),
     path(r'feeds', views.feeds, name='feeds'),
+    path(r'configuredfeeds', views.configuredfeeds, name='configuredfeeds'),
     path(r'feedlist', views.feedlist, name='feedlist'),
     path(r'feedlists', views.feedlists, name='feedlists'),
     path(r'searchfeeds', views.searchfeeds, name='searchfeeds'),

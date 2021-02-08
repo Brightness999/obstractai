@@ -28,7 +28,7 @@ class FeedAdmin(admin.ModelAdmin):
 					if tag.strip() == existingtag.name:
 						flag = True
 				if not flag:
-					Tags.objects.create(name=tag.strip(), isglobal=True, user_id=request.user.id)
+					Tags.objects.create(name=tag.strip(), isglobal=True)
 			if not change:
 				ftr = "http://ftr-premium.fivefilters.org/"
 				encode = urllib.parse.quote_plus(form.cleaned_data['url'])

@@ -240,13 +240,19 @@ MEDIA_URL = '/media/'
 # Email setup
 
 # use in development
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # print(EMAIL_BACKEND)
 # use in production
 # see https://github.com/anymail/django-anymail for more details/examples
 # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
-
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'pro_dev_master@outlook.com'
+EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'TestSite Team <noreply@example.com>'
 
 
 

@@ -56,11 +56,7 @@ const WhiteList = (props) => {
     }
 
     const IndicatorEnable = (index) => {
-        let params;
-        if(props.indicators[index].enabled === 'Enable')
-            params = {id:props.indicators[index].id, enabled: 'Disable'};
-        else if(props.indicators[index].enabled === 'Disable')
-            params = {id:props.indicators[index].id, enabled: 'Enable'};
+        let params={id:props.indicators[index].id};
         fetch('/api/indicators', {
             method: 'put',
             headers: {
@@ -246,7 +242,7 @@ const WhiteLists = (props) => {
     return(
         <Switch>
             <Route path="/whitelist/new">
-                <AddWhitelist client={props.client} indicators={indicators} saveWhitelist={saveWhitelist} />
+                <AddWhitelist client={props.client} indicators={indicators} globalindicators={globalindicators} saveWhitelist={saveWhitelist} />
             </Route>
             <Route path="/whitelist">
                 {WhiteListView()}

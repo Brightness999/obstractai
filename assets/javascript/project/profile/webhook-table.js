@@ -10,10 +10,11 @@ const WebhookTable = (props) => {
     const [intelgroup, setIntelgroup] = useState(props.webhook.intelgroup.id);
     const [endpoint, setEndpoint] = useState(props.webhook.endpoint);
     const [description, setDescription] = useState(props.webhook.description);
+    const [words, setWords] = useState(props.webhook.words);
     const [isAlert, setIsAlert] = useState(false);
 
     const editEndpoint = () => {
-        let params = {id:props.webhook.id, endpoint: endpoint, intelgroup_id: intelgroup, description:description, isenable:props.webhook.isenable}
+        let params = {id:props.webhook.id, endpoint: endpoint, intelgroup_id: intelgroup, description:description, isenable:props.webhook.isenable, words:words}
         if(intelgroup != '0' && endpoint.trim() != '' && description != '')
             fetch('/api/webhooks', {
                 method: 'put',
@@ -32,8 +33,8 @@ const WebhookTable = (props) => {
     }
 
     const enableWebhook = () => {
-        let params ={id:props.webhook.id, isenable:props.webhook.isenable?false:true, endpoint: endpoint, intelgroup_id: intelgroup, description:description,}
-        if(intelgroup != '0' && endpoint.trim() != '' && description != '')
+        let params ={id:props.webhook.id, isenable:props.webhook.isenable?false:true, endpoint: endpoint.trim(), intelgroup_id: intelgroup, description:description.trim(), words:words.trim()}
+        if(intelgroup != '0' && endpoint.trim() != '' && description.trim() != '')
             fetch('/api/webhooks', {
                 method: 'put',
                 headers: {
@@ -73,6 +74,7 @@ const WebhookTable = (props) => {
             <Td>{props.webhook.endpoint}</Td>
             <Td>{props.webhook.description}</Td>
             <Td>{props.webhook.intelgroup.name}</Td>
+            <Td>{props.webhook.words}</Td>
             <Td>
                 <button className="button is-info" onClick={()=>setOpen(true)} >Edit</button>
                 <Dialog
@@ -85,14 +87,15 @@ const WebhookTable = (props) => {
                     <DialogContent>
                         {isAlert && <Alert severity="error" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
                         <div className="semisection">
-                            <TextField id="outlined-basic1" size="small" placeholder="https://..." variant="outlined" value={endpoint} onChange={(e)=>setEndpoint(e.target.value)} />
+                            <TextField id="outlined-basic1" label="Endpoint" InputLabelProps={{shrink: true,}} size="small" placeholder="https://..." variant="outlined" value={endpoint} onChange={(e)=>setEndpoint(e.target.value)} />
                         </div>
                         <div className="semisection">
-                            <TextField id="outlined-basic2" size="small" placeholder="Description" variant="outlined" value={description} onChange={(e)=>setDescription(e.target.value)} />
+                            <TextField id="outlined-basic2" label="Description" InputLabelProps={{shrink: true,}} size="small" placeholder="Description" variant="outlined" value={description} onChange={(e)=>setDescription(e.target.value)} />
                         </div>
                         <div className="semisection">
                             <TextField
                                 id="outlined-select-currency-native"
+                                label="Words to listen on"
                                 select
                                 fullWidth
                                 size="small"
@@ -103,13 +106,16 @@ const WebhookTable = (props) => {
                                 }}
                                 variant="outlined"
                             >
-                                <option value="0">Select Intel group</option>
+                                <option value="0"></option>
                                 {props.intelgroups.map((intelgroup) => (
                                     <option key={intelgroup.id} value={intelgroup.intelgroup.id}>
                                     {intelgroup.intelgroup.name}
                                     </option>
                                 ))}
                             </TextField>
+                        </div>
+                        <div className="semisection">
+                        <TextField id="outlined-basic3" label="Words to listen on" InputLabelProps={{shrink: true,}} size="small" placeholder="words to listen on" variant="outlined" value={words} onChange={(e)=>setWords(e.target.value)} />
                         </div>
                     </DialogContent>
                     <DialogActions>
@@ -122,7 +128,7 @@ const WebhookTable = (props) => {
                     </DialogActions>
                 </Dialog>
                 <button className="button is-text mx-4" onClick={()=>deleteWebhook()} >Delete</button>
-                <button className={props.webhook.isenable?"button is-success":"button is-light"} onClick={()=>enableWebhook()} >{props.webhook.isenable?"Enable":"Disable"}</button>
+                <button className={props.webhook.isenable?"button is-light":"button is-success"} onClick={()=>enableWebhook()} >{props.webhook.isenable?"Disable":"Enable"}</button>
             </Td>
         </Tr>
     );

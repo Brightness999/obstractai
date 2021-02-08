@@ -148,17 +148,16 @@ class FeedChannelSerializer(serializers.ModelSerializer):
         model = FeedChannels
         fields = ('__all__')
 
-class GroupAPIkeySerializer(serializers.ModelSerializer):
-    intelgroup = IntelGroupSerializer(many=False)
+class APIkeySerializer(serializers.ModelSerializer):
     class Meta:
         model = APIKeys
-        fields = ('id', 'name', 'value', 'user_id', 'intelgroup_id', 'intelgroup')
+        fields = ('__all__')
 
 class GroupWebHookSerializer(serializers.ModelSerializer):
     intelgroup = IntelGroupSerializer(many=False, read_only=True)
     class Meta:
         model = WebHooks
-        fields = ('id', 'endpoint', 'description', 'user_id', 'intelgroup_id', 'isenable', 'intelgroup' )
+        fields = ('__all__' )
 
 class FeedItemSerializer(serializers.ModelSerializer):
     feed = FeedCategorySerializer(many=False, read_only=True)
@@ -194,10 +193,10 @@ class GlobalItemIndicatorSerializer(serializers.ModelSerializer):
 
 class UserIndicatorWhitelistSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)
-    indicator = IndicatorGlobalSerializer(many=False)
+    globalindicator = GlobalIndicatorSerializer(many=False)
     class Meta:
         model = Whitelists
-        fields = ('id', 'value', 'indicator_id', 'user_id', 'enabled', 'user', 'indicator')
+        fields = ('id', 'value', 'globalindicator_id', 'user_id', 'enabled', 'user', 'globalindicator')
 
 class GroupGlobalAttributeSerializer(serializers.ModelSerializer):
     intelgroup = IntelGroupSerializer(many=False, read_only=True)
@@ -215,7 +214,7 @@ class UserGroupAttributeSerializer(serializers.ModelSerializer):
 
 class ItemFeedGroupReportSerializer(serializers.ModelSerializer):
     feeditem = FeedItemSerializer(many=False, read_only=True)
-    feed = GroupCategoryFeedSerializer(many=False, read_only=True)
+    groupfeed = GroupCategoryFeedSerializer(many=False, read_only=True)
     intelgroup = IntelGroupSerializer(many=False, read_only=True)
     class Meta:
         model = IntelReports
@@ -236,7 +235,7 @@ class AttributeCreateSerializer(serializers.Serializer):
     attribute = serializers.CharField(max_length=100)
     value = serializers.CharField(max_length=100)
     words_matched = serializers.CharField(max_length=100)
-    enabled = serializers.CharField(max_length=100)
+    isenable = serializers.BooleanField()
     currentgroup = serializers.IntegerField()
 
 class AttributeUpdateSerializer(serializers.Serializer):
@@ -244,7 +243,7 @@ class AttributeUpdateSerializer(serializers.Serializer):
     attribute = serializers.CharField(max_length=100)
     value = serializers.CharField(max_length=100)
     words_matched = serializers.CharField(max_length=100)
-    enabled = serializers.CharField(max_length=100)
+    isenable = serializers.BooleanField()
     currentgroup = serializers.IntegerField()
 
 class CategoryUpdateSerializer(serializers.Serializer):
@@ -254,9 +253,9 @@ class CategoryUpdateSerializer(serializers.Serializer):
 class CategoryCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
 
-class ManageEnabledSerializer(serializers.Serializer):
+class GroupIDSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    manage_enabled = serializers.CharField(max_length=100)
+    groupid = serializers.IntegerField()
 
 class FeedCreateSerializer(serializers.Serializer):
     url = serializers.CharField(max_length=100)
@@ -277,33 +276,9 @@ class FeedUpdateSerializer(serializers.Serializer):
     tags = serializers.IntegerField()
     confidence = serializers.IntegerField()
 
-class GlobalAttributeCreateSerializer(serializers.Serializer):
-    attribute = serializers.CharField(max_length=100)
-    value = serializers.CharField(max_length=100)
-    description = serializers.CharField(max_length=100)
-    words_matched = serializers.CharField(max_length=100)
-    enabled = serializers.CharField(max_length=100)
-    currentgroup = serializers.IntegerField()
-
-class GlobalAttributeUpdateSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    attribute = serializers.CharField(max_length=100)
-    value = serializers.CharField(max_length=100)
-    description = serializers.CharField(max_length=100)
-    words_matched = serializers.CharField(max_length=100)
-    enabled = serializers.CharField(max_length=100)
-    currentgroup = serializers.IntegerField()
-
-class GlobalIndicatorCreateSerializer(serializers.Serializer):
-    type = serializers.CharField(max_length=100)
-    type_api = serializers.CharField(max_length=100)
-    value = serializers.CharField(max_length=100)
-    value_api = serializers.CharField(max_length=100)
-    enabled = serializers.CharField(max_length=100)
-
 class EnabledSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    enabled = serializers.CharField(max_length=100)
+    isenable = serializers.BooleanField()
 
 class IntelgroupCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)

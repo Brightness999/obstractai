@@ -7,7 +7,7 @@ from .intelgroups import IntelGroups
 
 class APIKeys(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
-    intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
+    groupids = models.CharField(max_length=100, null=True)
     name = models.CharField(max_length=100)
     value = models.CharField(max_length=100)
 

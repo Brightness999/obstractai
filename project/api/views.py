@@ -1,112 +1,131 @@
-import secrets
-import urllib
-import xmltodict
 import json
 import os
-import stripe
-import string, random
-
+import random
+import secrets
+import string
+import sys
+import urllib
+from datetime import datetime, timedelta
+from itertools import chain
 from urllib.parse import urlencode
+
+import requests
+import stripe
+import xmltodict
+from cyobstract import extract
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from dotenv import load_dotenv
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from cyobstract import extract
-from django.core.mail import send_mail
-from django.views.decorators.csrf import csrf_exempt
-from itertools import chain
-from datetime import datetime, timedelta
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-from dotenv import load_dotenv
+
 load_dotenv()
-from rest_framework import generics
 from apps.users.models import CustomUser
-from djstripe.models import Product, Plan, Subscription
 from dateutil import parser as dateutil_parser
+from djstripe.models import Plan, Product, Subscription
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from pegasus.apps.examples.tasks import progress_bar_task
+from rest_framework import generics
 
-from ..models import IntelGroups, APIKeys, WebHooks, UserIntelGroupRoles, FeedChannels, FeedItems, Feeds, GroupGlobalAttributes, GroupFeeds, \
-	Categories, UserIntelGroupRoles, Indicators, Tags, GlobalIndicators, Whitelists, APIKeys, GlobalAttributes, Attributes, PlanHistory, IntelReports
-from ..serializers import RoleGroupSerializer, UserSerializer, GroupAPIkeySerializer, GroupWebHookSerializer, FeedCategorySerializer, \
-	CategorySerializer, FeedItemSerializer, ItemIndicatorSerializer, FeedChannelSerializer, \
-		TagSerializer, GlobalIndicatorSerializer, UserGroupRoleSerializer, IndicatorGlobalSerializer, UserIndicatorWhitelistSerializer, \
-			GlobalItemIndicatorSerializer, UserIntelGroupRolesSerializer, GroupCategoryFeedSerializer, GroupRoleSerializer, \
-				UserGroupAttributeSerializer, CustomUserSerializer, IntelGroupSerializer, \
-					UserGlobalIndicatorSerializer, CommentSerializer, ChangeEmailSerializer, IDSerializer, AccepInviteSerializer, AttributeCreateSerializer, AttributeUpdateSerializer, \
-						CategoryUpdateSerializer, ManageEnabledSerializer,FeedCreateSerializer,FeedUpdateSerializer,GlobalAttributeCreateSerializer,GlobalAttributeUpdateSerializer, \
-							GlobalIndicatorCreateSerializer,EnabledSerializer,IntelgroupCreateSerializer,InviteSerializer,RoleUpdateSerializer,SearchFeedSerializer,SearchReportSerializer, \
-								WebhookCreateSerializer,WebhookUpdateSerializer,WhitelistCreateSerializer, APIKeyCreateSerializer, CategoryCreateSerializer, IntelgroupUpdateSerializer, \
-									ItemFeedGroupReportSerializer, GroupGlobalAttributeSerializer, GlobalAttributeSerializer
+from ..models import (APIKeys, Attributes, Categories, FeedChannels, FeedItems,
+                      Feeds, GlobalAttributes, GlobalIndicators, GroupFeeds,
+                      GroupGlobalAttributes, Indicators, IntelGroups,
+                      IntelReports, PlanHistory, Tags, UserIntelGroupRoles,
+                      WebHooks, Whitelists)
+from ..serializers import (AccepInviteSerializer, APIKeyCreateSerializer,
+                           APIkeySerializer, AttributeCreateSerializer,
+                           AttributeUpdateSerializer, CategoryCreateSerializer,
+                           CategorySerializer, CategoryUpdateSerializer,
+                           ChangeEmailSerializer, CommentSerializer,
+                           CustomUserSerializer, EnabledSerializer,
+                           FeedCategorySerializer, FeedChannelSerializer,
+                           FeedCreateSerializer, FeedItemSerializer,
+                           FeedUpdateSerializer, GlobalAttributeSerializer,
+                           GlobalIndicatorSerializer,
+                           GlobalItemIndicatorSerializer,
+                           GroupCategoryFeedSerializer,
+                           GroupGlobalAttributeSerializer, GroupIDSerializer,
+                           GroupRoleSerializer, GroupWebHookSerializer,
+                           IDSerializer, IndicatorGlobalSerializer,
+                           IntelgroupCreateSerializer, IntelGroupSerializer,
+                           IntelgroupUpdateSerializer, InviteSerializer,
+                           ItemFeedGroupReportSerializer,
+                           ItemIndicatorSerializer, RoleGroupSerializer,
+                           RoleUpdateSerializer, SearchFeedSerializer,
+                           SearchReportSerializer, TagSerializer,
+                           UserGlobalIndicatorSerializer,
+                           UserGroupAttributeSerializer,
+                           UserGroupRoleSerializer,
+                           UserIndicatorWhitelistSerializer,
+                           UserIntelGroupRolesSerializer, UserSerializer,
+                           WebhookCreateSerializer, WebhookUpdateSerializer,
+                           WhitelistCreateSerializer)
+
 
 @csrf_exempt
 def apifeeds(request):
-	body_unicode = request.body.decode('utf-8')
-	body = json.loads(body_unicode)
-	groupid = 0
+	if request.method == 'POST':
+		body_unicode = request.body.decode('utf-8')
+		body = json.loads(body_unicode)
+	elif request.method == 'GET':
+		body = request.GET
 	userid = 0
 	groupids = []
+	tempids = []
 	for apikey in APIKeys.objects.all():
 		if apikey.value == request.headers['key']:
-			groupid = apikey.intelgroup_id
+			tempids = apikey.groupids.split(',')
 			userid = apikey.user_id
-	if groupid == 0 and userid == 0:
+	if userid == 0:
 		return render(request, 'project/feeds.html', {'feeds':'This is invalid apikey.'})
-	subid = IntelGroups.objects.filter(id=groupid).last().plan_id
-	created_at = IntelGroups.objects.filter(id=groupid).last().created_at
-	if subid == None:
-		if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
-			return render(request, 'project/feeds.html', {'feeds': "Please select plan to perform this action."})
-	else:
-		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-		productid = Plan.objects.filter(djstripe_id=planid).product_id
-		current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
-		history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
-		if Product.objects.filter(djstripe_id=productid).last().metadata['api_access'] == 'true':
-			if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
-				return render(request, 'project/feeds.html', {'feeds': 'Please select plan to perform this action.'})
-		else:
-			return render(request, 'project/feeds.html', {'feeds':'You are not allowed to access.'})
-
-	if not 'uuids' in body:
-		for role in UserIntelGroupRoles.objects.filter(user_id=userid).all():
-			subid = IntelGroups.objects.filter(id=role.intelgroup_id).last().plan_id
+	if not 'groupids' in body:
+		for groupid in tempids:
+			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			if subid != None:
 				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
 				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 				custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
-				current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
-				if custom_feeds == 'true' and current_period_end.replace(tzinfo=None) > datetime.now():
-					groupids.append(role.intelgroup_id)
+				api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
+				current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+				if api_access and custom_feeds and current_period_end.replace(tzinfo=None) > datetime.now():
+					groupids.append(groupid)
 	else:
-		for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']):
+		for group in IntelGroups.objects.filter(uniqueid__in=body['groupids'].split(',')):
+			subid = IntelGroups.objects.filter(id=group.id).last().plan_id
 			if group.plan_id != None:
 				planid = Subscription.objects.filter(djstripe_id=group.plan_id).last().plan_id
 				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 				custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
-				current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
-				if custom_feeds == 'true' and current_period_end.replace(tzinfo=None) > datetime.now():
-					groupids.append(group.id)
+				api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
+				current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+				if api_access and custom_feeds and current_period_end.replace(tzinfo=None) > datetime.now():
+					for groupid in tempids:
+						if int(groupid) == group.id:
+							groupids.append(group.id)
 	if not 'confidence' in body:
 		if not 'category' in body:
 			if not 'tags' in body:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true').order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', updated_at__date=body['updated_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, updated_at__date__gte=body['updated_at']).order_by('id').all()
 				else:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', created_at__date=body['created_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, created_at__date__gte=body['created_at']).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', updated_at__date=body['updated_at'], created_at__date=body['created_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, updated_at__date__gte=body['updated_at'], created_at__date__gte=body['created_at']).order_by('id').all()
 			else:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
@@ -115,7 +134,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -128,7 +147,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', tags__contains=tag.strip(), updated_at__date=body['updated_at']).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, tags__contains=tag.strip(), updated_at__date__gte=body['updated_at']).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -142,7 +161,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', tags__contains=tag.strip(), created_at__date=body['created_at']).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, tags__contains=tag.strip(), created_at__date__gte=body['created_at']).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -155,7 +174,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', tags__contains=tag.strip(), created_at__date=body['created_at'], updated_at__date=body['updated_at']).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, tags__contains=tag.strip(), created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -166,14 +185,14 @@ def apifeeds(request):
 			if not 'tags' in body:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category']).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category'], updated_at__date=body['updated_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category'], updated_at__date__gte=body['updated_at']).order_by('id').all()
 				else:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category'], created_at__date=body['created_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category'], created_at__date__gte=body['created_at']).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category'], created_at__date=body['created_at'], updated_at__date=body['updated_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category'], created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all()
 			else:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
@@ -182,7 +201,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -195,7 +214,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category'], tags__contains=tag.strip(), updated_at__date=body['updated_at']).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category'], tags__contains=tag.strip(), updated_at__date__gte=body['updated_at']).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -209,7 +228,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category'], tags__contains=tag.strip(), created_at__date=body['created_at']).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category'], tags__contains=tag.strip(), created_at__date__gte=body['created_at']).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -222,7 +241,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', category=body['category'], tags__contains=tag.strip(), created_at__date=body['created_at'], updated_at__date=body['updated_at']).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, category_id=body['category'], tags__contains=tag.strip(), created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -234,14 +253,14 @@ def apifeeds(request):
 			if not 'tags' in body:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence']).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], updated_at__date=body['updated_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], updated_at__date__gte=body['updated_at']).order_by('id').all()
 				else:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], created_at__date=body['created_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], created_at__date__gte=body['created_at']).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], created_at__date=body['created_at'], updated_at__date=body['updated_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all()
 			else:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
@@ -250,7 +269,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -263,7 +282,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], updated_at__date=body['updated_at'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], updated_at__date__gte=body['updated_at'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -277,7 +296,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], created_at__date=['created_at'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], created_at__date__gte=['created_at'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -290,7 +309,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], created_at__date=['created_at'], updated_at__date=['updated_at'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], created_at__date__gte=['created_at'], updated_at__date__gte=['updated_at'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -301,14 +320,14 @@ def apifeeds(request):
 			if not 'tags' in body:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category']).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category'], updated_at__date=body['updated_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category'], updated_at__date__gte=body['updated_at']).order_by('id').all()
 				else:
 					if not 'updated_at' in body:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category'], created_at__date=body['created_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category'], created_at__date__gte=body['created_at']).order_by('id').all()
 					else:
-						feeds = Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category'], created_at__date=body['created_at'], updated_at__date=body['updated_at']).order_by('id').all()
+						feeds = GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category'], created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all()
 			else:
 				if not 'created_at' in body:
 					if not 'updated_at' in body:
@@ -317,7 +336,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -330,7 +349,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category'], updated_at__date=body['updated_at'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category'], updated_at__date__gte=body['updated_at'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -344,7 +363,7 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category'], created_at__date=body['created_at'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category'], created_at__date__gte=body['created_at'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
@@ -357,174 +376,358 @@ def apifeeds(request):
 						feeds = []
 						flag = True
 						for tag in tags:
-							temp = temp + list(Feeds.objects.filter(intelgroup_id__in=groupids, manage_enabled='true', confidence__gte=body['confidence'], category=body['category'], created_at__date=body['created_at'], updated_at__date=body['updated_at'], tags__contains=tag.strip()).order_by('id').all())
+							temp = temp + list(GroupFeeds.objects.filter(intelgroup_id__in=groupids, isenable=True, confidence__gte=body['confidence'], category_id=body['category'], created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at'], tags__contains=tag.strip()).order_by('id').all())
 						for t in temp:
 							for feed in feeds:
 								if(feed.id == t.id):
 									flag = False
 							if flag:
 								feeds.append(t)
-	
-	feed_serializer = GroupCategoryFeedSerializer(feeds, many=True)
-	return render(request, 'project/feeds.html', {'feeds':json.dumps(feed_serializer.data)})
+	result = []
+	for feed in feeds:
+		data = {
+			'uuid': feed.uniqueid,
+			'type': feed.feed.type,
+			'name': feed.name,
+			'description': feed.description,
+			'url': feed.feed.url,
+			'groupid': feed.intelgroup.uniqueid,
+			'confidence': feed.confidence,
+			'category': feed.category.name,
+			'tags': feed.tags,
+			'created_at': feed.created_at,
+			'polled_at': feed.updated_at,
+			'data_at': feed.updated_at,
+			'channel': FeedChannels.objects.filter(feed_id=feed.feed.id).last()
+		}
+		result.append(data)
+	return render(request, 'project/feeds.html', {'feeds':result})
 
 @csrf_exempt
 def apireports(request):
-	body_unicode = request.body.decode('utf-8')
-	body = json.loads(body_unicode)
-	groupid = 0
+	if request.method == 'POST':
+		body_unicode = request.body.decode('utf-8')
+		body = json.loads(body_unicode)
+	elif request.method == 'GET':
+		body = request.GET
 	userid = 0
-	tempgroupids = []
 	groupids = []
-	feedids = []
+	tempids = []
+	reports = []
 	for apikey in APIKeys.objects.all():
 		if apikey.value == request.headers['key']:
-			groupid = apikey.intelgroup_id
+			tempids = apikey.groupids.split(',')
 		userid = apikey.user_id
-	if groupid == 0 and userid == 0:
+	if userid == 0:
 		return render(request, 'project/reports.html', {'reports':'This is invalid apikey.'})
-	subid = IntelGroups.objects.filter(id=groupid).last().plan_id
-	created_at = IntelGroups.objects.filter(id=groupid).last().created_at
-	if subid == None:
-		if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
-			return render(request, 'project/reports.html', {'reports': "Please select plan to perform this action."})
+	if not 'groupids' in body:
+		for groupid in tempids:
+			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
+			if subid != None:
+				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+				custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
+				api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
+				current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+				if api_access and custom_feeds and current_period_end.replace(tzinfo=None) > datetime.now():
+					groupids.append(groupid)
 	else:
-		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-		productid = Plan.objects.filter(djstripe_id=planid).product_id
-		current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
-		history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
-		if Product.objects.filter(djstripe_id=productid).last().metadata['api_access'] == 'true':
-			if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
-				return render(request, 'project/reports.html', {'reports': 'Please select plan to perform this action.'})
+		for group in IntelGroups.objects.filter(uniqueid__in=body['groupids'].split(',')):
+			subid = IntelGroups.objects.filter(id=group.id).last().plan_id
+			if group.plan_id != None:
+				planid = Subscription.objects.filter(djstripe_id=group.plan_id).last().plan_id
+				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+				custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
+				api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
+				current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+				if api_access and custom_feeds and current_period_end.replace(tzinfo=None) > datetime.now():
+					for groupid in tempids:
+						if int(groupid) == group.id:
+							groupids.append(group.id)
+	
+	temp = []
+	for groupid in groupids:
+		flag = False
+		if 'threat_type' in body:
+			if len(Attributes.objects.filter(intelgroup_id=groupid, api_value=body['threat_type'], isenable=True).all()) > 0:
+				flag =True
+			for globalattribute in  GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True).data:
+				if globalattribute['globalattribute']['api_value'] == body['threat_type']:
+					flag = True
+		if 'threat_actor' in body:
+			if len(Attributes.objects.filter(intelgroup_id=groupid, api_value=body['threat_actor']).all()) > 0:
+				flag =True
+			for globalattribute in  GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True).data:
+				if globalattribute['globalattribute']['api_value'] == body['threat_actor']:
+					flag = True
+		if 'product' in body:
+			if len(Attributes.objects.filter(intelgroup_id=groupid, api_value=body['product']).all()) > 0:
+				flag =True
+			for globalattribute in  GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True).data:
+				if globalattribute['globalattribute']['api_value'] == body['product']:
+					flag = True
+		if 'country' in body:
+			if len(Attributes.objects.filter(intelgroup_id=groupid, api_value=body['country']).all()) > 0:
+				flag =True
+			for globalattribute in  GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True).data:
+				if globalattribute['globalattribute']['api_value'] == body['country']:
+					flag = True
+		if 'sector' in body:
+			if len(Attributes.objects.filter(intelgroup_id=groupid, api_value=body['sector']).all()) > 0:
+				flag =True
+			for globalattribute in  GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True).data:
+				if globalattribute['globalattribute']['api_value'] == body['sector']:
+					flag = True
+		if flag:
+			temp.append(groupid)
+	if not temp == []:
+		groupids.clear()
+		groupids = temp
+	if not 'channelids' in body:
+		if not 'indicators' in body:
+			if not 'created_at' in body:
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							reports.append(report)
+				else:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							reports.append(report)
+			else:
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, created_at__date__gte=body['created_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							reports.append(report)
+				else:
+					print('ddd')
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, updated_at__date__gte=body['updated_at'], created_at__date__gte=body['created_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							reports.append(report)
 		else:
-			return render(request, 'project/reports.html', {'reports':'You are not allowed to access.'})
-	if not 'attributes' in body:
-		if not 'uuids' in body:
-			for role in UserIntelGroupRoles.objects.filter(user_id=userid):
-				tempgroupids.append(role.intelgroup_id)
-		else:
-			for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']):
-				tempgroupids.append(group.id)
-	else:
-		if not 'uuids' in body:
-			attributelist = list(body['attributes'])
-			tempids = []
-			for api_attribute in attributelist:
-				for globalattribute in GlobalAttributes.objects.filter(api_attribute=api_attribute.strip(), words_matched__contains=body['attributes'][api_attribute].strip()).order_by('id').all():
-					tempids.append(globalattribute.intelgroup_id)
-			for tempid in tempids:
-				flag = True
-				for groupid in tempgroupids:
-					if tempid == groupid:
-						flag = False
-				if flag:
-					tempgroupids.append(tempid)
-		else:
-			attributelist = list(body['attributes'])
-			apitempids = []
-			uuidtempids = []
-			for api_attribute in attributelist:
-				for globalattribute in GlobalAttributes.objects.filter(api_attribute=api_attribute.strip(), words_matched__contains=body['attributes'][api_attribute].strip()).order_by('id').all():
-					apitempids.append(globalattribute.intelgroup_id)
-			for group in IntelGroups.objects.filter(uniqueid__in=body['uuids']).all():
-				uuidtempids.append(group.id)
-			for uuidtempid in uuidtempids:
-				for apitempid in apitempids:
-					if uuidtempid == apitempid:
-						tempgroupids.append(uuidtempid)
-	for group in IntelGroups.objects.filter(id__in=tempgroupids).all():
-		if group.plan_id != None:
-			planid = Subscription.objects.filter(djstripe_id=group.plan_id).last().plan_id
-			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-			custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
-			current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
-			if custom_feeds == 'true' and current_period_end.replace(tzinfo=None) > datetime.now():
-				groupids.append(group.id)
+			if not 'created_at' in body:
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for indicator in body['indicators'].split(','):
+								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+									if globalindicator['globalindicator']['value_api'] == indicator.strip():
+										flag = True
+							if flag:
+								reports.append(report)
+				else:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for indicator in body['indicators'].split(','):
+								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+									if globalindicator['globalindicator']['value_api'] == indicator.strip():
+										flag = True
+							if flag:
+								reports.append(report)
 
-	if not 'feedids' in body:
-		if not 'created_at' in body:
-			if not 'updated_at' in body:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids):
-					feedids.append(feed.id)
 			else:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, updated_at__date=body['updated_at']):
-					feedids.append(feed.id)
-		else:
-			if not 'updated_at' in body:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, created_at__date=body['created_at']):
-					feedids.append(feed.id)
-			else:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, created_at__date=body['created_at'], updated_at__date=body['updated_at']):
-					feedids.append(feed.id)
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, created_at__date__gte=body['created_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for indicator in body['indicators'].split(','):
+								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+									if globalindicator['globalindicator']['value_api'] == indicator.strip():
+										flag = True
+							if flag:
+								reports.append(report)
+				else:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for indicator in body['indicators'].split(','):
+								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+									if globalindicator['globalindicator']['value_api'] == indicator.strip():
+										flag = True
+							if flag:
+								reports.append(report)
 	else:
-		if not 'created_at' in body:
-			if not 'updated_at' in body:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, uniqueid__in=feedids):
-					feedids.append(feed.id)
+		if not 'indicators' in body:
+			if not 'created_at' in body:
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								reports.append(report)
+				else:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								reports.append(report)
 			else:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, uniqueid__in=feedids, updated_at__date=body['updated_at']):
-					feedids.append(feed.id)
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, created_at__date__gte=body['created_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								reports.append(report)
+				else:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								reports.append(report)
 		else:
-			if not 'updated_at' in body:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, uniqueid__in=feedids, created_at__date=body['created_at']):
-						feedids.append(feed.id)
+			if not 'created_at' in body:
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								iflag = False
+								for indicator in body['indicators'].split(','):
+									for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+										if globalindicator['globalindicator']['value_api'] == indicator.strip():
+											iflag = True
+								if iflag:
+									reports.append(report)
+				else:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								iflag = False
+								for indicator in body['indicators'].split(','):
+									for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+										if globalindicator['globalindicator']['value_api'] == indicator.strip():
+											iflag = True
+								if iflag:
+									reports.append(report)
 			else:
-				for feed in Feeds.objects.filter(intelgroup_id__in=groupids, uniqueid__in=feedids, created_at__date=body['created_at'], updated_at__date=body['created_at']):
-					feedids.append(feed.id)
-	if not 'indicators' in body:
-		feeditems = FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all()
-	else:
-		tempitemids = []
-		itemids = []
-		for feeditem in FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all():
-			tempitemids.append(feeditem.id)
-		indicators = Indicators.objects.filter(feeditem_id__in=tempitemids).order_by('id').all()
-		serializer = IndicatorGlobalSerializer(indicators, many=True)
-		for s in serializer.data:
-			for indicator in body['indicators']:
-				if s['globalindicator']['value_api'] == indicator:
-					itemids.append(s['feeditem_id'])
-		newitemids = []
-		for itemid in itemids:
-			flag = True
-			for newitemid in newitemids:
-				if newitemid == itemid:
-					flag = False
-			if flag:
-				newitemids.append(itemid)
-		feeditems = FeedItems.objects.filter(id__in=newitemids).order_by('id').all()
-
-	item_serializer = FeedItemSerializer(feeditems, many=True)
-	return render(request, 'project/reports.html', {'reports':json.dumps(item_serializer.data)})
+				if not 'updated_at' in body:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, created_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								iflag = False
+								for indicator in body['indicators'].split(','):
+									for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+										if globalindicator['globalindicator']['value_api'] == indicator.strip():
+											iflag = True
+								if iflag:
+									reports.append(report)
+				else:
+					for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, created_at__date__gte=body['updated_at'], updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
+						if report['groupfeed']['isenable']:
+							flag = False
+							for channelid in body['channelids'].split(','):
+								if report['feeditem']['feed']['id'] == FeedChannels.objects.filter(uniqueid=channelid).order_by('id').last().feed_id:
+									flag = True
+							if flag:
+								iflag = False
+								for indicator in body['indicators'].split(','):
+									for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+										if globalindicator['globalindicator']['value_api'] == indicator.strip():
+											iflag = True
+								if iflag:
+									reports.append(report)
+	
+	result = []
+	for report in reports:
+		data = {
+			'uuid':report['feeditem']['uniqueid'],
+			'channelid':FeedChannels.objects.filter(feed_id=report['feeditem']['feed']['id']).last().uniqueid,
+			'groupid':report['intelgroup']['uniqueid'],
+			'url':'https://sherlock-staging.obstractai.com/home/intelreports/'+str(report['id']),
+			'added_time':report['created_at'],
+			'data':{
+				'Title':report['feeditem']['title'],
+				'Link':report['feeditem']['link'],
+				'Description':report['feeditem']['description'],
+				'Author':report['feeditem']['author'],
+				'Category':report['feeditem']['category'],
+				'Comments':report['feeditem']['comments'],
+				'Enclosure':report['feeditem']['enclosure'],
+				'Guid':report['feeditem']['guid'],
+				'pubDate':report['feeditem']['pubdate'],
+				'Source':report['feeditem']['source'],
+			},
+			'indicators':ItemFeedGroupReportSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).all(), many=True).data,
+			'attributes':{
+				'global':GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=report['intelgroup']['id'], isenable=True), many=True).data,
+				'intelgroup':UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=report['intelgroup']['id'], isenable=True), many=True).data
+			}
+		}
+		result.append(data)
+	return render(request, 'project/reports.html', {'reports':result})
 
 @csrf_exempt
 def apigroups(request):
-	groupid = 0
+	groupids = []
+	tempids = []
 	userid = 0
 	for apikey in APIKeys.objects.all():
 		if apikey.value == request.headers['key']:
-			groupid = apikey.intelgroup_id
+			tempids = apikey.groupids.split(',')
 			userid = apikey.user_id
-	if groupid == 0 and userid == 0:
-		return render(request, 'project/intel_groups.html', {'feeds':'This is invalid apikey.'})
-	groups = UserIntelGroupRoles.objects.filter(intelgroup_id=groupid, user_id=userid).all()
-	subid = groups[0].plan_id
-	created_at = groups[0].created_at
-	if subid == None:
-		if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
-			return render(request, 'project/intel_groups.html', {'groups':"Please select plan to perform this action."})
-	else:
-		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-		productid = Plan.objects.filter(djstripe_id=planid).product_id
-		current_period_end = Product.objects.filter(djstripe_id=productid).last().current_period_end
-		history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
-		if Product.objects.filter(djstripe_id=productid).last().metadata['api_access'] == 'true':
-			if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
-				return render(request, 'project/intel_groups.html', {'groups': 'Please select plan to perform this action.'})
-		else:
-			return render(request, 'project/intel_groups.html', {'groups':'You are not allowed to access.'})
-	group_serializer = GroupRoleSerializer(groups[0])
-	return render(request, 'project/intel_groups.html', {'groups':json.dumps(group_serializer.data)})
+	if userid == 0:
+		return render(request, 'project/intel_groups.html', {'groups':'This is invalid apikey.'})
+	for groupid in tempids:
+		subid = IntelGroups.objects.filter(id=groupid).last().plan_id
+		if subid != None:
+			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+			custom_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds']
+			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+			if custom_feeds and current_period_end.replace(tzinfo=None) > datetime.now():
+				groupids.append(groupid)
+		# subid = IntelGroups.objects.filter(id=groupid).last().plan_id
+		# created_at = IntelGroups.objects.filter(id=groupid).last().created_at
+		# if subid == None:
+		# 	if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
+		# 		return render(request, 'project/intel_groups.html', {'groups':"Please select plan to perform this action."})
+		# else:
+		# 	planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+		# 	productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+		# 	current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+		# 	history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
+		# 	if Product.objects.filter(djstripe_id=productid).last().metadata['api_access']:
+		# 		if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
+		# 			return render(request, 'project/intel_groups.html', {'groups': 'Please select plan to perform this action.'})
+		# 		else:
+		# 			groupids.append(groupid)
+		# 	else:
+		# 		return render(request, 'project/intel_groups.html', {'groups':'You are not allowed to access.'})
+	result = []
+	for groupid in groupids:	
+		data = {
+			'uuid': IntelGroups.objects.filter(id=groupid).last().uniqueid,
+			'name': IntelGroups.objects.filter(id=groupid).last().name,
+			'description': IntelGroups.objects.filter(id=groupid).last().description,
+			'role': UserIntelGroupRoles.objects.filter(intelgroup_id=groupid, user_id=userid).last().role
+		}
+		result.append(data)
+	return render(request, 'project/intel_groups.html', {'groups':result})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -560,26 +763,11 @@ def webhook(request):
 @swagger_auto_schema(methods=['get'], responses={200: UserSerializer})
 @api_view(['GET'])
 def account(request):
-	profile = CustomUser.objects.filter(id=request.user.id).all()[0]
-	serializer = UserSerializer(profile)
-	profile_data = serializer.data
-	intelgroups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
-	intelgroup_data = []
-	for intelgroup in intelgroups:
-		serializer = RoleGroupSerializer(intelgroup)
-		intelgroup_data.append(serializer.data)
-	apikeys = APIKeys.objects.order_by('id').filter(user_id=request.user.id).all()
-	apikey_data = []
-	for apikey in apikeys:
-		serializer = GroupAPIkeySerializer(apikey)
-		apikey_data.append(serializer.data)
-	webhooks = WebHooks.objects.order_by('id').filter(user_id=request.user.id).all()
-	webhook_data = []
-	for webhook in webhooks:
-		serializer = GroupWebHookSerializer(webhook)
-		webhook_data.append(serializer.data)
-	
-	return Response({'profile':profile_data, 'intelgroups':intelgroup_data, 'apikeys':apikey_data, 'webhooks':webhook_data});
+	profile = UserSerializer(CustomUser.objects.filter(id=request.user.id).last()).data
+	intelgroups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all(), many=True).data
+	apikeys = APIkeySerializer(APIKeys.objects.filter(user_id=request.user.id).order_by('id').all(), many=True).data
+	webhooks = GroupWebHookSerializer(WebHooks.objects.filter(user_id=request.user.id).order_by('id').all(), many=True).data
+	return Response({'profile':profile, 'intelgroups':intelgroups, 'apikeys':apikeys, 'webhooks':webhooks});
 
 @swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['POST'])
@@ -594,23 +782,26 @@ def emailchange(request):
 	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
-@swagger_auto_schema(methods=['post'], request_body=APIKeyCreateSerializer, responses={201: GroupAPIkeySerializer})
-@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupAPIkeySerializer})
+@swagger_auto_schema(methods=['post'], request_body=APIKeyCreateSerializer, responses={201: APIkeySerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: APIkeySerializer})
 @api_view(['POST', 'DELETE'])
 def apikeys(request):
 	if request.method == 'POST':
 		apikeys = []
 		key = secrets.token_urlsafe(16)
-		APIKeys.objects.create(name=request.data['name'], intelgroup_id=request.data['intelgroup_id'], value=key, user_id=request.user.id)
+		groupids = []
+		for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).exclude(role=0).all():
+			groupids.append(role.intelgroup_id)
+		APIKeys.objects.create(name=request.data['name'], groupids=','.join(str(groupid) for groupid in groupids), value=key, user_id=request.user.id)
 		for apikey in APIKeys.objects.filter(user_id=request.user.id).all():
-			serializer = GroupAPIkeySerializer(apikey)
+			serializer = APIkeySerializer(apikey)
 			apikeys.append(serializer.data)
 			
 		return Response(apikeys)
 	if request.method == 'DELETE':
 		APIKeys.objects.filter(id=request.data['id']).delete()
 		apikeys = APIKeys.objects.filter(user_id=request.user.id).all()
-		apikey_serializer = GroupAPIkeySerializer(apikeys, many=True)
+		apikey_serializer = APIkeySerializer(apikeys, many=True)
 		return Response(apikey_serializer.data)
 
 @swagger_auto_schema(methods=['post'], request_body=WebhookCreateSerializer, responses={201: GroupWebHookSerializer})
@@ -619,14 +810,14 @@ def apikeys(request):
 @api_view(['POST', 'PUT', 'DELETE'])
 def webhooks(request):
 	if request.method == 'POST':
-		WebHooks.objects.create(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id)
+		WebHooks.objects.create(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id, words=request.data['words'])
 		webhooks = []
 		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
 			serializer = GroupWebHookSerializer(webhook)
 			webhooks.append(serializer.data)
 		return Response(webhooks)
 	elif request.method == 'PUT':
-		WebHooks.objects.filter(id=request.data['id']).update(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id, isenable=request.data['isenable'])
+		WebHooks.objects.filter(id=request.data['id']).update(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], words=request.data['words'], user_id=request.user.id, isenable=request.data['isenable'])
 		webhooks = []
 		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
 			serializer = GroupWebHookSerializer(webhook)
@@ -640,212 +831,520 @@ def webhooks(request):
 			webhooks.append(serializer.data)
 		return Response(webhooks)
 
-@swagger_auto_schema(methods=['get'], responses={201: FeedCategorySerializer})
-@api_view(['GET'])
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: ItemFeedGroupReportSerializer})
+@api_view(['POST'])
 def reports(request, id):
-	feeds = []
-	groupids = []
-	feedids = []
-	myfeedids = []
-	feedchannels = []
-	feeditems =[]
 	itemids = []
-	for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
-		groupids.append(role.intelgroup_id)
-	for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').all():
-		serializer = FeedCategorySerializer(feed)
-		feeds.append(serializer.data)
-		feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
-	for channel in FeedChannels.objects.filter(feed_id__in=feedids).order_by('id').all():
-		serializer = FeedChannelSerializer(channel)
-		feedchannels.append(serializer.data)
-	for item in FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all():
-		serializer = FeedItemSerializer(item)
-		feeditems.append(serializer.data)
-		itemids.append(item.id)
-	indicators = Indicators.objects.filter(feeditem_id__in=itemids, enabled='Enable').order_by('id').all()
-	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
-	extractions = Attributes.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
-	extraction_serializer = UserGroupAttributeSerializer(extractions, many=True)
-	categories = Categories.objects.order_by('id').all()
-	category_serializer = CategorySerializer(categories, many=True)
-	tags = Tags.objects.filter(Q(isglobal=True) | Q(user_id=request.user.id)).order_by('id').all()
-	tag_serializer = TagSerializer(tags, many=True)
-	globalindicators = GlobalIndicators.objects.order_by('id').all()
-	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
-	feed_ids = []
-	for feed in Feeds.objects.filter(intelgroup_id=id, manage_enabled='true').order_by('id').all():
-		feed_ids.append(feed.id)
-	reports = ItemFeedGroupReportSerializer(IntelReports.objects.filter(feed_id__in=feed_ids).order_by('id').all(), many=True)
-
-
-	return Response({'feeds':feeds, 'feedchannels':feedchannels, 'feeditems':feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data, 'reports':reports.data})
+	groupfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
+	for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+		itemids.append(report.feeditem_id)
+	indicators = ItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True)
+	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=request.data['id'], isenable=True).order_by('id').all(), many=True)
+	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
+	tags = TagSerializer(Tags.objects.filter(Q(isglobal=True) | Q(intelgroup_id=request.data['id'])).order_by('id').all(), many=True)
+	globalindicators = GlobalIndicatorSerializer(GlobalIndicators.objects.order_by('id').all(), many=True)
+	reports = []
+	for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+		serializer = ItemFeedGroupReportSerializer(report)
+		if serializer.data['groupfeed']['isenable']:
+			reports.append(serializer.data)
+	globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['id'], isenable=True), many=True)
+	return Response({'feeds':groupfeeds.data, 'indicators':indicators.data, 'extractions':extractions.data, 'categories':categories.data, 'tags':tags.data, 'globalindicators':globalindicators.data, 'reports':reports, 'globalattributes':globalattributes.data})
 
 @swagger_auto_schema(methods=['post'], request_body=SearchReportSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def searchreports(request):
-	feeds = []
-	groupids = []
-	feedids = []
-	myfeedids = []
-	feedchannels = []
-	feeditems =[]
 	itemids = []
-
-	if(request.data['classification'] != '0'):
-		temp = []
-		for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
-			temp.append(role.intelgroup_id)
-		word = Attributes.objects.filter(id=request.data['classification']).values()[0]['words_matched']
-		for extraction in Attributes.objects.filter(intelgroup_id__in=temp).filter(words_matched__contains=word):
-			groupids.append(extraction.intelgroup_id)
-	else:
-		for role in UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all():
-			groupids.append(role.intelgroup_id)
-	if(request.data['category'] == '0'):
-		if(request.data['tag'] == '0'):
-			if(request.data['confidence'] == '0'):
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+	reports = []
+	if request.data['classification'] == '0':
+		if request.data['indicator'] == '0':
+			if request.data['category'] == '0':
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and serializer.data['groupfeed']['id'] == int(request.data['feedname']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['feedname']) == serializer.data['groupfeed']['id'] and serializer.data['groupfeed']['confidence'] >= request.data['confidence']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(id=request.data['feedname']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and request.data['tag'] in serializer.data['groupfeed']['tags']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and request.data['feedname'] == serializer.data['groupfeed']['name']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 			else:
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(confidence__gte=request.data['confidence']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(id=request.data['feedname']).filter(confidence__gte=request.data['confidence']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 		else:
-			if(request.data['confidence'] == '0'):
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(tags__contains=request.data['tag']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+			if request.data['category'] == '0':
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(tags__contains=request.data['tag']).filter(id=request.data['feedname']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 			else:
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).filter(id=request.data['feedname']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 	else:
-		if(request.data['tag'] == '0'):
-			if(request.data['confidence'] == '0'):
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+		if request.data['indicator'] == '0':
+			if request.data['category'] == '0':
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['feedname']) == serializer.data['groupfeed']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).filter(id=request.data['feedname']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if request.data['tag'] in serializer.data['groupfeed']['tags']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 			else:
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).filter(confidence__gte=request.data['confidence']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).filter(confidence__gte=request.data['confidence']).filter(id=request.data['feedname']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 		else:
-			if(request.data['confidence'] == '0'):
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+			if request.data['category'] == '0':
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+									reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).filter(id=request.data['feedname']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 			else:
-				if(request.data['feedname'] == '0'):
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
+				if request.data['tag'] == '0':
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
 				else:
-					for feed in Feeds.objects.order_by('id').filter(intelgroup_id__in=groupids, manage_enabled='true').filter(category_id=request.data['category']).filter(tags__contains=request.data['tag']).filter(confidence__gte=request.data['confidence']).filter(id=request.data['feedname']).all():
-						serializer = FeedCategorySerializer(feed)
-						feeds.append(serializer.data)
-						feedids.append(Feeds.objects.filter(uniqueid=feed.uniqueid).order_by('id').first().id)
-
-	for channel in FeedChannels.objects.filter(feed_id__in=feedids).order_by('id').all():
-		serializer = FeedChannelSerializer(channel)
-		feedchannels.append(serializer.data)
-	for item in FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all():
-		serializer = FeedItemSerializer(item)
-		feeditems.append(serializer.data)
-		itemids.append(item.id)
-	indicator_feeditem_ids = []
-	indicator_feed_ids = []
-	search_feeds = []
-	search_feedchannels = []
-	search_feeditems = []
-	if(request.data['indicator'] != '0'):
-		for indicator in Indicators.objects.filter(feeditem_id__in=itemids, enabled='Enable').filter(globalindicator_id=request.data['indicator']).order_by('id').all():
-			indicator_feeditem_ids.append(indicator.feeditem_id)
-		for feeditem in FeedItems.objects.filter(id__in=indicator_feeditem_ids).order_by('id').all():
-			flag = False
-			for indicator_feed_id in indicator_feed_ids:
-				if feeditem.feed_id == indicator_feed_id:
-					flag = True
-			if not flag:
-				indicator_feed_ids.append(feeditem.feed_id)
-		for indicator_feed_id in indicator_feed_ids:
-			for feed in feeds:
-				if feed['id'] == indicator_feed_id:
-					search_feeds.append(feed)
-		for channel in FeedChannels.objects.filter(feed_id__in=indicator_feed_ids).order_by('id').all():
-			serializer = FeedChannelSerializer(channel)
-			search_feedchannels.append(serializer.data)
-		for item in FeedItems.objects.filter(id__in=indicator_feeditem_ids).order_by('id').all():
-			serializer = FeedItemSerializer(item)
-			search_feeditems.append(serializer.data)
-	else:
-		search_feeds = feeds
-		search_feedchannels = feedchannels
-		search_feeditems = feeditems
-	search_serializer = FeedCategorySerializer(search_feeds, many=True)
-	indicators = Indicators.objects.filter(feeditem_id__in=itemids, enabled='Enable').order_by('id').all()
+					if request.data['confidence'] == '0':
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+					else:
+						if request.data['feedname'] == '0':
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']):
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+						else:
+							for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).all():
+								serializer = ItemFeedGroupReportSerializer(report)
+								if serializer.data['groupfeed']['isenable'] and len(Attributes.objects.filter(intelgroup_id=request.data['id'], words_matched__contains=request.data['classification'], isenable=True).all())>0 or (len(GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).all())>0 and GroupGlobalAttributes.objects.filter(globalattribute_id=GlobalAttributes.objects.filter(words_matched__contains=request.data['classification']).last().id).last().isenable):
+									if len(Indicators.objects.filter(feeditem_id=report.feeditem_id, globalindicator_id=request.data['indicator']))>0 and int(request.data['category']) == serializer.data['groupfeed']['category']['id'] and request.data['tag'] in serializer.data['groupfeed']['tags'] and serializer.data['groupfeed']['confidence'] >= int(request.data['confidence']) and int(request.data['feedname']) == serializer.data['groupfeed']['id']:
+										reports.append(serializer.data)
+								itemids.append(report.feeditem.id)
+	
+	indicators = Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all()
 	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
-	extractions = Attributes.objects.filter(intelgroup_id__in=groupids).filter(enabled='Enable').order_by('id').all()
+	extractions = Attributes.objects.filter(intelgroup_id=request.data['id'], isenable=True).order_by('id').all()
 	extraction_serializer = UserGroupAttributeSerializer(extractions, many=True)
 	categories = Categories.objects.order_by('id').all()
 	category_serializer = CategorySerializer(categories, many=True)
-	tags = Tags.objects.filter(Q(isglobal=True) | Q(user_id=request.user.id)).order_by('id').all()
+	tags = Tags.objects.filter(Q(isglobal=True) | Q(intelgroup_id=request.user.id)).order_by('id').all()
 	tag_serializer = TagSerializer(tags, many=True)
 	globalindicators = GlobalIndicators.objects.order_by('id').all()
 	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
 
-	return Response({'feeds':search_serializer.data, 'feedchannels':search_feedchannels, 'feeditems':search_feeditems, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
+	return Response({'reports':reports, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
 @api_view(['POST'])
 def pullfeed(request):
@@ -892,9 +1391,9 @@ def feeds(request):
 						flag = True
 				if not flag:
 					if request.user.is_staff:
-						Tags.objects.create(name=tag.strip(), isglobal=True, user_id=request.user.id)
+						Tags.objects.create(name=tag.strip(), isglobal=True, intelgroup_id=groupid)
 					else:
-						Tags.objects.create(name=tag.strip(), isglobal=False, user_id=request.user.id)
+						Tags.objects.create(name=tag.strip(), isglobal=False, intelgroup_id=groupid)
 			ftr = "http://ftr-premium.fivefilters.org/"
 			encode = urllib.parse.quote_plus(data['url'])
 			key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
@@ -1210,6 +1709,32 @@ def feeds(request):
 							print('item->', item)
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			IntelReports.objects.create(groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=groupid, feeditem_id=item.id)
+		flag = True
+		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
+			while flag:
+				for webhook in WebHooks.objects.filter(intelgroup_id=groupid).order_by('id').all():
+					channelunique = FeedChannels.objects.filter(feed_id=Feeds.objects.last().id).last().uniqueid
+					groupunique = IntelGroups.objects.filter(id=groupid).last().uniqueid
+					data = {
+						'uuid': webhook.uniqueid,
+						'channel': channelunique,
+						'intelgroup': groupunique,
+						'reporturl': "sherlock-staging.obstractai.com/home/report/"+str(IntelReports.objects.last().id),
+						'addedtime': IntelReports.objects.last().created_at,
+						'data': {
+							'title': item.title,
+							'link': item.link,
+							'description': item.description
+						}
+					}
+					try:
+						requests.post(webhook.endpoint, data=data)
+					except Exception as e:
+						print(str(e))
+						flag = False
+		webhook_fail = False
+		if not flag:
+			webhook_fail=True	
 		groupfeeds = []
 		groupfeedids = []
 		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all():
@@ -1218,10 +1743,11 @@ def feeds(request):
 				groupfeeds.append(serializer.data)
 			groupfeedids.append(groupfeed.feed_id)
 		feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
-		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data})
+		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data, 'webhook_fail':webhook_fail})
 	if request.method == 'PUT':
 		data = request.data
 		feed = Feeds.objects.filter(id=data['id']).last()
+		
 		GroupFeeds.objects.create(feed_id=data['id'], intelgroup_id=data['groupid'], isenable=True)
 		groupfeed = GroupFeeds.objects.last()
 		if data['name'] == '':
@@ -1244,8 +1770,34 @@ def feeds(request):
 			GroupFeeds.objects.filter(id=groupfeed.id).update(category_id=feed.category_id)
 		else:
 			GroupFeeds.objects.filter(id=groupfeed.id).update(category_id=data['category'])
-		for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
+		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=request.data['groupid'])
+		flag = True
+		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
+			while flag:
+				for webhook in WebHooks.objects.filter(intelgroup_id=request.data['groupid']).order_by('id').all():
+					channelunique = FeedChannels.objects.filter(feed_id=data['id']).last().uniqueid
+					groupunique = IntelGroups.objects.filter(id=request.data['groupid']).last().uniqueid
+					data = {
+						'uuid': webhook.uniqueid,
+						'channel': channelunique,
+						'intelgroup': groupunique,
+						'reporturl': "sherlock-staging.obstractai.com/home/report/"+str(IntelReports.objects.last().id),
+						'addedtime': IntelReports.objects.last().created_at,
+						'data': {
+							'title': item.title,
+							'link': item.link,
+							'description': item.description
+						}
+					}
+					try:
+						requests.post(webhook.endpoint, data=data)
+					except Exception as e:
+						print(str(e))
+						flag = False
+		webhook_fail = False
+		if not flag:
+			webhook_fail=True			
 		groupfeeds = []
 		groupfeedids = []
 		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=data['groupid']).order_by('id').all():
@@ -1254,7 +1806,7 @@ def feeds(request):
 				groupfeeds.append(serializer.data)
 			groupfeedids.append(groupfeed.feed_id)
 		feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
-		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data})
+		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data, 'webhook_fail':webhook_fail})
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
@@ -1279,6 +1831,10 @@ def feedlist(request):
 	tags = TagSerializer(Tags.objects.order_by('id').all(), many=True)
 	return Response({'feedlist':feeds.data, 'groupfeeds':groupfeeds, 'categories':categories.data, 'tags':tags.data, 'customfeeds':customfeeds})
 
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: GroupCategoryFeedSerializer})
+@swagger_auto_schema(methods=['put'], request_body=FeedUpdateSerializer, responses={200: GroupCategoryFeedSerializer})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupCategoryFeedSerializer})
+@swagger_auto_schema(methods=['patch'], request_body=FeedUpdateSerializer, responses={203: GroupCategoryFeedSerializer})
 @api_view(['POST', 'PUT', 'DELETE', 'PATCH'])
 def configuredfeeds(request):
 	if request.method == 'POST':
@@ -1288,17 +1844,12 @@ def configuredfeeds(request):
 		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
 			feedids.append(groupfeed.feed_id)
 		channels = FeedChannelSerializer(FeedChannels.objects.filter(feed_id__in=feedids).order_by('id').all(), many=True)
-		# for item in FeedItems.objects.filter(feed_id__in=feedids).order_by('id').all():
-		# 	feeditemids.append(item.id)
-		# Indicators
 		collections = []
 		for feedid in feedids:
 			indicators = []
 			for item in FeedItems.objects.filter(feed_id=feedid).order_by('id').all():
 				for indicator in Indicators.objects.filter(feeditem_id=item.id).order_by('id').all():
 					indicators.append(indicator)
-			print(len(indicators))
-			print(indicators)
 			globalids = []
 			for indicator in indicators:
 				flag = True
@@ -1307,9 +1858,7 @@ def configuredfeeds(request):
 						flag = False
 				if flag:
 					globalids.append(indicator.globalindicator_id)
-			print(globalids)
 			collections.append({'feedid':feedid, 'count':len(globalids)})
-		print(collections)
 		categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
 		tags = TagSerializer(Tags.objects.order_by('id').all(), many=True)
 		return Response({'configuredfeeds':configuredfeeds.data, 'categories':categories.data, 'tags':tags.data, 'channels':channels.data, 'collections':collections})
@@ -1459,13 +2008,39 @@ def searchfeeds(request):
 		feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True, tags__contains=request.data['tags'], category_id = request.data['category'], confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
 	return Response({'feeds':feeds.data, 'groupfeeds':groupfeeds})
 
-@swagger_auto_schema(methods=['put'], request_body=ManageEnabledSerializer, responses={200: FeedCategorySerializer})
+@swagger_auto_schema(methods=['put'], request_body=GroupIDSerializer, responses={200: FeedCategorySerializer})
 @api_view(['PUT'])
 def feedenable(request):
 	feed = Feeds.objects.filter(id=request.data['id']).last()
 	GroupFeeds.objects.create(feed_id=request.data['id'], intelgroup_id=request.data['groupid'], name=feed.name, description=feed.description, tags=feed.tags, confidence=feed.confidence, category_id=feed.category_id, isenable=True )
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
 		IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=request.data['groupid'])
+	flag = True
+	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
+		while flag:
+			for webhook in WebHooks.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all():
+				channelunique = FeedChannels.objects.filter(feed_id=request.data['id']).last().uniqueid
+				groupunique = IntelGroups.objects.filter(id=request.data['groupid']).last().uniqueid
+				data = {
+					'uuid': webhook.uniqueid,
+					'channel': channelunique,
+					'intelgroup': groupunique,
+					'reporturl': "sherlock-staging.obstractai.com/home/report/"+str(IntelReports.objects.filter(feeditem_id=item.id).last().id),
+					'addedtime': IntelReports.objects.filter(feeditem_id=item.id).last().created_at,
+					'data': {
+						'title': item.title,
+						'link': item.link,
+						'description': item.description
+					}
+				}
+				try:
+					requests.post(webhook.endpoint, data=data)
+				except Exception as e:
+					print(str(e))
+					flag = False
+	webhook_fail = False
+	if not flag:
+		webhook_fail = True
 	groupfeeds = []
 	groupfeedids = []
 	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['groupid']).order_by('id').all():
@@ -1474,7 +2049,7 @@ def feedenable(request):
 			groupfeeds.append(serializer.data)
 		groupfeedids.append(groupfeed.feed_id)
 	feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).order_by('id').all(), many=True)
-	return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data})
+	return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data, 'webhook_fail':webhook_fail})
 
 @swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
 @swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
@@ -1482,7 +2057,7 @@ def feedenable(request):
 def attributes(request):
 	if request.method == 'POST':
 		if 'attribute' in request.data:
-			for attribute in Attributes.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']):
+			for attribute in Attributes.objects.filter(intelgroup_id=request.data['currentgroup']):
 				if attribute.attribute == request.data['attribute'] and attribute.value == request.data['value']:
 					return Response({'message':True})
 			Attributes.objects.create(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], isenable=request.data['isenable'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
@@ -1509,38 +2084,40 @@ def attributes(request):
 		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).all()[0])
 		return Response(serializer.data)
 
+@swagger_auto_schema(methods=['post'], request_body=EnabledSerializer, responses={201: UserGroupAttributeSerializer})
 @api_view(['POST'])
 def enableglobal(request):
 	GroupGlobalAttributes.objects.filter(id=request.data['id']).update(isenable=request.data['isenable'])
 	serializer = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(id=request.data['id']).last())
 	return Response(serializer.data)
 
-@swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
-@swagger_auto_schema(methods=['put'], request_body=AttributeUpdateSerializer, responses={200: UserGroupAttributeSerializer})
+@swagger_auto_schema(methods=['post'], request_body=WhitelistCreateSerializer, responses={201: UserGroupAttributeSerializer})
+@swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: UserGroupAttributeSerializer})
 @api_view(['POST', 'PUT'])
 def whitelist(request):
 	if request.method == 'POST':
 		if not 'indicator' in request.data:
 			feedids = [];
 			feeditemids = [];
-			for feed in Feeds.objects.filter(intelgroup_id=request.data['currentgroup']).all():
-				feedids.append(feed.id)
+			for feed in GroupFeeds.objects.filter(intelgroup_id=request.data['currentgroup']).all():
+				feedids.append(feed.feed_id)
 			for feeditem in FeedItems.objects.filter(feed_id__in=feedids).all():
 				feeditemids.append(feeditem.id)
-			indicators = Indicators.objects.filter(feeditem_id__in=feeditemids).order_by('id').all()
-			whitelist = Whitelists.objects.order_by('id').all()
-			globalindicators = GlobalIndicators.objects.order_by('id').all()	
-			indicator_serializer = IndicatorGlobalSerializer(indicators, many=True)
-			whitelist_serializer = UserIndicatorWhitelistSerializer(whitelist, many=True)
-			global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
+			indicator_serializer = IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id__in=feeditemids).order_by('id').all(), many=True)
+			whitelist_serializer = UserIndicatorWhitelistSerializer(Whitelists.objects.order_by('id').all(), many=True)
+			global_serializer = GlobalIndicatorSerializer(GlobalIndicators.objects.order_by('id').all(), many=True)
 			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
 			serializer = UserGroupRoleSerializer(currentrole[0])
 			return Response({'indicators': indicator_serializer.data, 'whitelist': whitelist_serializer.data, 'globalindicators': global_serializer.data, 'currentrole': serializer.data})
 		else:
-			Whitelists.objects.create(indicator_id=request.data['indicator'],value=request.data['value'], user_id=request.user.id, enabled=request.data['enabled'] )
-			create_data = Whitelists.objects.last()
-			serializer = UserIndicatorWhitelistSerializer(create_data)
-			return Response(serializer.data)
+			flag = True
+			if len(Whitelists.objects.filter(globalindicator_id=request.data['indicator'],value=request.data['value']).all())>0:
+				return Response({'message': True})
+			else:
+				Whitelists.objects.create(globalindicator_id=request.data['indicator'],value=request.data['value'], user_id=request.user.id, enabled=request.data['enabled'] )
+				create_data = Whitelists.objects.last()
+				serializer = UserIndicatorWhitelistSerializer(create_data)
+				return Response(serializer.data)
 	if request.method == 'PUT':
 		Whitelists.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
 		serializer = UserIndicatorWhitelistSerializer(Whitelists.objects.filter(id=request.data['id']).last())
@@ -1549,7 +2126,10 @@ def whitelist(request):
 @swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: GlobalItemIndicatorSerializer})
 @api_view(['PUT'])
 def indicators(request):
-	Indicators.objects.filter(id=request.data['id']).update(enabled=request.data['enabled'])
+	if Indicators.objects.filter(id=request.data['id']).last().isenable:
+		Indicators.objects.filter(id=request.data['id']).update(isenable=False)
+	else:
+		Indicators.objects.filter(id=request.data['id']).update(isenable=True)
 	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
@@ -1637,9 +2217,22 @@ def categories(request):
 		Categories.objects.filter(id=request.data['id']).delete()
 		return Response({"Successfully deleted!"})
 
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def test(request):
+# 	print(request.POST['success'])
+# 	return Response({'success':True})
+# 	# return Response({'message':True})
+
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def home(request):
+	# response = requests.post('http://localhost:8000/api/test/', data={"success":True})
+	# print(response.text)
+	# if response.text == True:
+	# 	print('success')
+	# else:
+	# 	print('failed')
 	# ftr = "http://ftr-premium.fivefilters.org/"
 	# # encode = urllib.parse.quote_plus("https://apnews.com/apf-topnews")
 	# encode = urllib.parse.quote_plus("http://feeds.bbci.co.uk/news/rss.xml")

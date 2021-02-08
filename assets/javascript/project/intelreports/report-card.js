@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Grid } from "@material-ui/core";
 
 const ReportCard = function (props) {
 	let tags = [];
-	if(props.report.feed){
-		if(props.report.feed.tags.indexOf(",") > -1)
-		tags = props.report.feed.tags.split(',');
-		else tags.push(props.report.feed.tags);
+	if(props.report.groupfeed){
+		if(props.report.groupfeed.tags.indexOf(",") > -1)
+		tags = props.report.groupfeed.tags.split(',');
+		else tags.push(props.report.groupfeed.tags);
 	}
+	useEffect(()=>{
+		// document.querySelector('#description'+props.index).innerHTML=props.report.feeditem.description;
+	},[]);
 	return (
 		<section className="section app-card" >
 			<div className="columns">
@@ -18,30 +21,30 @@ const ReportCard = function (props) {
 							<Grid container>
 								<Grid item xs={12} md={6}>
 									<div>
-										<span> Name: </span>
+										<span className="title has-text-weight-bold is-4"> Name: </span>
 										<span> {props.report? props.report.feeditem.title : ""} </span>
 									</div>
-									<div>
+									<div id={`description${props.index}`}>
 										<span> Description: </span>
-										<span> {props.report? props.report.feed.description: ""} </span>
+										{/* <span> {props.report? props.report.feeditem.description: ""} </span> */}
 									</div>
 									<div className="">
-										<span> URL: </span>
+										<span className="title has-text-weight-bold is-4"> URL: </span>
 										<span> {props.report.feeditem? props.report.feeditem.link : ""} </span>
 									</div>
 
 								</Grid>
 								<Grid item xs={12} md={6}>
 									<div>
-										<span> Publish Date: </span>
+										<span className="title has-text-weight-bold is-4"> Publish Date: </span>
 										<span>{ props.report.feeditem.pubdate && new Date(props.report.feeditem.pubdate).toLocaleString()}</span>
 									</div>
 								</Grid>
 							</Grid>
-							<div style={{position:'absolute', bottom:0}}>
+							<div>
 								<span>
 									<button className="button is-info is-rounded mx-2" >
-									<span>{props.report.feed.category ? props.report.feed.category.name : ""}</span>
+									<span>{props.report.groupfeed.category ? props.report.groupfeed.category.name : ""}</span>
 									</button>
 									{
 									tags.map((tag, index) => {
@@ -54,7 +57,7 @@ const ReportCard = function (props) {
 									}
 									<Link to={`/intelreports/${props.report.id}`}>
 										<button className="button is-link is-rounded is-text mx-2">
-											<span>{props.report.feed ? props.report.feed.name : ""}</span>
+											<span>{props.report.groupfeed ? props.report.groupfeed.name : ""}</span>
 										</button>
 									</Link>
 								</span>
@@ -67,7 +70,7 @@ const ReportCard = function (props) {
 								</Grid>
 								<Grid item xs={9} className="py-2">
 									<button className="button is-primary is-rounded">
-										<span>{props.report.feed.confidence}</span>
+										<span>{props.report.groupfeed.confidence}</span>
 									</button>
 								</Grid>
 							</Grid>
@@ -79,6 +82,11 @@ const ReportCard = function (props) {
 									{props.classifications.map((classification, index)=>{
 										return <button key={index} className="button is-warning is-rounded mx-1 my-1">
 											<span>{classification.words_matched}</span>
+										</button>
+									})}
+									{props.globalattributes.map((classification, index)=>{
+										return <button key={index} className="button is-warning is-rounded mx-1 my-1">
+											<span>{classification.globalattribute.words_matched}</span>
 										</button>
 									})}
 								</Grid>

@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Link, useHistory } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useHistory } from "react-router-dom";
 import { Container, Grid } from "@material-ui/core";
 
 const ViewReport = (props) => {
 	console.log(props);
 	const history = useHistory();
 	let tags = [];
-	if(props.feed.tags){
-		if(props.feed.tags.indexOf(",") > -1)
-		tags = props.feed.tags.split(',');
-		else tags.push(props.feed.tags);
+	if(props.groupfeed.tags){
+		if(props.groupfeed.tags.indexOf(",") > -1)
+		tags = props.groupfeed.tags.split(',');
+		else tags.push(props.groupfeed.tags);
 	}
 	const classifications = [];
 	props.classifications.forEach(classification => {
@@ -26,7 +26,7 @@ const ViewReport = (props) => {
 	
 	useEffect(()=>{
 		let str=props.feeditem.description;
-		console.log(str.substring(29600, 29800));
+		
 		indicators.forEach(indicator => {
 			if(indicator.globalindicator.value == 'URL' || indicator.globalindicator.value == 'Email Address' || indicator.globalindicator.value == 'FQDN'){
 				let items = indicator.value.split(',');
@@ -53,6 +53,20 @@ const ViewReport = (props) => {
 					}
 				});
 			}
+			if(indicator.globalindicator.value == 'CVE'){
+				console.log(str.substring(6100,6431))
+				console.log(str.substring(6450,6600))
+				let items = indicator.value.split(',');
+				items.forEach(item => {
+					console.log(item)
+					let reg = new RegExp(item), result, ids = [];
+					let re = /17049/gi
+					while ( (result = re.exec(str)) ) {
+						ids.push(result.index);
+					}
+					console.log(ids);
+				});
+			}
 		});
 		let words = [];
 		classifications.forEach(classification => {
@@ -73,14 +87,13 @@ const ViewReport = (props) => {
 		<Container>
 			<section className="section">
 				<Grid container>
-					<Grid item xs={3}>
-						<h1 className="title is-2">Report Name</h1>
-						<label>Item short description</label>
+					<Grid item xs={12} md={6}>
+						<h1 className="title is-2">{props.feeditem.title}</h1>
 					</Grid>
-					<Grid item xs={9}>
+					<Grid item xs={12} md={6}>
 						<span>
 							<button className="button is-info is-rounded mx-2">
-								<span>{props.feed.category.name}</span>
+								<span>{props.groupfeed.category.name}</span>
 							</button>
 							{tags.map((tag, index)=>{
 								return <button key={index} className="button is-warning is-rounded mx-2" >
@@ -88,10 +101,10 @@ const ViewReport = (props) => {
 								</button>
 							})}
 							<button className="button is-danger is-rounded mx-2" >
-								<span>{props.feed.name}</span>
+								<span>{props.groupfeed.name}</span>
 							</button>
 							<button className="button is-primary is-rounded mx-2" >
-								<span>{props.feed.confidence}</span>
+								<span>{props.groupfeed.confidence}</span>
 							</button>
 						</span>
 					</Grid>
@@ -113,7 +126,7 @@ const ViewReport = (props) => {
 								</Grid>
 								<Grid item xs={9} className="py-2">
 									<button className="button is-primary is-rounded" >
-										<span>{props.feed.confidence}</span>
+										<span>{props.groupfeed.confidence}</span>
 									</button>
 								</Grid>
 							</Grid>
@@ -145,7 +158,7 @@ const ViewReport = (props) => {
 							<p>API call</p>
 							<div>
 								<span>Feed: </span>
-								<span>https://www.cyobstract.com/api/v1/feed?UUID={props.feed.uniqueid}</span>
+								<span>https://www.cyobstract.com/api/v1/feed?UUID={props.feeditem.feed.uniqueid}</span>
 							</div>
 							<div>
 								<span>Report: </span>

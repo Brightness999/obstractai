@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import { Switch,Route,Link,useHistory} from "react-router-dom";
-import { Container,TextField,Grid} from "@material-ui/core";
+import { Container, TextField, Grid, Dialog} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 
 import UpdateFeed from "./update-feed";
@@ -37,7 +37,8 @@ const FeedList = (props) => {
 	const [category, setCategory] = useState('');
 	const [tag, setTag] = useState('');
 	const [confidence, setConfidence] = useState('');
-	
+	const [webhook, setWebhhook] = useState(false);
+
 	const search = () =>{
 		let tag_value = "";
 		for(const t of props.tags){
@@ -45,8 +46,26 @@ const FeedList = (props) => {
 		}
 		props.Search(category, tag_value, confidence);
 	}
+
+	const saveFeed = (data) => {
+		setWebhhook(data.webhook_fail);
+		props.saveFeed(data);
+	}
 	return (
 		<Container>
+			<Dialog
+				maxWidth="md"
+				fullWidth
+				open={webhook}
+				onClose={()=>setWebhhook(false)}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+			>
+				<Alert severity="warning" className="my-5">
+				<AlertTitle className="subtitle is-4 has-text-weight-bold">Fail</AlertTitle>
+				<span className="subtitle is-5">Outgoing webhook is failed.</span>
+				</Alert>
+			</Dialog>
 			<section className="section">
 				{props.isInit&&
 				<Alert severity="info" className="my-5">
@@ -139,12 +158,12 @@ const FeedList = (props) => {
 			</section>}
 			{
 				props.groupfeeds.map((groupfeed, index) => {
-					return <FeedCard index={index} key={groupfeed.id} feed={groupfeed} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
+					return <FeedCard index={index} key={groupfeed.id} feed={groupfeed} currentrole={props.currentrole} client={props.client} />;
 				})
 			}
 			{
 				props.feedlist.map((feed, index) => {
-					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
+					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>saveFeed(data)} client={props.client} />;
 				})
 			}
 			
@@ -160,6 +179,7 @@ const Feeds = (props) => {
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [customfeeds, setCustomFeeds] = useState(true);
+
 	const history = useHistory();
 	const confidences = [];
 	for(let i=1;i<=100;i++){

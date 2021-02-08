@@ -10,7 +10,7 @@ from celery.schedules import crontab
 from datetime import datetime, timedelta
 
 from pega.celery import app
-from .models import (IntelGroups, Feeds, FeedItems, FeedChannels, Indicators, GlobalIndicators,)
+from .models import (IntelGroups, Feeds, FeedItems, FeedChannels, Indicators, GlobalIndicators,IntelReports)
 
 @app.task(bind=True)
 def feed(self):
@@ -79,6 +79,7 @@ def feed(self):
                 else:
                     itemid = itemids[0].id
                     FeedItems.objects.filter(id=itemid).update(updated_at=datetime.now())
+                    IntelReports.objects.filter(feeditem_id=itemid).order_by('id').all().update(updated_at=datetime.now())
                     temp = np.array(itemids)
                     itemids = temp[1:]
                 for item in items:
@@ -233,6 +234,7 @@ def feed(self):
             else:
                 itemid = FeedItems.objects.filter(feed_id=feed.id).last().id
                 FeedItems.objects.filter(id=itemid).update(updated_at=datetime.now())
+                IntelReports.objects.filter(feeditem_id=itemid).order_by('id').all().update(updated_at=datetime.now())
             for item in xmltodict.parse(contents)['rss']['channel']['item']:
                 if(item == 'title'):
                     FeedItems.objects.filter(id=itemid).update(title=xmltodict.parse(contents)['rss']['channel']['item'][item])

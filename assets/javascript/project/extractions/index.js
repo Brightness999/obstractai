@@ -239,7 +239,7 @@ const ExtractionList = (props) => {
 								<Td>{attribute.globalattribute.attribute+'('+attribute.globalattribute.api_attribute+')'}</Td>
 								<Td>{attribute.globalattribute.value+'('+attribute.globalattribute.api_value+')'}</Td>
 								<Td>{attribute.globalattribute.words_matched}</Td>
-								<Td><a className="button is-text" onClick={()=>{enableGlobal(index)}}>{attribute.isenable?"Enable":"Disable"}</a></Td>
+								<Td><a className={attribute.isenable?"button is-text":"button is-success"} onClick={()=>{enableGlobal(index)}}>{attribute.isenable?"Disable":"Enable"}</a></Td>
 							</Tr>
 						})}
 					</Tbody>

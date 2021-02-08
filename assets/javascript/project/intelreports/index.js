@@ -14,6 +14,24 @@ const Loading = () => {
 	)
 }
 
+const Plan = (props) => {
+	const [isAlert, setIsAlert] = useState(false);
+
+	const ManagePlan = () => {
+		if(props.currentrole.role == 2) location.href=`/subscriptions/intelgroup/${props.currentgroup}`;
+		else setIsAlert(true);
+	}
+
+	return <div className="my-6">
+			<h1 className="title is-size-3 has-text-centered py-6">No plan! You must select a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
+			{isAlert&& <Grid container direction="row" justify="center" alignItems="center">
+				<Grid item xs={6}>
+					<Alert className="has-text-centered title is-size-4" severity="error" onClose={()=>setIsAlert(false)}>! Please contact the feed group administrator to manage intel group plan payment to reinstate access.</Alert>
+				</Grid>
+			</Grid>}
+		</div>
+}
+
 const ReportList = (props) => {
 	const [category, setCategory] = useState('0');
 	const [indicator, setIndicator] = useState('0');
@@ -138,8 +156,13 @@ const ReportList = (props) => {
 							>
 								<option value="0" className="has-text-light">Classification</option>
 								{props.classifications.map((classification) => (
-									<option key={classification.id} value={classification.id}>
+									<option key={classification.id} value={classification.words_matched}>
 										{classification.words_matched}
+									</option>
+								))}
+								{props.globalattributes.map((classification) => (
+									<option key={classification.id} value={classification.words_matched}>
+										{classification.globalattribute.words_matched}
 									</option>
 								))}
 							</TextField>
@@ -169,7 +192,7 @@ const ReportList = (props) => {
 							classifications.push(classification);
 						}
 					});
-					return <ReportCard index={index} key={report.id} report={report} indicators={indicators} classifications={classifications} />;
+					return <ReportCard index={index} key={report.id} report={report} indicators={indicators} classifications={classifications} globalattributes={props.globalattributes}/>;
 				})
 			}
 			
@@ -186,9 +209,8 @@ const IntelReports = (props) => {
 	const [feeds, setFeeds] = useState([]);
 	const [classifications, setClassifications] = useState([]);
 	const [intelligences, setIntelligences] = useState([]);
-	const [feeditems, setFeedItmes] = useState([]);
-	const [feedchannels, setFeedChannels] = useState([]);
 	const [globalindicators, setGlobalIndicators] = useState([]);
+	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [reports, setReports] = useState([]);
 	const history = useHistory();
 	const confidences = [];
@@ -199,23 +221,25 @@ const IntelReports = (props) => {
 	useEffect(()=>{
 		if(props.currentgroup == '') history.push('/')
 		else{
+			setIsLoading(true);
+			let params = {id:props.currentgroup}
 			fetch(`/api/reports/${props.currentgroup}`, {
-				method: 'get',
+				method: 'post',
 				headers: {
 				  'Content-Type': 'application/json',
 				  'accept': 'application/json',
+				  'X-CSRFToken': props.client.transports[0].auth.csrfToken
 				},
 				credentials: 'same-origin',
+				body: JSON.stringify(params)
 			}).then((res)=> { return res.json();})
 			.then((res)=>{
-				console.log(res);
 				setFeeds(res.feeds);
 				setCategories(res.categories);
 				setClassifications(res.extractions);
 				setIndicators(res.indicators);
-				setFeedItmes(res.feeditems);
-				setFeedChannels(res.feedchannels);
 				setGlobalIndicators(res.globalindicators);
+				setGlobalAttributes(res.globalattributes);
 				setReports(res.reports);
 				setTags(res.tags);
 				setIsLoading(false);
@@ -226,6 +250,7 @@ const IntelReports = (props) => {
 	const searchReport = (category, indicator, tag, feedname, confidence, classification, intelligence) => {
 		setIsLoading(true);
 		let params = {
+			id:props.currentgroup,
 			category:category,
 			indicator:indicator,
 			confidence: confidence,
@@ -244,14 +269,13 @@ const IntelReports = (props) => {
 		}).then(res=>{return res.json()})
 		.then(res=>{
 			console.log(res);
-			setFeeds(res.feeds);
-			setCategories(res.categories);
-			setClassifications(res.extractions);
+			// setFeeds(res.feeds);
+			// setCategories(res.categories);
+			// setClassifications(res.extractions);
 			setIndicators(res.indicators);
-			setFeedItmes(res.feeditems);
-			setFeedChannels(res.feedchannels);
-			setGlobalIndicators(res.globalindicators);
-			setTags(res.tags);
+			// setGlobalIndicators(res.globalindicators);
+			// setTags(res.tags);
+			setReports(res.reports);
 			setIsLoading(false);
 		})
 	}
@@ -261,9 +285,21 @@ const IntelReports = (props) => {
 			return <Loading/>
 		}
 		else {
-			return <ReportList categories={categories} tags={tags} feeds={feeds} client={props.client} mygroups={props.mygroups}
-				classifications={classifications} indicators={indicators} feeditems={feeditems} searchReport={searchReport}
-				feedchannels={feedchannels} confidences={confidences} globalindicators={globalindicators} reports={reports} />
+			if(props.currentrole.role == 0 ){
+				return(
+					<div className='app-card has-text-centered'>
+						<div className="lds-ripple"><div></div><div></div></div>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
+					</div>
+				);
+			}
+			else{
+				if(props.isPlan)
+					return <ReportList categories={categories} tags={tags} client={props.client} mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
+						indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} reports={reports} isInit={props.isInit} message={props.message}/>
+				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
+			}
+			
 		}
 	}
 
@@ -282,7 +318,7 @@ const IntelReports = (props) => {
 			const report_id = data.match.params.id;
 			const report = getFeedById(report_id);
 			return(
-				<ViewReport client={props.client} {...report} classifications={classifications} indicators={indicators} feeditems={feeditems} feedchannels={feedchannels} feeds={feeds} />
+				<ViewReport client={props.client} {...report} classifications={classifications} indicators={indicators} />
 			)
 		}
 	}

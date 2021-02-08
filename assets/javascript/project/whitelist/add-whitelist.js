@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
-import { TextField, Container, Grid } from "@material-ui/core";
-import Alert from '@material-ui/lab/Alert';
+import { TextField, Container, Grid, Dialog } from "@material-ui/core";
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 const AddWhitelist = (props) => {
+    console.log(props);
     const [isAlert, setIsAlert] = useState(false);
     const [indicator, setIndicator] = useState('');
     const [value, setValue] = useState('');
+    const [isMessage, setIsMessage] = useState(false);
     const history = useHistory();
 
     const AddList = () => {
@@ -22,9 +24,14 @@ const AddWhitelist = (props) => {
                 body: JSON.stringify(params)
             }).then(res=>{return res.json()})
             .then(res=>{
-                props.saveWhitelist(res);
-                history.push('/whitelist');
-                setIsAlert(false);
+                if(res.message){
+                    setIsMessage(true);
+                }
+                else{
+                    props.saveWhitelist(res);
+                    history.push('/whitelist');
+                    setIsAlert(false);
+                }
             })
         else setIsAlert(true);
     }
@@ -35,7 +42,32 @@ const AddWhitelist = (props) => {
                 <h1 className="title is-3">Add to whitelist</h1>
             </section>
             <section className="section app-card">
-                {isAlert && <Alert severity="warning" onClose={()=>setIsAlert(false)}>Please input params exactly!!!</Alert>}
+                <Dialog
+                    maxWidth="md"
+                    fullWidth
+                    open={isAlert}
+                    onClose={()=>setIsAlert(false)}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <Alert severity="warning" className="my-5 has-text-centered">
+                        <AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
+                        <span className="subtitle is-5">Please input params exactly!!!</span>
+                    </Alert>
+                </Dialog>
+                <Dialog
+                    maxWidth="md"
+                    fullWidth
+                    open={isMessage}
+                    onClose={()=>setIsMessage(false)}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <Alert severity="error" className="my-5 has-text-centered">
+                        <AlertTitle className="subtitle is-4 has-text-weight-bold">Error</AlertTitle>
+                        <span className="subtitle is-5">! This value already exists.</span>
+                    </Alert>
+                </Dialog>
                 <Grid container className="column is-two-thirds" direction="row" justify="center" alignItems="center">
                     <Grid item xs={3} className="my-4">
                         <span className="title is-5">Indicator Type</span>
@@ -53,9 +85,9 @@ const AddWhitelist = (props) => {
 							variant="outlined"
 						>
 							<option value=''>Select Indicator</option>
-							{props.indicators.map((indicator) => (
+							{props.globalindicators.map((indicator) => (
 								<option key={indicator.id} value={indicator.id}>
-									{indicator.globalindicator.value}
+									{indicator.value}
 								</option>
 							))}
 						</TextField>

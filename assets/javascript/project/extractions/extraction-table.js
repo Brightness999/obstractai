@@ -26,8 +26,8 @@ const ExtractionTable = (props) => {
             <Td>{props.extraction.value+'('+props.extraction.api_value+')'}</Td>
             <Td>{props.extraction.words_matched}</Td>
             <Td>
-                <a className="button is-primary" onClick={()=>setOpen(true)}>Edit</a>
-                <a className="button is-text" onClick={()=>props.changeStatus(props.index)}>{props.extraction.isenable?'Enable':'Disable'}</a>
+                <a className="button is-primary mx-2" onClick={()=>setOpen(true)}>Edit</a>
+                <a className={props.extraction.isenable?"button is-text":"button is-success"} onClick={()=>props.changeStatus(props.index)}>{props.extraction.isenable?'Disable':'Enable'}</a>
                 <Dialog
                     open={open}
                     onClose={()=>setOpen(false)}

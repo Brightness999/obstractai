@@ -10,7 +10,7 @@ from .categories import Categories
 from .tags import Tags
 from .apikeys import APIKeys
 from .webhooks import WebHooks
-from .gobalindicators import GlobalIndicators
+from .globalindicators import GlobalIndicators
 from .globalattributes import GlobalAttributes
 from .planhistory import PlanHistory
 from .intelreports import IntelReports

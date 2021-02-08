@@ -27,14 +27,3 @@ class Home(ObjectLifecycleView):
             'active_tab': 'react_object_lifecycle',
         })
         return context
-
-# from .feeds import *
-from .intelgroups import *
-from .users import *
-from .customers import *
-from .feeds import *
-from .categories import *
-from .tags import *
-from .globalindicators import *
-from .whitelist import *
-from .apikeys import *

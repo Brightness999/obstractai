@@ -1,12 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import {Link} from "react-router-dom";
-import {
-  Grid
-} from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 
 import Styles from "../styles";
 
+const Loading = () => {
+	return (
+		<div className='app-card has-text-centered'>
+			<div className="lds-ripple"><div></div><div></div></div>
+			<p className="heading has-text-primary">Loading...</p>
+		</div>
+	)
+}
+
 const FeedCard = function (props) {
+  const [isLoading, setIsLoading] = useState(false);
   let tags = [];
   if(props.feed.feed){
     if(props.feed.feed.tags.indexOf(",") > -1)
@@ -20,6 +28,7 @@ const FeedCard = function (props) {
   }
 
   const enableFeed = () => {
+    setIsLoading(true);
     let params = {
       id: props.feed.id,
       groupid: props.currentrole.intelgroup_id
@@ -34,14 +43,18 @@ const FeedCard = function (props) {
       body: JSON.stringify(params)
     }).then(res=>{return res.json()})
     .then(res=>{
+      setIsLoading(false);
       props.saveFeed(res);
     })
   }
 
-  return (
-    <section className="section app-card" style={Styles.FeedStoreCard}>
-      <div className="columns">
-        <div className="column is-one-thirds">
+  if(isLoading){
+    return <Loading />
+  }
+  else{
+    return (
+      <section className="section app-card" style={Styles.FeedStoreCard}>
+        <div className="columns">
           <Grid container>
             <Grid item xs={12} md={10}>
               <div>
@@ -93,9 +106,9 @@ const FeedCard = function (props) {
             </Grid>
           </Grid>
         </div>
-      </div>
-    </section>
-  );
+      </section>
+    );
+  }
 }
 
 export default FeedCard;

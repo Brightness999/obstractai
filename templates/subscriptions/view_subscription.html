@@ -285,7 +285,7 @@
   form.addEventListener('submit', function(event){
     event.preventDefault();
     let selectedPlanElement = getSelectedPlanElement()
-    if(selectedPlanElement.dataset.productId > current_product_id)
+    if(selectedPlanElement.dataset.productId < current_product_id)
       if(confirm("If you downgrade, you will lose custom mapping functionality and lose API access. Are you sure to downgrade?"))
         if (getSelectedPlanElement() && !submissionPending) {
           submissionPending = true;
@@ -298,7 +298,7 @@
             },
           }).then(handlePaymentMethodCreated);
         }
-    if(selectedPlanElement.dataset.productId < current_product_id)
+    if(selectedPlanElement.dataset.productId > current_product_id)
       if (getSelectedPlanElement() && !submissionPending) {
         submissionPending = true;
         subscribeButton.classList.add('is-loading');

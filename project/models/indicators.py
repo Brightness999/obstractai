@@ -3,7 +3,7 @@ from django.db import models
 
 from apps.utils.models import BaseModel
 from .feed_items import FeedItems
-from .gobalindicators import GlobalIndicators
+from .globalindicators import GlobalIndicators
 
 class Indicators(BaseModel):
     globalindicator = models.ForeignKey(GlobalIndicators, on_delete=models.CASCADE, null=True)

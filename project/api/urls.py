@@ -26,8 +26,6 @@ urlpatterns = [
     path(r'invite', views.invite, name='invite'),
     path(r'currentrole', views.currentrole, name='currentrole'),
     path(r'categories', views.categories, name='categories'),
-    # path(r'globalindicators', views.globalindicators, name='globalindicators'),
-    # path(r'globalattributes', views.globalattributes, name='globalattributes'),
     path(r'leavegroup', views.leavegroup, name='leavegroup'),
     path(r'deleteaccount', views.deleteaccount, name='deleteaccount'),
     path(r'intelgroups', views.intelgroups, name='intelgroups'),
@@ -37,7 +35,8 @@ urlpatterns = [
     path(r'users', views.users, name='users'),
     path(r'role', views.role, name='role'),
     path(r'changegroup', views.changegroup, name='changegroup'),
-    path(r'webhook/', views.webhook, name='webhook'),
     path(r'pullfeed', views.pullfeed, name='pullfeed'),
+    path(r'webhook/', views.webhook, name='webhook'),
+    # path(r'test/', views.test, name='test'),
    
 ]

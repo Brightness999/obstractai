@@ -5,7 +5,7 @@ import {
     TextField, Container
 } from '@material-ui/core';
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
-import Alert from '@material-ui/lab/Alert';
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 import IntelgroupTable from "./intelgroup-table";
 import APIKeyTable from "./apikey-table";
@@ -76,9 +76,45 @@ const Profile = (props) => {
     return (
         <section className="semisection">
             <h1 className="title is-3">User account</h1>
-            {isSuccess && <Alert severity="success" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsSuccess(false)}>Successfully changed!!!</Alert>}
-            {isExist && <Alert severity="warning" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsExist(false)}>This email already exists. Please input another email.</Alert>}
-            {isAlert && <Alert severity="danger" className="column is-one-third my-4 title is-size-4" onClose={()=>setIsSuccess(false)}>You can't delete your account. To delete an account, there should be no group you are admin.</Alert>}
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={isSuccess}
+                onClose={()=>setIsSuccess(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="success" className="my-5 has-text-centered">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Success</AlertTitle>
+                    <span className="subtitle is-5">Successfully changed!!!</span>
+                </Alert>
+            </Dialog>
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={isExist}
+                onClose={()=>setIsExist(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="warning" className="my-5 has-text-centered">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
+                    <span className="subtitle is-5">This email already exists. Please input another email.</span>
+                </Alert>
+            </Dialog>
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={isAlert}
+                onClose={()=>setIsAlert(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="error" className="my-5 has-text-centered">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Error</AlertTitle>
+                    <span className="subtitle is-5">You can't delete your account. To delete an account, there should be no group you are admin.</span>
+                </Alert>
+            </Dialog>
             <span>
                 <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
                     setEmail(e.target.value);
@@ -153,7 +189,19 @@ const Intelgroups = (props) => {
     return (
         <section className="semisection">
             <h1 className="title is-5 py-4">Intel groups you belong to</h1>
-            {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>{message}</Alert>}
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={isAlert}
+                onClose={()=>setIsAlert(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="error" className="my-5 has-text-centered">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Error</AlertTitle>
+                    <span className="subtitle is-5">{message}</span>
+                </Alert>
+            </Dialog>
             <Table className="table is-striped is-fullwidth has-vcentered-cells">
                 <Thead>
                     <Tr>
@@ -177,12 +225,11 @@ const APIKeys = (props) => {
     const [apikeys, setAPIKeys] = useState(props.apikeys);
     const [open, setOpen] = useState(false);
     const [name, setName] = useState('');
-    const [intelgroup, setIntelgroup] = useState('0');
     const [isAlert, setIsAlert] = useState(false);
     const createAPIKey = () => {
 
-        let params = {'name': name, intelgroup_id: intelgroup}
-        if(intelgroup != '0' && name.trim() != '')
+        let params = {'name': name}
+        if(name.trim() != '')
             fetch('/api/apikeys', {
                 method: 'post',
                 headers: {
@@ -235,27 +282,6 @@ const APIKeys = (props) => {
                     <div className="semisection">
                         <TextField id="outlined-basic" size="small" placeholder="name" variant="outlined" onChange={(e)=>setName(e.target.value)} />
                     </div>
-                    <div className="semisection">
-                        <TextField
-                            id="outlined-select-currency-native"
-                            select
-                            fullWidth
-                            size="small"
-                            value={intelgroup}
-                            onChange={(e)=>setIntelgroup(e.target.value)}
-                            SelectProps={{
-                                native: true,
-                            }}
-                            variant="outlined"
-                        >
-                            <option value="0">Select Intel group</option>
-                            {props.intelgroups.map((intelgroup) => (
-                                <option key={intelgroup.id} value={intelgroup.intelgroup.id}>
-                                {intelgroup.intelgroup.name}
-                                </option>
-                            ))}
-                        </TextField>
-                    </div>
                 </DialogContent>
                 <DialogActions>
                     <button onClick={()=>{createAPIKey();}} className="button is-success" autoFocus>
@@ -271,13 +297,13 @@ const APIKeys = (props) => {
                     <Tr>
                         <Th>API Key</Th>
                         <Th>Name</Th>
-                        <Th>Intel Group</Th>
+                        <Th>Intel Groups</Th>
                         <Th>Action</Th>
                     </Tr>
                 </Thead>
                 <Tbody>
                     {apikeys.map((apikey, index)=>{
-                        return <APIKeyTable index={index} key={apikey.id} apikey={apikey} deleteAPIKey={(index)=>deleteAPIKey(index)} />
+                        return <APIKeyTable index={index} key={apikey.id} apikey={apikey} deleteAPIKey={(index)=>deleteAPIKey(index)} intelgroups={props.intelgroups} />
                             
                     })}
                 </Tbody>
@@ -291,12 +317,13 @@ const WebHooks = (props) => {
     const [isAlert, setIsAlert] = useState(false);
     const [description, setDescription] = useState('');
     const [endpoint, setEndpoint] = useState('');
+    const [words, setWords] = useState('');
     const [intelgroup, setIntelgroup] = useState('0');
     const [open, setOpen] = useState(false);
 
     const createWebhook = () => {
-        let params = {'endpoint': endpoint, intelgroup_id: intelgroup, description:description}
-        if(intelgroup != '0' && endpoint.trim() != '' && description != '')
+        let params = {endpoint: endpoint.trim(), intelgroup_id: intelgroup, description:description.trim(), words:words.trim()}
+        if(intelgroup != '0' && endpoint.trim() != '' && description.trim() != '')
             fetch('/api/webhooks', {
                 method: 'post',
                 headers: {
@@ -333,15 +360,16 @@ const WebHooks = (props) => {
                 <DialogContent>
                     {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
                     <div className="semisection">
-                        <TextField id="outlined-basic1" size="small" placeholder="https://..." variant="outlined" onChange={(e)=>setEndpoint(e.target.value)} />
+                        <TextField id="outlined-basic1" label="Destination" InputLabelProps={{shrink: true,}} size="small" placeholder="https://..." variant="outlined" onChange={(e)=>setEndpoint(e.target.value)} />
                     </div>
                     <div className="semisection">
-                        <TextField id="outlined-basic2" size="small" placeholder="Description" variant="outlined" onChange={(e)=>setDescription(e.target.value)} />
+                        <TextField id="outlined-basic" label="Description" InputLabelProps={{shrink: true,}} size="small" placeholder="Description" variant="outlined" onChange={(e)=>setDescription(e.target.value)} />
                     </div>
                     <div className="semisection">
                         <TextField
                             id="outlined-select-currency-native"
                             select
+                            label="Intel groups to listen on"
                             fullWidth
                             size="small"
                             value={intelgroup}
@@ -351,13 +379,16 @@ const WebHooks = (props) => {
                             }}
                             variant="outlined"
                         >
-                            <option value="0">Select Intel group</option>
+                            <option value="0"></option>
                             {props.intelgroups.map((intelgroup) => (
                                 <option key={intelgroup.id} value={intelgroup.intelgroup.id}>
                                 {intelgroup.intelgroup.name}
                                 </option>
                             ))}
                         </TextField>
+                    </div>
+                    <div className="semisection">
+                    <TextField id="outlined-basic2" label="Words to listen on" InputLabelProps={{shrink: true,}} size="small" placeholder="words to listen on" variant="outlined" onChange={(e)=>setWords(e.target.value)} />
                     </div>
                 </DialogContent>
                 <DialogActions>
@@ -375,6 +406,7 @@ const WebHooks = (props) => {
                         <Th>Endpoint</Th>
                         <Th>Description</Th>
                         <Th>Intel Group</Th>
+                        <Th>Words</Th>
                         <Th>Action</Th>
                     </Tr>
                 </Thead>

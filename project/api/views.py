@@ -659,7 +659,7 @@ def apireports(request):
 			'uuid':report['feeditem']['uniqueid'],
 			'channelid':FeedChannels.objects.filter(feed_id=report['feeditem']['feed']['id']).last().uniqueid,
 			'groupid':report['intelgroup']['uniqueid'],
-			'url':'https://sherlock-staging.obstractai.com/home/intelreports/'+str(report['id']),
+			'url':f'https://{settings.SITE}/home/intelreports/'+str(report['id']),
 			'added_time':report['created_at'],
 			'data':{
 				'Title':report['feeditem']['title'],
@@ -1734,7 +1734,7 @@ def feeds(request):
 						'uuid': webhook.uniqueid,
 						'channel': channelunique,
 						'intelgroup': groupunique,
-						'reporturl': "sherlock-staging.obstractai.com/home/report/"+str(IntelReports.objects.last().id),
+						'reporturl': f"{settings.SITE}/home/report/"+str(IntelReports.objects.last().id),
 						'addedtime': IntelReports.objects.last().created_at,
 						'data': {
 							'title': item.title,
@@ -1797,7 +1797,7 @@ def feeds(request):
 						'uuid': webhook.uniqueid,
 						'channel': channelunique,
 						'intelgroup': groupunique,
-						'reporturl': "sherlock-staging.obstractai.com/home/report/"+str(IntelReports.objects.last().id),
+						'reporturl': f"{settings.SITE}/home/report/"+str(IntelReports.objects.last().id),
 						'addedtime': IntelReports.objects.last().created_at,
 						'data': {
 							'title': item.title,
@@ -2040,7 +2040,7 @@ def feedenable(request):
 					'uuid': webhook.uniqueid,
 					'channel': channelunique,
 					'intelgroup': groupunique,
-					'reporturl': "sherlock-staging.obstractai.com/home/report/"+str(IntelReports.objects.filter(feeditem_id=item.id).last().id),
+					'reporturl': f"{settings.SITE}/home/report/"+str(IntelReports.objects.filter(feeditem_id=item.id).last().id),
 					'addedtime': IntelReports.objects.filter(feeditem_id=item.id).last().created_at,
 					'data': {
 						'title': item.title,
@@ -2170,15 +2170,15 @@ def invite(request):
 			from_email=settings.FROM_EMAIL,
 			to_emails=request.data['emails'],
 			subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-			html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>
+			html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
 			<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-			<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
+			<strong>Reply-to:</strong><span>{settings.REPLY}com</span><br/>
 			<strong>Title:</strong><span>You've been invited to join the {groupname} Intel Group on Cyobstract</span><br/>
 			<p>Hello!</p>
 			<p>kardzavaryan@gmail.com has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
 			<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
 			<p>To confirm or reject this invitation, click the link below.</p>
-			<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
+			<p><a href={settings.URL}>{settings.SITE}</a></p>
 			<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
 			<p>Sherlock and the Cyobstract Team</p>''')
 		try:
@@ -2332,15 +2332,15 @@ def intelgroups(request):
 				from_email=settings.FROM_EMAIL,
 				to_emails=request.data['emails'],
 				subject=f'You’ve been invited to join the {name} Intel Group on Cyobstract',
-				html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>
+				html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
 				<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-				<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
+				<strong>Reply-to:</strong><span>{settings.REPLY}</span><br/>
 				<strong>Title:</strong><span>You've been invited to join the {name} Intel Group on Cyobstract</span><br/>
 				<p>Hello!</p>
 				<p>kardzavaryan@gmail.com has invited to join the {name} Intel Group on Cyobstract as a Member.</p>
 				<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.</p>
 				<p>To confirm or reject this invitation, click the link below.</p>
-				<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
+				<p><a href={settings.URL}>{settings.SITE}</a></p>
 				<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
 				<p>Sherlock and the Cyobstract Team</p>''')
 			try:
@@ -2381,14 +2381,14 @@ def acceptinvite(request):
 		from_email=settings.FROM_EMAIL,
 		to_emails=request.user.email,
 		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-		html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>
+		html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
 		<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-		<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
+		<strong>Reply-to:</strong><span>{settings.REPLY}</span><br/>
 		<strong>Title:</strong><span>{useremail} has accepted your invitation to join {groupname}</span><br/>
 		<p>Hello!</p>
 		<p>This email is just to confirm {useremail} has accepted your invitation to join {groupname}</p>
 		<p>To manage members in your intel group, click the link below.</p>
-		<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
+		<p><a href={settings.URL}>{settings.SITE}</a></p>
 		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
 		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
@@ -2412,15 +2412,15 @@ def rejectinvite(request):
 		from_email=settings.FROM_EMAIL,
 		to_emails=request.user.email,
 		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-		html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>
+		html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
 		<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-		<strong>Reply-to:</strong><span>sherlock@cyobstract.com</span><br/>
+		<strong>Reply-to:</strong><span>{settings.REPLY}</span><br/>
 		<strong>Title:</strong><span>{useremail} has rejected your invitation to join {groupname}</span><br/>
 		<p>Hello!</p>
 		<p>{useremail} has rejected your invitation to join {groupname}</p>
 		<p>If you think this is a mistake, you can resend the invitation to {useremail} to join {groupname}.</p>
 		<p>To manage members in your intel group, click the link below:</p>
-		<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
+		<p><a href={settings.URL}>{settings.SITE}</a></p>
 		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
 		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)

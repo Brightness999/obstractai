@@ -313,4 +313,7 @@ STRIPE_LIVE_MODE = False  # Change to True in production
 DJSTRIPE_WEBHOOK_SECRET = os.environ.get("DJSTRIPE_WEBHOOK_SECRET", "whsec_wAo9D0lTNnQqSA0cqS5yeQOnD7KJuU1r")
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 FROM_EMAIL = os.environ.get('FROM_EMAIL')
-
+FROM = os.environ.get('FROM')
+REPLY = os.environ.get('REPLY')
+URL = os.environ.get('URL')
+SITE = os.environ.get('SITE')

@@ -41,12 +41,17 @@ class ProductWithMetadataAPI(APIView):
 
 @redirect_subscription_errors
 @login_required
-def subscription(request, subscription_holder=None, groupid=2):
+def subscription(request, subscription_holder=None, groupid=0):
     subscription_holder = subscription_holder if subscription_holder else request.user
-    if IntelGroups.objects.filter(id=groupid).values()[0]['plan_id'] != None:
+    if groupid == 0:
+        subid = CustomUser.objects.filter(id=request.user.id).last().subscription_id
+        groupid = IntelGroups.objects.filter(plan_id=subid).last().id
         return _view_subscription(request, subscription_holder, groupid)
     else:
-        return _upgrade_subscription(request, subscription_holder, groupid)
+        if IntelGroups.objects.filter(id=groupid).values()[0]['plan_id'] != None:
+            return _view_subscription(request, subscription_holder, groupid)
+        else:
+            return _upgrade_subscription(request, subscription_holder, groupid)
 
 
 def _view_subscription(request, subscription_holder, groupid):

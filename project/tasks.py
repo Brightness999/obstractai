@@ -169,7 +169,14 @@ def feed(self):
                                     Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'filepath' and len(results[result])>0:
                                 if feedcreated:
-                                    Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+                                    temp = []
+                                    for re in results[result]:
+                                        if '\t' in re or '\n' in re or r'\u20' in re:
+                                            temp = list(results[result]).remove(re)
+                                    if temp != None:
+                                        if temp != []:
+                                            temp.reverse()
+                                            Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                                 else:
                                     Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                             elif result == 'regkey' and len(results[result])>0:
@@ -322,7 +329,14 @@ def feed(self):
                                 Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'filepath' and len(results[result])>0:
                             if feedcreated:
-                                Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+                                temp = []
+                                for re in results[result]:
+                                    if '\t' in re or '\n' in re or r'\u20' in re:
+                                        temp = list(results[result]).remove(re)
+                                if temp != None:
+                                    if temp != []:
+                                        temp.reverse()
+                                        Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
                             else:
                                 Indicators.objects.filter(feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id']).update(value=','.join(results[result]), isenable=True)
                         elif result == 'regkey' and len(results[result])>0:

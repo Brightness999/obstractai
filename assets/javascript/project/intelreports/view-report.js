@@ -48,26 +48,88 @@ const ViewReport = (props) => {
 						if(index>astart[i] && index<alast[i]){
 							target = str.substring(astart[i], alast[i]+2);
 							let target1 = target.substring(0,2) + " style='background:#faeb42;'" + target.substr(2);
-							str = str.replace(target, `<Tooltip title="${indicator.globalindicator.value}=${url}" arrow>${target1}</Tooltip>`)
+							str = str.replace(target, `<Tooltip title="${indicator.globalindicator.value}=${url}">${target1}</Tooltip>`)
 						}
 					}
 				});
 			}
 			if(indicator.globalindicator.value == 'CVE'){
-				console.log(str.substring(6100,6431))
-				console.log(str.substring(6450,6600))
 				let items = indicator.value.split(',');
 				items.forEach(item => {
-					console.log(item)
-					let reg = new RegExp(item), result, ids = [];
-					let re = /17049/gi
-					while ( (result = re.exec(str)) ) {
+					let reg = new RegExp('>'+item+'<', 'g'), result, ids = [];
+					while ( (result = reg.exec(str)) ) {
 						ids.push(result.index);
 					}
-					console.log(ids);
+					console.log(str.substring(400,500));
+					for(let i=0;i<ids.length;i++){
+						let target = str.substring(ids[i]+1, ids[i]+item.length+1);
+						let target1 = "<span style='background:#faeb42;'>" + target + "</span>";
+						let target2 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target1}</Tooltip>`;
+						for(let j=i+1;j<ids.length;j++){
+							ids[j] = ids[j] + target2.length - target.length;
+						}
+						str = str.replace(target, target2);
+					}
 				});
 			}
+			if(indicator.globalindicator.value == 'Topic'){
+				let items = indicator.value.split(',');
+				items.forEach(item => {
+					let reg = new RegExp(item, 'gi'), result, ids = [];
+					while ( (result = reg.exec(str)) ) {
+						ids.push(result.index);
+					}
+					for(let i=0;i<ids.length;i++){
+						let target = str.substring(ids[i], ids[i]+item.length+1);
+						let target1 = "<span style='background:#faeb42;'>" + target + "</span>";
+						let target2 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target1}</Tooltip>`;
+						for(let j=i+1;j<ids.length;j++){
+							ids[j] = ids[j] + target2.length - target.length;
+						}
+						str = str.replace(target, target2);
+					}
+				});
+			}
+			if(indicator.globalindicator.value == 'Filename'){
+				let items = indicator.value.split(',');
+				let imgstart = new RegExp('<img', 'gi'), result, start = [], last=[];
+				while ( (result = imgstart.exec(str)) ) {
+					start.push(result.index);
+				}
+				start.forEach(s => {
+					for(let i=0;i<str.length;i++){
+						let p=0
+						if(str[i] == '>' && i > s){
+							p++;
+							if(p == 1){
+								last.push(i);
+								break;
+							}
+						}
+					}
+				});
+				for(let i=0;i<start.length;i++){
+					let temp=[];
+					items.forEach(item => {
+						let reg = new RegExp(item, 'gi'), result, ids=[];
+						while ( (result = reg.exec(str)) ) {
+							ids.push(result.index);
+						}
+						if(ids[0]>start[i] && ids[0]<last[i]){
+							temp.push(item);
+						}
+					});
+					let target = str.substring(start[i], last[i]+1);
+					let target1 = `<Tooltip title="${indicator.globalindicator.value}=${temp.join(',')}">${target}</Tooltip>`;
+					for(let j=i+1;j<start.length;j++){
+						start[j] = start[j] + target1.length-target.length;
+						last[j] = last[j] + target1.length-target.length;
+					}
+					str = str.replace(target, target1)
+				}
+			}
 		});
+		
 		let words = [];
 		classifications.forEach(classification => {
 			if(classification.words_matched.indexOf(",")>-1){

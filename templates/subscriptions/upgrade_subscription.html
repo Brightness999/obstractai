@@ -38,15 +38,10 @@
   {% endif %}
   <div class="columns my-2" id="plan-selector">
     {% for product in active_products %}
-      <div class="column">
+      <div class="column has-text-centered">
         <div class="plan{% if product.metadata.is_default %} is-selected{% endif %}"
              data-product-id="{{ product.stripe_id }}" data-plan-id="{{ product.default_plan.id }}" >
-          <div class="plan-summary">
-            <div class="plan-icon">
-              <span class="icon is-medium">
-                <i class="fa"></i>
-              </span>
-            </div>
+          <div class="has-text-centered">
             <div class="plan-details">
               <p class="title is-size-4">{{ product.metadata.name }}</p>
             </div>
@@ -229,8 +224,8 @@
   const helpLabel = document.getElementById('plan-help');
   const planElements = document.getElementsByClassName('plan');
   const paymentDetailsElement = document.getElementById('payment-details');
-  const annualHelpText = "You're getting two months free by choosing an Annual plan!";
-  const monthlyHelpText = "Upgrade to annual pricing to get two free months.";
+  const annualHelpText = " ";
+  const monthlyHelpText = " ";
 
   const updatePlans = function (isAnnual) {
     for (let i = 0; i < planElements.length; i++) {

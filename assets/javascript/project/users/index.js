@@ -53,7 +53,7 @@ const UserList = function(props) {
 					<span>Back</span>
 				</button>
 				{ props.group_role == 2 ? 
-						<Link to="/new" >
+						<Link to="/users/new" >
 							<button className="button is-primary is-pulled-right">
 								<span>Add New Users</span>
 							</button>
@@ -213,16 +213,14 @@ const User = (props) => {
   };
 	
 	return (
-	<Router basename="users">
 	  <Switch>
-		<Route path="/new">
+		<Route path="/users/new">
 		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}
 		</Route>
 	   </Switch>
-	</Router>
   );
 };
 export default User;

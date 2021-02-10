@@ -78,7 +78,7 @@ const UpdateUser = function(props) {
         if(!Boolean(res[0].role)){
           props.userSaved(res);
         } 
-        history.push(`/${props.group_id}`);
+        history.push('/users');
       })
     }
   };

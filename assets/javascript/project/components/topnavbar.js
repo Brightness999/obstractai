@@ -30,9 +30,9 @@ const TopNavBar = (props) => {
 					</a>
 					<img src="/static/images/favicons/logo.png" alt=""/>
 					<a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="nav-menu">
-					<span aria-hidden="true"></span>
-					<span aria-hidden="true"></span>
-					<span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span>
 					</a>
 				</div>
 				<div className="navbar-menu" id="nav-menu">
@@ -50,7 +50,7 @@ const TopNavBar = (props) => {
 									history.push('/newgroup');
 								}
 								else{
-									setIntelGroup(event.target.value); 
+									setIntelGroup(event.target.value);
 									if(event.target.value != "")
 										props.currentIntelgroup(event.target.value);}}
 								}

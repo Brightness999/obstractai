@@ -22,10 +22,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'mTMhZsVDjurGMIIswFuMKjxiBjomVaFEddqLmpCk'
+SECRET_KEY = os.environ.get("SECRET_KEY", "mTMhZsVDjurGMIIswFuMKjxiBjomVaFEddqLmpCk")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", True)
+if DEBUG == 'False':
+    DEBUG = False
+else:
+    DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -74,14 +78,12 @@ PROJECT_APPS = [
     'apps.users.apps.UserConfig',
     'apps.web',
     'project',
-
 ]
 
 SWAGGER_APPS = [
     'rest_framework_swagger',
     'drf_yasg',
 ]
-
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS
 
@@ -249,10 +251,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'pro_dev_master@outlook.com'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'pro_dev_master@outlook.com')
 EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'TestSite Team <noreply@example.com>'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'TestSite Team <noreply@example.com>')
 
 
 
@@ -299,14 +301,15 @@ GOOGLE_ANALYTICS_ID = ''  # replace with your google analytics ID to connect to 
 # Stripe config
 
 # modeled to be the same as https://github.com/dj-stripe/dj-stripe
-STRIPE_LIVE_PUBLIC_KEY = os.environ.get("STRIPE_LIVE_PUBLIC_KEY", "<your publishable key>")
-STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "<your secret key>")
+STRIPE_LIVE_PUBLIC_KEY = os.environ.get("STRIPE_LIVE_PUBLIC_KEY", "pk_test_51I23PwB18Gnog6TA2VN0rO5yBlAZEXg948Sc8LDvz984XX17NSb8nAltALV17iQeu52xH5ui3CjnrNav9HpeH8Wq00Pn4reFTM")
+STRIPE_LIVE_SECRET_KEY = os.environ.get("STRIPE_LIVE_SECRET_KEY", "sk_test_51I23PwB18Gnog6TAltiT1a4Zgq0tIn2uMcduIhOIlS2kdySIDvVAWjqDPxtGskBD40s7gYfaVnItqfdajr8xbSCZ00cB34FCZQ")
 STRIPE_TEST_PUBLIC_KEY = os.environ.get("STRIPE_TEST_PUBLIC_KEY", "pk_test_51I23PwB18Gnog6TA2VN0rO5yBlAZEXg948Sc8LDvz984XX17NSb8nAltALV17iQeu52xH5ui3CjnrNav9HpeH8Wq00Pn4reFTM")
 STRIPE_TEST_SECRET_KEY = os.environ.get("STRIPE_TEST_SECRET_KEY", "sk_test_51I23PwB18Gnog6TAltiT1a4Zgq0tIn2uMcduIhOIlS2kdySIDvVAWjqDPxtGskBD40s7gYfaVnItqfdajr8xbSCZ00cB34FCZQ")
 STRIPE_LIVE_MODE = False  # Change to True in production
 
 # Get it from the section in the Stripe dashboard where you added the webhook endpoint
 # or from the stripe CLI when testing
-DJSTRIPE_WEBHOOK_SECRET = "whsec_wAo9D0lTNnQqSA0cqS5yeQOnD7KJuU1r"
+
+DJSTRIPE_WEBHOOK_SECRET = os.environ.get("DJSTRIPE_WEBHOOK_SECRET", "whsec_wAo9D0lTNnQqSA0cqS5yeQOnD7KJuU1r")
 
 

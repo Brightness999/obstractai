@@ -37,6 +37,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from pegasus.apps.examples.tasks import progress_bar_task
 from rest_framework import generics
+from django.conf import settings
 
 from ..models import (APIKeys, Attributes, Categories, FeedChannels, FeedItems,
                       Feeds, GlobalAttributes, GlobalIndicators, GroupFeeds,
@@ -732,7 +733,7 @@ def apigroups(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def webhook(request):
-	endpoint_secret = os.environ.get('DJSTRIPE_WEBHOOK_SECRET')
+	endpoint_secret = settings.DJSTRIPE_WEBHOOK_SECRET
 	payload = request.body
 	sig_header = request.META['HTTP_STRIPE_SIGNATURE']
 	event = None
@@ -2181,7 +2182,7 @@ def invite(request):
 			<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
 			<p>Sherlock and the Cyobstract Team</p>''')
 		try:
-			sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+			sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
 			response = sg.send(message)
 			print(response.status_code)
 		except Exception as e:
@@ -2343,7 +2344,7 @@ def intelgroups(request):
 				<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
 				<p>Sherlock and the Cyobstract Team</p>''')
 			try:
-				sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+				sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
 				response = sg.send(message)
 				print(response.status_code)
 			except Exception as e:
@@ -2390,7 +2391,7 @@ def acceptinvite(request):
 		<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
 		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
-		sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
 		response = sg.send(message)
 		print(response.status_code)
 	except Exception as e:
@@ -2422,7 +2423,7 @@ def rejectinvite(request):
 		<p><a href="http://sherlock-staging.obstractai.com">sherlock-staging.obstractai.com</a></p>
 		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
-		sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
 		response = sg.send(message)
 		print(response.status_code)
 	except Exception as e:

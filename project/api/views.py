@@ -2153,7 +2153,6 @@ def indicators(request):
 def invite(request):
 	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
 	subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
-	from_email = os.environ.get('FROM_EMAIL')
 	flag = False
 	if subid == None:
 		if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=30):
@@ -2168,7 +2167,7 @@ def invite(request):
 	if flag:
 		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
 		message = Mail(
-			from_email=from_email,
+			from_email=settings.FROM_EMAIL,
 			to_emails=request.data['emails'],
 			subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 			html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>
@@ -2322,7 +2321,6 @@ def intelgroups(request):
 		users = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True)
 		return Response({'intelgroups':groups.data, 'users':users.data})
 	if request.method == 'POST':
-		from_email = os.environ.get('FROM_EMAIL')
 		if 'name' in request.data:
 			name = ''
 			if(request.data['name'] == ''):
@@ -2331,7 +2329,7 @@ def intelgroups(request):
 			else:
 				name = request.data['name']
 			message = Mail(
-				from_email=from_email,
+				from_email=settings.FROM_EMAIL,
 				to_emails=request.data['emails'],
 				subject=f'You’ve been invited to join the {name} Intel Group on Cyobstract',
 				html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>
@@ -2379,9 +2377,8 @@ def acceptinvite(request):
 	useremail = CustomUser.objects.filter(id=userid).last().email
 	groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
 	groupname = IntelGroups.objects.filter(id=groupid).last().name
-	from_email = os.environ.get('FROM_EMAIL')
 	message = Mail(
-		from_email=from_email,
+		from_email=settings.FROM_EMAIL,
 		to_emails=request.user.email,
 		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 		html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>
@@ -2411,9 +2408,8 @@ def rejectinvite(request):
 	groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
 	groupname = IntelGroups.objects.filter(id=groupid).last().name
 	UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
-	from_email = os.environ.get('FROM_EMAIL')
 	message = Mail(
-		from_email=from_email,
+		from_email=settings.FROM_EMAIL,
 		to_emails=request.user.email,
 		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 		html_content=f'''<strong>From:</strong><span>sherlock@mg.obstract.ai</span><br/>

@@ -311,5 +311,6 @@ STRIPE_LIVE_MODE = False  # Change to True in production
 # or from the stripe CLI when testing
 
 DJSTRIPE_WEBHOOK_SECRET = os.environ.get("DJSTRIPE_WEBHOOK_SECRET", "whsec_wAo9D0lTNnQqSA0cqS5yeQOnD7KJuU1r")
-
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+FROM_EMAIL = os.environ.get('FROM_EMAIL')
 

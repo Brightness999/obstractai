@@ -7768,7 +7768,9 @@ img.socialicon {
     margin-bottom: 1.5em; }
 
 .navbar {
-  box-shadow: 0 2px 4px rgba(55, 63, 67, 0.3); }
+  box-shadow: 0 2px 4px rgba(55, 63, 67, 0.3);
+  padding-top: 10px;
+  padding-bottom: 10px; }
   @media screen and (max-width: 1023px) {
     .navbar .navbar-item.is-active {
       background-color: inherit; } }

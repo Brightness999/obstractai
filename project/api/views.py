@@ -1500,23 +1500,30 @@ def feeds(request):
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'useragent' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='user agent', value_api=result)
+									GlobalIndicators.objects.create(type='System', type_api='system', value='User Agent', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'email' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='email address', value_api=result)
+									GlobalIndicators.objects.create(type='System', type_api='system', value='Email Address', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'filename' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='filename', value_api=result)
+									GlobalIndicators.objects.create(type='System', type_api='system', value='Filename', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'filepath' and len(results[result])>0:
-								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
-								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+								temp = []
+								for re in results[result]:
+									if '\t' in re or '\n' in re or r'\u20' in re:
+										temp = list(results[result]).remove(re)
+								if temp != None:
+									if temp != []:
+										temp.reverse()
+										if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+											GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+										Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'regkey' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='registry key', value_api=result)
+									GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'asn' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
@@ -1524,11 +1531,11 @@ def feeds(request):
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'asnown' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN owner', value_api=result)
+									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN Owner', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'cc' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='country', value_api=result)
+									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='Country', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'isp' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
@@ -1540,19 +1547,19 @@ def feeds(request):
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'malware' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='malware', value_api=result)
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Malware', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'attacktype' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='attack type', value_api=result)
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Attack Type', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'incident' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='incident', value_api=result)
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Incident', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'topic' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='topic', value_api=result)
+									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Topic', value_api=result)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							else:
 								print('indicator->', result)
@@ -1635,23 +1642,30 @@ def feeds(request):
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'useragent' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='user agent', value_api=result)
+										GlobalIndicators.objects.create(type='System', type_api='system', value='User Agent', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'email' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='email address', value_api=result)
+										GlobalIndicators.objects.create(type='System', type_api='system', value='Email Address', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'filename' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='filename', value_api=result)
+										GlobalIndicators.objects.create(type='System', type_api='system', value='Filename', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'filepath' and len(results[result])>0:
-									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
-									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+									temp = []
+									for re in results[result]:
+										if '\t' in re or '\n' in re or r'\u20' in re:
+											temp = list(results[result]).remove(re)
+									if temp != None:
+										if temp != []:
+											temp.reverse()
+											if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+												GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+											Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'regkey' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='registry key', value_api=result)
+										GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'asn' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
@@ -1659,11 +1673,11 @@ def feeds(request):
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'asnown' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN owner', value_api=result)
+										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN Owner', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'cc' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='country', value_api=result)
+										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='Country', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'isp' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
@@ -1675,19 +1689,19 @@ def feeds(request):
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'malware' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='malware', value_api=result)
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Malware', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'attacktype' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='attack type', value_api=result)
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Attack Type', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'incident' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='incident', value_api=result)
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Incident', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'topic' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='topic', value_api=result)
+										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Topic', value_api=result)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								else:
 									print('indicator->', result)

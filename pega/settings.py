@@ -290,7 +290,7 @@ PROJECT_METADATA = {
     'DESCRIPTION': 'pega',
     'IMAGE': 'https://upload.wikimedia.org/wikipedia/commons/2/20/PEO-pegasus_black.svg',
     'KEYWORDS': 'SaaS, django',
-    'CONTACT_EMAIL': 'kardzavaryan@gmail.com',
+    'CONTACT_EMAIL': os.environ.get('CONTACT_EMAIL'),
 }
 
 

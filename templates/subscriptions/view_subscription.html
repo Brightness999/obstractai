@@ -75,8 +75,8 @@
   const annualSelector = document.getElementById('plan-selector-year');
   const helpLabel = document.getElementById('plan-help');
   const planElements = document.getElementsByClassName('plan');
-  const annualHelpText = "You're getting two months free by choosing an Annual plan!";
-  const monthlyHelpText = "Upgrade to annual pricing to get two free months.";
+  const annualHelpText = " ";
+  const monthlyHelpText = " ";
   const defaultAnnual = '{{ default_to_annual }}' === 'True';
   const stripe = Stripe('{{ stripe_api_key }}');
   const userEmail = '{{ user.email }}';

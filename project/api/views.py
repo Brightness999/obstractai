@@ -2167,7 +2167,7 @@ def invite(request):
 	if flag:
 		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
 		message = Mail(
-			from_email=settings.FROM_EMAIL,
+			from_email=settings.USER_EMAIL,
 			to_emails=request.data['emails'],
 			subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 			html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
@@ -2175,10 +2175,10 @@ def invite(request):
 			<strong>Reply-to:</strong><span>{settings.REPLY}com</span><br/>
 			<strong>Title:</strong><span>You've been invited to join the {groupname} Intel Group on Cyobstract</span><br/>
 			<p>Hello!</p>
-			<p>kardzavaryan@gmail.com has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
+			<p>{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
 			<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
 			<p>To confirm or reject this invitation, click the link below.</p>
-			<p><a href={settings.URL}>{settings.SITE}</a></p>
+			<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
 			<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
 			<p>Sherlock and the Cyobstract Team</p>''')
 		try:
@@ -2329,7 +2329,7 @@ def intelgroups(request):
 			else:
 				name = request.data['name']
 			message = Mail(
-				from_email=settings.FROM_EMAIL,
+				from_email=settings.USER_EMAIL,
 				to_emails=request.data['emails'],
 				subject=f'You’ve been invited to join the {name} Intel Group on Cyobstract',
 				html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
@@ -2337,10 +2337,10 @@ def intelgroups(request):
 				<strong>Reply-to:</strong><span>{settings.REPLY}</span><br/>
 				<strong>Title:</strong><span>You've been invited to join the {name} Intel Group on Cyobstract</span><br/>
 				<p>Hello!</p>
-				<p>kardzavaryan@gmail.com has invited to join the {name} Intel Group on Cyobstract as a Member.</p>
+				<p>{settings.USER_EMAIL} has invited to join the {name} Intel Group on Cyobstract as a Member.</p>
 				<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.</p>
 				<p>To confirm or reject this invitation, click the link below.</p>
-				<p><a href={settings.URL}>{settings.SITE}</a></p>
+				<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
 				<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
 				<p>Sherlock and the Cyobstract Team</p>''')
 			try:
@@ -2378,7 +2378,7 @@ def acceptinvite(request):
 	groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
 	groupname = IntelGroups.objects.filter(id=groupid).last().name
 	message = Mail(
-		from_email=settings.FROM_EMAIL,
+		from_email=settings.USER_EMAIL,
 		to_emails=request.user.email,
 		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 		html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
@@ -2388,7 +2388,7 @@ def acceptinvite(request):
 		<p>Hello!</p>
 		<p>This email is just to confirm {useremail} has accepted your invitation to join {groupname}</p>
 		<p>To manage members in your intel group, click the link below.</p>
-		<p><a href={settings.URL}>{settings.SITE}</a></p>
+		<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
 		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
 		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
@@ -2409,7 +2409,7 @@ def rejectinvite(request):
 	groupname = IntelGroups.objects.filter(id=groupid).last().name
 	UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 	message = Mail(
-		from_email=settings.FROM_EMAIL,
+		from_email=settings.USER_EMAIL,
 		to_emails=request.user.email,
 		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 		html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
@@ -2420,7 +2420,7 @@ def rejectinvite(request):
 		<p>{useremail} has rejected your invitation to join {groupname}</p>
 		<p>If you think this is a mistake, you can resend the invitation to {useremail} to join {groupname}.</p>
 		<p>To manage members in your intel group, click the link below:</p>
-		<p><a href={settings.URL}>{settings.SITE}</a></p>
+		<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
 		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
 		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)

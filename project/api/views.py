@@ -16,6 +16,7 @@ from cyobstract import extract
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Q
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -659,7 +660,7 @@ def apireports(request):
 			'uuid':report['feeditem']['uniqueid'],
 			'channelid':FeedChannels.objects.filter(feed_id=report['feeditem']['feed']['id']).last().uniqueid,
 			'groupid':report['intelgroup']['uniqueid'],
-			'url':f'https://{settings.SITE}/home/intelreports/'+str(report['id']),
+			'url':f'{settings.SITE_ROOT_URL}/home/intelreports/'+str(report['id']),
 			'added_time':report['created_at'],
 			'data':{
 				'Title':report['feeditem']['title'],
@@ -1734,7 +1735,7 @@ def feeds(request):
 						'uuid': webhook.uniqueid,
 						'channel': channelunique,
 						'intelgroup': groupunique,
-						'reporturl': f"{settings.SITE}/home/report/"+str(IntelReports.objects.last().id),
+						'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
 						'addedtime': IntelReports.objects.last().created_at,
 						'data': {
 							'title': item.title,
@@ -1797,7 +1798,7 @@ def feeds(request):
 						'uuid': webhook.uniqueid,
 						'channel': channelunique,
 						'intelgroup': groupunique,
-						'reporturl': f"{settings.SITE}/home/report/"+str(IntelReports.objects.last().id),
+						'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
 						'addedtime': IntelReports.objects.last().created_at,
 						'data': {
 							'title': item.title,
@@ -2040,7 +2041,7 @@ def feedenable(request):
 					'uuid': webhook.uniqueid,
 					'channel': channelunique,
 					'intelgroup': groupunique,
-					'reporturl': f"{settings.SITE}/home/report/"+str(IntelReports.objects.filter(feeditem_id=item.id).last().id),
+					'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.filter(feeditem_id=item.id).last().id),
 					'addedtime': IntelReports.objects.filter(feeditem_id=item.id).last().created_at,
 					'data': {
 						'title': item.title,

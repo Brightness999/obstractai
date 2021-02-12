@@ -80,12 +80,20 @@ PROJECT_APPS = [
     'project',
 ]
 
+TWO_FACTOR_AUTHENTICATION = [
+    'django_otp',
+    'django_otp.plugins.otp_static',
+    'django_otp.plugins.otp_totp',
+    'two_factor',
+    'otp_yubikey',
+]
+
 SWAGGER_APPS = [
     'rest_framework_swagger',
     'drf_yasg',
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS + TWO_FACTOR_AUTHENTICATION
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -95,6 +103,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_otp.middleware.OTPMiddleware',
 ]
 
 ROOT_URLCONF = 'pega.urls'
@@ -145,11 +154,11 @@ DATABASES = {
 # Django recommends overriding the user model even if you don't think you need to because it makes
 # future changes much easier.
 AUTH_USER_MODEL = 'users.CustomUser'
-LOGIN_REDIRECT_URL = '/'
-# LOGIN_URL = 'two_factor:login'
+# LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = 'two_factor:login'
 
 # this one is optional
-# LOGIN_REDIRECT_URL = 'two_factor:profile'
+LOGIN_REDIRECT_URL = 'two_factor:profile'
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
 

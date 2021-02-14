@@ -1,11 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import {
-		BrowserRouter as Router,
-		Switch,
-		Route,
-		Link,
-		useHistory,
-} from "react-router-dom";
+import { Switch, Route, Link, useHistory } from "react-router-dom";
+import { Container } from "@material-ui/core";
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 import { Alert, AlertTitle } from '@material-ui/lab';
 
@@ -41,6 +36,7 @@ const UserList = function(props) {
 	if(props.group_role == 2) action = 'Action'
 	else action = '';
 	return (
+		<Container>
 		<section className="section app-card">
 			{props.isInit&&
 			<Alert severity="info" className="my-5">
@@ -82,6 +78,7 @@ const UserList = function(props) {
 				</Tbody>
 			</Table>
 		</section>
+		</Container>
 	);
 };
 

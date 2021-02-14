@@ -1,3 +1,4 @@
+import { Container } from "@material-ui/core";
 import React, {useEffect, useState} from "react";
 import { useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
@@ -86,6 +87,7 @@ const UpdateUser = function(props) {
     return <Loading/>
   }
   return (
+    <Container>
     <section className="section app-card">
       <h2 className="subtitle">User Details</h2>
       <div className="field">
@@ -116,6 +118,7 @@ const UpdateUser = function(props) {
         </div>
       </div>
     </section>
+    </Container>
   );
 };
 

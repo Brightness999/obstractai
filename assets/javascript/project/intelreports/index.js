@@ -268,13 +268,7 @@ const IntelReports = (props) => {
 			body: JSON.stringify(params),
 		}).then(res=>{return res.json()})
 		.then(res=>{
-			console.log(res);
-			// setFeeds(res.feeds);
-			// setCategories(res.categories);
-			// setClassifications(res.extractions);
 			setIndicators(res.indicators);
-			// setGlobalIndicators(res.globalindicators);
-			// setTags(res.tags);
 			setReports(res.reports);
 			setIsLoading(false);
 		})

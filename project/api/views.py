@@ -703,23 +703,6 @@ def apigroups(request):
 			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
 			if custom_feeds and current_period_end.replace(tzinfo=None) > datetime.now():
 				groupids.append(groupid)
-		# subid = IntelGroups.objects.filter(id=groupid).last().plan_id
-		# created_at = IntelGroups.objects.filter(id=groupid).last().created_at
-		# if subid == None:
-		# 	if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=30):
-		# 		return render(request, 'project/intel_groups.html', {'groups':"Please select plan to perform this action."})
-		# else:
-		# 	planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-		# 	productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-		# 	current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
-		# 	history = PlanHistory.objects.filter(intelgroup_id=groupid).order_by('id').all()
-		# 	if Product.objects.filter(djstripe_id=productid).last().metadata['api_access']:
-		# 		if datetime.now() > current_period_end.replace(tzinfo=None) and history[len(history)-2].end.replace(tzinfo=None):
-		# 			return render(request, 'project/intel_groups.html', {'groups': 'Please select plan to perform this action.'})
-		# 		else:
-		# 			groupids.append(groupid)
-		# 	else:
-		# 		return render(request, 'project/intel_groups.html', {'groups':'You are not allowed to access.'})
 	result = []
 	for groupid in groupids:	
 		data = {

@@ -419,4 +419,20 @@ class GroupPlanAdmin(admin.ModelAdmin):
 				billing_scheme="per_unit",
 				interval_count=1
 			)
+			stripe.Plan.create(
+				amount=form.cleaned_data['weekly_amount'],
+				currency="usd",
+				interval="week",
+				product=new_product.id,
+				billing_scheme="per_unit",
+				interval_count=1
+			)
+			stripe.Plan.create(
+				amount=form.cleaned_data['daily_amount'],
+				currency="usd",
+				interval="day",
+				product=new_product.id,
+				billing_scheme="per_unit",
+				interval_count=1
+			)
 		return True

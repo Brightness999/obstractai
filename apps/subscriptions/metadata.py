@@ -55,16 +55,16 @@ class ProductWithMetadata(object):
     @cached_property
     def default_plan(self):
         if not ACTIVE_PLAN_INTERVALS:
-            raise SubscriptionConfigError(_('At least one plan interval (year or month) must be set!'))
-        return self.monthly_plan if ACTIVE_PLAN_INTERVALS[0] == PlanInterval.month else self.annual_plan
+            raise SubscriptionConfigError(_('At least one plan interval (week or day) must be set!'))
+        return self.daily_plan if ACTIVE_PLAN_INTERVALS[0] == PlanInterval.day else self.weekly_plan
 
     @cached_property
-    def annual_plan(self):
-        return self._get_plan(PlanInterval.year)
+    def weekly_plan(self):
+        return self._get_plan(PlanInterval.week)
 
     @cached_property
-    def monthly_plan(self):
-        return self._get_plan(PlanInterval.month)
+    def daily_plan(self):
+        return self._get_plan(PlanInterval.day)
 
     def _get_plan(self, interval):
         if self.product:
@@ -90,8 +90,8 @@ class ProductWithMetadata(object):
             'product': ProductSerializer(self.product).data,
             'metadata': attr.asdict(self.metadata),
             'default_plan': _serialized_plan_or_none(self.default_plan),
-            'annual_plan': _serialized_plan_or_none(self.annual_plan),
-            'monthly_plan': _serialized_plan_or_none(self.monthly_plan),
+            'weekly_plan': _serialized_plan_or_none(self.weekly_plan),
+            'daily_plan': _serialized_plan_or_none(self.daily_plan),
         }
 
 
@@ -107,8 +107,8 @@ class PlanIntervalMetadata(object):
 
 def get_plan_name_for_interval(interval):
     return {
-        PlanInterval.year: _('Annual'),
-        PlanInterval.month: _('Monthly'),
+        PlanInterval.week: _('weekly'),
+        PlanInterval.day: _('daily'),
     }.get(interval, _('Custom'))
 
 
@@ -118,12 +118,12 @@ def get_active_plan_interval_metadata():
         for interval in ACTIVE_PLAN_INTERVALS
     ]
 
-# Active plan intervals. Only allowed values are "PlanInterval.month" and "PlanInterval.year"
-# Remove one of them to only allow monthly/annual pricing.
+# Active plan intervals. Only allowed values are "PlanInterval.day" and "PlanInterval.week"
+# Remove one of them to only allow daily/weekly pricing.
 # The first element is considered the default
 ACTIVE_PLAN_INTERVALS = [
-    PlanInterval.year,
-    PlanInterval.month,
+    PlanInterval.week,
+    PlanInterval.day,
 ]
 
 

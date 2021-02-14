@@ -11,6 +11,8 @@ class GroupPlan(BaseModel):
     active = models.BooleanField(default=True)
     annual_amount = models.PositiveIntegerField(default=0)
     monthly_amount = models.PositiveIntegerField(default=0)
+    weekly_amount = models.PositiveIntegerField(default=0)
+    daily_amount = models.PositiveIntegerField(default=0)
     max_users = models.PositiveIntegerField(default=0)
     max_feeds = models.PositiveIntegerField(default=0)
     custom_feeds = models.BooleanField(default=False)
@@ -18,4 +20,4 @@ class GroupPlan(BaseModel):
     api_access = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name_plural = "GroupPlan"
+        verbose_name_plural = "GroupPlans"

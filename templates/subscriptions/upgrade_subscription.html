@@ -92,7 +92,7 @@
   const userEmail = '{{ user.email }}';
   const createCustomerUrl = "{{ subscription_urls.create_customer }}";
   const subscriptionSuccessUrl = "{{ subscription_urls.subscription_success }}";
-  const defaultAnnual = '{{ default_to_annual }}' === 'True';
+  const defaultweekly = '{{ default_to_weekly }}' === 'True';
   const stripe = Stripe('{{ stripe_api_key }}');
   const groupid = '{{groupid}}'
 
@@ -218,30 +218,30 @@
     else history.go(-2);
   });
 
-  // hook up "monthly"/"annual" selection events
-  const monthlySelector = document.getElementById('plan-selector-month');
-  const annualSelector = document.getElementById('plan-selector-year');
+  // hook up "daily"/"weekly" selection events
+  const dailySelector = document.getElementById('plan-selector-day');
+  const weeklySelector = document.getElementById('plan-selector-week');
   const helpLabel = document.getElementById('plan-help');
   const planElements = document.getElementsByClassName('plan');
   const paymentDetailsElement = document.getElementById('payment-details');
-  const annualHelpText = " ";
-  const monthlyHelpText = " ";
+  const weeklyHelpText = " ";
+  const dailyHelpText = " ";
 
-  const updatePlans = function (isAnnual) {
+  const updatePlans = function (isweekly) {
     for (let i = 0; i < planElements.length; i++) {
       let planElt = planElements[i];
       let productId = planElt.dataset.productId;
       let planMetadata = (
-        isAnnual ? activeProducts[productId]['annual_plan'] : activeProducts[productId]['monthly_plan']
+        isweekly ? activeProducts[productId]['weekly_plan'] : activeProducts[productId]['daily_plan']
       );
       // set data attribute
       planElt.dataset.planId = planMetadata.stripe_id;
-      planElt.dataset.interval = isAnnual ? 'year' : 'month';
+      planElt.dataset.interval = isweekly ? 'week' : 'day';
       planElt.dataset.paymentAmount = planMetadata.payment_amount;
       let priceElt = planElt.querySelector('.price');
-      priceElt.textContent = planMetadata.monthly_amount;
+      priceElt.textContent = planMetadata.daily_amount;
       let intervalElt = planElt.querySelector('.interval');
-      intervalElt.textContent = '/ month';  // todo: support annual display pricing
+      intervalElt.textContent = '/ day';  // todo: support weekly display pricing
     }
   };
 
@@ -254,36 +254,36 @@
       paymentDetailsElement.innerText = "Select a plan to continue.";
     }
   };
-  const selectPeriod = function (isAnnual) {
-    if (isAnnual) {
-      if (annualSelector) {
-        annualSelector.classList.add('is-selected', 'is-primary');
-        monthlySelector.classList.remove('is-selected', 'is-primary');
-        helpLabel.innerText = annualHelpText;
+  const selectPeriod = function (isweekly) {
+    if (isweekly) {
+      if (weeklySelector) {
+        weeklySelector.classList.add('is-selected', 'is-primary');
+        dailySelector.classList.remove('is-selected', 'is-primary');
+        helpLabel.innerText = weeklyHelpText;
         helpLabel.classList.add('is-primary');
         helpLabel.classList.remove('is-danger');
       }
-      updatePlans(isAnnual);
+      updatePlans(isweekly);
     } else {
-      if (monthlySelector) {
-        annualSelector.classList.remove('is-selected', 'is-primary');
-        monthlySelector.classList.add('is-selected', 'is-primary');
-        helpLabel.innerText = monthlyHelpText;
+      if (dailySelector) {
+        weeklySelector.classList.remove('is-selected', 'is-primary');
+        dailySelector.classList.add('is-selected', 'is-primary');
+        helpLabel.innerText = dailyHelpText;
         helpLabel.classList.add('is-danger');
         helpLabel.classList.remove('is-primary');
       }
-      updatePlans(isAnnual);
+      updatePlans(isweekly);
     }
     updatePaymentDetails();
   };
-  selectPeriod(defaultAnnual);
-  if (annualSelector) {
-    annualSelector.addEventListener('click', function (event) {
+  selectPeriod(defaultweekly);
+  if (weeklySelector) {
+    weeklySelector.addEventListener('click', function (event) {
       selectPeriod(true);
     });
   }
-  if (monthlySelector) {
-    monthlySelector.addEventListener('click', function (event) {
+  if (dailySelector) {
+    dailySelector.addEventListener('click', function (event) {
       selectPeriod(false);
     });
   }

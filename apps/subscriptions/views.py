@@ -69,23 +69,23 @@ def _view_subscription(request, subscription_holder, groupid):
     def _to_dict(product_with_metadata):
         # for now, just serialize the minimum amount of data needed for the front-end
         product_data = {}
-        if PlanInterval.year in ACTIVE_PLAN_INTERVALS:
-            product_data['annual_plan'] = {
-                'stripe_id': product_with_metadata.annual_plan.id,
-                'payment_amount': get_friendly_currency_amount(product_with_metadata.annual_plan.amount,
-                                                               product_with_metadata.annual_plan.currency),
-                'monthly_amount': get_friendly_currency_amount(product_with_metadata.annual_plan.amount / 12,
-                                                               product_with_metadata.annual_plan.currency),
-                'interval': PlanInterval.year,  # set to month because we're dividing price by 12
+        if PlanInterval.week in ACTIVE_PLAN_INTERVALS:
+            product_data['weekly_plan'] = {
+                'stripe_id': product_with_metadata.weekly_plan.id,
+                'payment_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount,
+                                                               product_with_metadata.weekly_plan.currency),
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 12,
+                                                               product_with_metadata.weekly_plan.currency),
+                'interval': PlanInterval.week,  # set to day because we're dividing price by 12
             }
-        if PlanInterval.month in ACTIVE_PLAN_INTERVALS:
-            product_data['monthly_plan'] = {
-                'stripe_id': product_with_metadata.monthly_plan.id,
-                'payment_amount': get_friendly_currency_amount(product_with_metadata.monthly_plan.amount,
-                                                               product_with_metadata.monthly_plan.currency),
-                'monthly_amount': get_friendly_currency_amount(product_with_metadata.monthly_plan.amount,
-                                                               product_with_metadata.monthly_plan.currency),
-                'interval': PlanInterval.month,
+        if PlanInterval.day in ACTIVE_PLAN_INTERVALS:
+            product_data['daily_plan'] = {
+                'stripe_id': product_with_metadata.daily_plan.id,
+                'payment_amount': get_friendly_currency_amount(product_with_metadata.daily_plan.amount,
+                                                               product_with_metadata.daily_plan.currency),
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.daily_plan.amount,
+                                                               product_with_metadata.daily_plan.currency),
+                'interval': PlanInterval.day,
             }
         return product_data
 
@@ -104,7 +104,7 @@ def _view_subscription(request, subscription_holder, groupid):
         'active_products': active_products,
         'active_products_json': {str(p.stripe_id): _to_dict(p) for p in active_products},
         'active_plan_intervals': get_active_plan_interval_metadata(),
-        'default_to_annual': ACTIVE_PLAN_INTERVALS[0] == PlanInterval.year,
+        'default_to_weekly': ACTIVE_PLAN_INTERVALS[0] == PlanInterval.week,
         'payment_metadata': _get_payment_metadata_from_request(request),
         'current_product_id': Product.objects.filter(djstripe_id=productid).values()[0]['id'],
         'groupid': groupid,
@@ -124,23 +124,23 @@ def _upgrade_subscription(request, subscription_holder, groupid):
     def _to_dict(product_with_metadata):
         # for now, just serialize the minimum amount of data needed for the front-end
         product_data = {}
-        if PlanInterval.year in ACTIVE_PLAN_INTERVALS:
-            product_data['annual_plan'] = {
-                'stripe_id': product_with_metadata.annual_plan.id,
-                'payment_amount': get_friendly_currency_amount(product_with_metadata.annual_plan.amount,
-                                                               product_with_metadata.annual_plan.currency),
-                'monthly_amount': get_friendly_currency_amount(product_with_metadata.annual_plan.amount / 12,
-                                                               product_with_metadata.annual_plan.currency),
-                'interval': PlanInterval.year,  # set to month because we're dividing price by 12
+        if PlanInterval.week in ACTIVE_PLAN_INTERVALS:
+            product_data['weekly_plan'] = {
+                'stripe_id': product_with_metadata.weekly_plan.id,
+                'payment_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount,
+                                                               product_with_metadata.weekly_plan.currency),
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 12,
+                                                               product_with_metadata.weekly_plan.currency),
+                'interval': PlanInterval.week,  # set to day because we're dividing price by 12
             }
-        if PlanInterval.month in ACTIVE_PLAN_INTERVALS:
-            product_data['monthly_plan'] = {
-                'stripe_id': product_with_metadata.monthly_plan.id,
-                'payment_amount': get_friendly_currency_amount(product_with_metadata.monthly_plan.amount,
-                                                               product_with_metadata.monthly_plan.currency),
-                'monthly_amount': get_friendly_currency_amount(product_with_metadata.monthly_plan.amount,
-                                                               product_with_metadata.monthly_plan.currency),
-                'interval': PlanInterval.month,
+        if PlanInterval.day in ACTIVE_PLAN_INTERVALS:
+            product_data['daily_plan'] = {
+                'stripe_id': product_with_metadata.daily_plan.id,
+                'payment_amount': get_friendly_currency_amount(product_with_metadata.daily_plan.amount,
+                                                               product_with_metadata.daily_plan.currency),
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.daily_plan.amount,
+                                                               product_with_metadata.daily_plan.currency),
+                'interval': PlanInterval.day,
             }
         return product_data
 
@@ -151,7 +151,7 @@ def _upgrade_subscription(request, subscription_holder, groupid):
         'active_products': active_products,
         'active_products_json': {str(p.stripe_id): _to_dict(p) for p in active_products},
         'active_plan_intervals': get_active_plan_interval_metadata(),
-        'default_to_annual': ACTIVE_PLAN_INTERVALS[0] == PlanInterval.year,
+        'default_to_weekly': ACTIVE_PLAN_INTERVALS[0] == PlanInterval.week,
         'subscription_urls': _get_subscription_urls(subscription_holder),
         'payment_metadata': _get_payment_metadata_from_request(request),
         'groupid': groupid,
@@ -257,13 +257,13 @@ def create_customer(request, subscription_holder=None):
         current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
         current_period_start = Subscription.objects.filter(djstripe_id=subid).last().current_period_start
         current_interval = Plan.objects.filter(djstripe_id=planid).last().interval
-        if current_interval == 'month' and interval == 'year':
+        if current_interval == 'day' and interval == 'week':
             return JsonResponse(
-                data = {'monthyear':True}
+                data = {'dayweek':True}
             )
-        if current_interval == 'year' and interval == 'month':
+        if current_interval == 'week' and interval == 'day':
             return JsonResponse(
-                data = {'yearmonth':True}
+                data = {'weekday':True}
             )
         if (current_product_name=='Large' and product_name=='Medium') or (current_product_name=='Large' and product_name=='Starter') or (current_product_name=='Medium' and product_name=='Starter'):
             users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()

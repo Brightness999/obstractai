@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import { Link, useHistory } from "react-router-dom";
-import { Tooltip, TextField, Dialog, DialogTitle, DialogContent, DialogContentText } from "@material-ui/core";
+import { Tooltip, TextField, Dialog, DialogTitle, DialogContent, DialogContentText, Container } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
@@ -88,71 +88,72 @@ const IntelGroup = function(props) {
             )
         if(props.currentrole.role == 2)
             return (
-                <section className="section app-card">
-                    {props.isInit&&
-                    <Alert severity="info" className="my-5">
-                        <AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
-                        <span className="subtitle is-5">{props.message}</span>
-                    </Alert>}
-                    <h2 className="title is-size-3">Intel Group Details</h2>
-                    <div className="field column is-two-thirds">
-                        <label className="label">Name</label>
-                        <TextField
-                        placeholder="write a name of feed"
-                        className="column is-three-quarters"
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                        variant="outlined"
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-                    
-                        <label className="label">Description</label>
-                        <TextField
-                        placeholder="write about description of feed"
-                        className="column is-three-quarters"
-                        margin="normal"
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                        variant="outlined"
-                        value={description}
-                        onChange={(event) => setDescription(event.target.value)}
-                        /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-                    </div>
-                    <div className="field is-grouped">
-                        <div className="control">
-                        <button type='button' className="button is-primary is-outlined" onClick={() => saveIntelgroup()} >
-                            <span>Save intel group</span>
-                        </button>
+                <Container>
+                    <section className="section app-card">
+                        {props.isInit&&
+                        <Alert severity="info" className="my-5">
+                            <AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+                            <span className="subtitle is-5">{props.message}</span>
+                        </Alert>}
+                        <h2 className="title is-size-3">Intel Group Details</h2>
+                        <div className="field column is-four-fifths">
+                            <label className="label">Name</label>
+                            <TextField
+                            placeholder="write a name of feed"
+                            className="column is-three-quarters"
+                            margin="normal"
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            variant="outlined"
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+                        
+                            <label className="label">Description</label>
+                            <TextField
+                            placeholder="write about description of feed"
+                            className="column is-three-quarters"
+                            margin="normal"
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            variant="outlined"
+                            value={description}
+                            onChange={(event) => setDescription(event.target.value)}
+                            /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
                         </div>
-                        <div className="control">
-                            <button className="button is-text" onClick={()=>{history.goBack()}}>
-                            <span>Cancel</span>
+                        <div className="field is-grouped">
+                            <div className="control">
+                            <button type='button' className="button is-primary is-outlined" onClick={() => saveIntelgroup()} >
+                                <span>Save intel group</span>
                             </button>
+                            </div>
+                            <div className="control">
+                                <button className="button is-text" onClick={()=>{history.goBack()}}>
+                                <span>Cancel</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <Dialog
-                            maxWidth="md"
-                            fullWidth
-                            open={open}
-                            onClose={()=>setOpen(false)}
-                            aria-labelledby="alert-dialog-title"
-                            aria-describedby="alert-dialog-description"
-                        >
-                            <DialogTitle className="has-text-centered"><span className="subtitle is-3">Information</span></DialogTitle>
-                            <DialogContent >
-                            <DialogContentText id="alert-dialog-description" className="has-text-centered">
-                                <span className="subtitle is-4">Your intel group is successfully changed.</span>
-                            </DialogContentText>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </section>
-                
+                        <div>
+                            <Dialog
+                                maxWidth="md"
+                                fullWidth
+                                open={open}
+                                onClose={()=>setOpen(false)}
+                                aria-labelledby="alert-dialog-title"
+                                aria-describedby="alert-dialog-description"
+                            >
+                                <DialogTitle className="has-text-centered"><span className="subtitle is-3">Information</span></DialogTitle>
+                                <DialogContent >
+                                <DialogContentText id="alert-dialog-description" className="has-text-centered">
+                                    <span className="subtitle is-4">Your intel group is successfully changed.</span>
+                                </DialogContentText>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </section>
+                </Container>
             );
     }
 };

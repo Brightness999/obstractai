@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import { useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
-import { Tooltip, TextField, Grid } from "@material-ui/core";
+import { Tooltip, TextField, Grid, Container } from "@material-ui/core";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
@@ -79,6 +79,7 @@ const IntelGroups = function(props) {
   };
 
   return (
+    <Container>
     <section className="section app-card">
       <h2 className="subtitle">Create New Intel Group</h2>
       <div className="field column is-two-thirds">
@@ -141,6 +142,7 @@ const IntelGroups = function(props) {
         </div>
       </div>
     </section>
+    </Container>
   );
 };
 

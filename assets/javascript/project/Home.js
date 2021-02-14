@@ -88,7 +88,7 @@ const AddIntelgroup = (props) => {
 			<h2 className="subtitle">Intel Group Details</h2>
 			<label className="label">Name</label>
 			<TextField
-				placeholder="write a name of feed"
+				placeholder="Name of intel group"
 				className="column is-three-quarters"
 				margin="normal"
 				InputLabelProps={{
@@ -100,7 +100,7 @@ const AddIntelgroup = (props) => {
 			/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
 			<label className="label">Description</label>
 			<TextField
-				placeholder="write about description of feed"
+				placeholder="Description of intel group"
 				className="column is-three-quarters"
 				margin="normal"
 				InputLabelProps={{
@@ -116,11 +116,13 @@ const AddIntelgroup = (props) => {
 				<Grid item xs={9}>
 					<ReactTags
 					ref={reacttag}
+					placeholderText="Comma separated list of emails for users to invite"
 					tags={tags}
 					suggestions={userOptions}
 					onDelete={onDelete}
 					onAddition={onAddition}
 					allowNew={true}
+					delimiters={['Enter', 'Tab', ',', ' ']}
 					/>
 				</Grid>
 				<Grid item xs={3}>

@@ -16,8 +16,7 @@ const UpdateUser = function(props) {
       var temp = tags.slice(0)
       temp.splice(i, 1)
       setTags(temp)
-    }
-  
+  }
   const onAddition = (tag)=> {
     let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
     if(tag.name.match(mailformat)){
@@ -98,6 +97,8 @@ const UpdateUser = function(props) {
           onDelete={onDelete}
           onAddition={onAddition}
           allowNew={true}
+          placeholderText="Comma separated list of emails for users to invite"
+          delimiters={['Enter', 'Tab', ',', ' ']}
         />
       </div>
       

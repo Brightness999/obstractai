@@ -84,7 +84,7 @@ const IntelGroups = function(props) {
       <div className="field column is-two-thirds">
         <label className="label">Name</label>
         <TextField
-          placeholder="write a name of feed"
+          placeholder="Name of intel group"
           className="column is-three-quarters"
           margin="normal"
           InputLabelProps={{
@@ -97,7 +97,7 @@ const IntelGroups = function(props) {
       
         <label className="label">Description</label>
         <TextField
-          placeholder="write about description of feed"
+          placeholder="Description of intel group"
           className="column is-three-quarters"
           margin="normal"
           InputLabelProps={{
@@ -116,8 +116,10 @@ const IntelGroups = function(props) {
                 tags={tags}
                 suggestions={userOptions}
                 onDelete={onDelete}
+                placeholderText="Comma separated list of emails for users to invite"
                 onAddition={onAddition}
                 allowNew={true}
+                delimiters={['Enter', 'Tab', ',', ' ']}
               />
             </Grid>
             <Grid item xs={3}>

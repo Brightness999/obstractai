@@ -28,6 +28,24 @@ const ViewReport = (props) => {
 		let str=props.feeditem.description;
 		
 		indicators.forEach(indicator => {
+			if(indicator.globalindicator.value == 'CVE'){
+				let items = indicator.value.split(',');
+				items.forEach(item => {
+					let reg = new RegExp('>'+item+'<', 'g'), result, ids = [];
+					while ( (result = reg.exec(str)) ) {
+						ids.push(result.index);
+					}
+					for(let i=0;i<ids.length;i++){
+						let target = str.substring(ids[i], ids[i]+item.length+2);
+						let target1 = "<span style='background:#faeb42;'>" + item + "</span>";
+						let target2 = `><Tooltip title='${indicator.globalindicator.value}=${item}'>${target1}</Tooltip><`;
+						for(let j=i+1;j<ids.length;j++){
+							ids[j] = ids[j] + target2.length - target.length;
+						}
+						str = str.replace(target, target2);
+					}
+				});
+			}
 			if(indicator.globalindicator.value == 'URL' || indicator.globalindicator.value == 'Email Address' || indicator.globalindicator.value == 'FQDN'){
 				let items = indicator.value.split(',');
 				items.forEach(item => {
@@ -53,16 +71,32 @@ const ViewReport = (props) => {
 					}
 				});
 			}
-			if(indicator.globalindicator.value == 'CVE'){
+			if(indicator.globalindicator.value == 'Topic'){
 				let items = indicator.value.split(',');
 				items.forEach(item => {
-					let reg = new RegExp('>'+item+'<', 'g'), result, ids = [];
+					let reg = new RegExp(item, 'gi'), result, ids = [];
 					while ( (result = reg.exec(str)) ) {
 						ids.push(result.index);
 					}
-					console.log(str.substring(400,500));
 					for(let i=0;i<ids.length;i++){
-						let target = str.substring(ids[i]+1, ids[i]+item.length+1);
+						let target = "<span style='background:#faeb42;'>" + item + "</span>";
+						let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+						for(let j=i+1;j<ids.length;j++){
+							ids[j] = ids[j] + target1.length - target.length;
+						}
+						str = str.replace(target, target1);
+					}
+				});
+			}
+			if(indicator.globalindicator.value == 'SHA256'){
+				let items = indicator.value.split(',');
+				items.forEach(item => {
+					let reg = new RegExp(item, 'gi'), result, ids = [];
+					while ( (result = reg.exec(str)) ) {
+						ids.push(result.index);
+					}
+					for(let i=0;i<ids.length;i++){
+						let target = str.substring(ids[i], ids[i]+item.length);
 						let target1 = "<span style='background:#faeb42;'>" + target + "</span>";
 						let target2 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target1}</Tooltip>`;
 						for(let j=i+1;j<ids.length;j++){
@@ -72,21 +106,59 @@ const ViewReport = (props) => {
 					}
 				});
 			}
-			if(indicator.globalindicator.value == 'Topic'){
+			if(indicator.globalindicator.value == 'IPv4'){
 				let items = indicator.value.split(',');
 				items.forEach(item => {
-					let reg = new RegExp(item, 'gi'), result, ids = [];
+					let reg = new RegExp(item, 'g'), result, ids = [];
 					while ( (result = reg.exec(str)) ) {
 						ids.push(result.index);
 					}
 					for(let i=0;i<ids.length;i++){
-						let target = str.substring(ids[i], ids[i]+item.length+1);
-						let target1 = "<span style='background:#faeb42;'>" + target + "</span>";
-						let target2 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target1}</Tooltip>`;
-						for(let j=i+1;j<ids.length;j++){
-							ids[j] = ids[j] + target2.length - target.length;
+						console.log(str.substr(ids[i], item.length));
+						console.log(str.substr(ids[i]+item.length-1, 1));
+						if(!(str.substr(ids[i]+item.length, 1)*1 > 0 && str.substr(ids[i]+item.length, 1)*1 < 9) && str.substr(ids[i]+item.length, 1) != '/'){
+							let target = "<span style='background:#faeb42;'>" + item + "</span>";
+							let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+							for(let j=i+1;j<ids.length;j++){
+								if(!(str.substr(ids[j]+item.length, 1)*1 > 0 && str.substr(ids[j]+item.length, 1)*1 < 9) && str.substr(ids[j]+item.length, 1) != '/')
+									ids[j] = ids[j] + target1.length - item.length;
+							}
+							str = str.substring(0, ids[i]-1) + target1 + str.substr(ids[i]+item.length);
 						}
-						str = str.replace(target, target2);
+					}
+				});
+			}
+			if(indicator.globalindicator.value == 'IPv4 CIDR'){
+				let items = indicator.value.split(',');
+				items.forEach(item => {
+					let reg = new RegExp(item, 'g'), result, ids = [];
+					while ( (result = reg.exec(str)) ) {
+						ids.push(result.index);
+					}
+					for(let i=0;i<ids.length;i++){
+						let target = "<span style='background:#faeb42;'>" + item + "</span>";
+						let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+						for(let j=i+1;j<ids.length;j++){
+							ids[j] = ids[j] + target1.length - item.length;
+						}
+						str = str.substring(0, ids[i]) + target1 + str.substr(ids[i]+item.length);
+					}
+				});
+			}
+			if(indicator.globalindicator.value == 'Country'){
+				let items = indicator.value.split(',');
+				items.forEach(item => {
+					let reg = new RegExp(item, 'g'), result, ids = [];
+					while ( (result = reg.exec(str)) ) {
+						ids.push(result.index);
+					}
+					for(let i=0;i<ids.length;i++){
+						let target = "<span style='background:#faeb42;'>" + item + "</span>";
+						let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+						for(let j=i+1;j<ids.length;j++){
+							ids[j] = ids[j] + target1.length - item.length;
+						}
+						str = str.substring(0, ids[i]) + target1 + str.substr(ids[i]+item.length);
 					}
 				});
 			}

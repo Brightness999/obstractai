@@ -10,16 +10,10 @@
     <title>{{ title }}</title>
     <meta name="description" content="{{ description }}">
     <meta name="keywords" content="{{ project_meta.KEYWORDS }}">
-    <!-- Twitter Card data -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="{{ title }}">
-    <meta name="twitter:description" content="{{ description }}">
-    <meta name="twitter:image" content="{{ image }}">
     <!-- Open Graph data -->
     <meta property="og:title" content="{{ title }}" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="{{ page_url }}" />
-    <meta property="og:image" content="{{ image }}" />
     <meta property="og:description" content="{{ description }}" />
     <meta property="og:site_name" content="{{ project_meta.NAME }}" />
     <link rel="canonical" href="{% if page_canonical_url %}{{ page_canonical_url }}{% else %}{{ page_url }}{% endif %}">
@@ -36,6 +30,7 @@
     {% include 'web/components/favicon.html' %}
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
     <link async rel="stylesheet" href="//cdn.jsdelivr.net/npm/semantic-ui@2.0.1/dist/semantic.min.css" />
+    <link async rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css" />
     <!-- <link async rel="stylesheet" href="{% static 'css/semantic.min.css' %}" /> -->
     <link rel="stylesheet" href="{% static 'css/SuperResponsiveTableStyle.css' %}">
     <!-- <link rel="stylesheet" href="{% static 'css/home.css' %}"> -->
@@ -45,6 +40,7 @@
     <!-- <script src="https://use.fontawesome.com/72135c02f1.js"></script> -->
     <!-- <script src="{% static 'js/font-awesome.js'%}"></script> -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
     <script async src="//cdn.jsdelivr.net/npm/semantic-ui@2.0.1/dist/semantic.min.js" ></script>
 </head>
 <body>

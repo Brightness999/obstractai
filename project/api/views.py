@@ -1709,6 +1709,7 @@ def feeds(request):
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			IntelReports.objects.create(groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=groupid, feeditem_id=item.id)
 		flag = True
+		is_exist = True
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			while flag:
 				if len(WebHooks.objects.filter(intelgroup_id=groupid).order_by('id').all()) > 0:
@@ -1734,8 +1735,9 @@ def feeds(request):
 							flag = False
 				else:
 					flag = False
+					is_exist = False
 		webhook_fail = False
-		if not flag:
+		if is_exist and not flag :
 			webhook_fail=True	
 		groupfeeds = []
 		groupfeedids = []
@@ -2018,6 +2020,7 @@ def feedenable(request):
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
 		IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=request.data['groupid'])
 	flag = True
+	is_exist = True
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
 		while flag:
 			if len(WebHooks.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all()) > 0:
@@ -2043,8 +2046,9 @@ def feedenable(request):
 						flag = False
 			else:
 				flag = False
+				is_exist = False
 	webhook_fail = False
-	if not flag:
+	if is_exist and not flag:
 		webhook_fail = True
 	groupfeeds = []
 	groupfeedids = []

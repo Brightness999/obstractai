@@ -1711,26 +1711,29 @@ def feeds(request):
 		flag = True
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			while flag:
-				for webhook in WebHooks.objects.filter(intelgroup_id=groupid).order_by('id').all():
-					channelunique = FeedChannels.objects.filter(feed_id=Feeds.objects.last().id).last().uniqueid
-					groupunique = IntelGroups.objects.filter(id=groupid).last().uniqueid
-					data = {
-						'uuid': webhook.uniqueid,
-						'channel': channelunique,
-						'intelgroup': groupunique,
-						'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
-						'addedtime': IntelReports.objects.last().created_at,
-						'data': {
-							'title': item.title,
-							'link': item.link,
-							'description': item.description
+				if len(WebHooks.objects.filter(intelgroup_id=groupid).order_by('id').all()) > 0:
+					for webhook in WebHooks.objects.filter(intelgroup_id=groupid).order_by('id').all():
+						channelunique = FeedChannels.objects.filter(feed_id=Feeds.objects.last().id).last().uniqueid
+						groupunique = IntelGroups.objects.filter(id=groupid).last().uniqueid
+						data = {
+							'uuid': webhook.uniqueid,
+							'channel': channelunique,
+							'intelgroup': groupunique,
+							'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
+							'addedtime': IntelReports.objects.last().created_at,
+							'data': {
+								'title': item.title,
+								'link': item.link,
+								'description': item.description
+							}
 						}
-					}
-					try:
-						requests.post(webhook.endpoint, data=data)
-					except Exception as e:
-						print(str(e))
-						flag = False
+						try:
+							requests.post(webhook.endpoint, data=data)
+						except Exception as e:
+							print(str(e))
+							flag = False
+				else:
+					flag = False
 		webhook_fail = False
 		if not flag:
 			webhook_fail=True	

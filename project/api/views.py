@@ -1352,11 +1352,10 @@ def feeds(request):
 		isEqualGroup = False
 		for feed in Feeds.objects.all():
 			if(data['url'] in feed.url):
-				isUrlExist = True
-				if len(GroupFeeds.objects.filter(feed_id=feed.id).all())>0:
-					return Response({'isUrlExist':True})
+				if data['tags'] == '':
+					GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
 				else:
-					GroupFeeds.objects.create(feed_id=feed.id, intelgroup_id=groupid, name=feed.name, description=name.description, category_id=name.category_id, tags=name.tags, confidence=name.confidence, isenable=True)
+					GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
 		if not isUrlExist:
 			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			max_feeds = 0

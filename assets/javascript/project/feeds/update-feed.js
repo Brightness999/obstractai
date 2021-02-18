@@ -110,7 +110,6 @@ const UpdateFeed = (props) => {
 			if(props.currentgroup == '') setGroupError(true);
 		}
 		
-		
 		if(Boolean(props.id)){
 			setIsLoading(true);
 			fetch('/api/feeds', {
@@ -147,7 +146,6 @@ const UpdateFeed = (props) => {
 						body: JSON.stringify(params)
 					}).then(res=>{return res.json()})
 					.then(res=>{
-						console.log(res.fulltext);
 						setFullText(res.fulltext);
 						setOpen(true)
 					})

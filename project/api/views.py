@@ -1815,21 +1815,22 @@ def feeds(request):
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def feedlist(request):
-	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
-	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
 	customfeeds = True
-	if subid != None:
-		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-		if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
-			customfeeds = False
 	groupfeeds = []
 	groupfeedids = []
-	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
-		serializer = GroupCategoryFeedSerializer(groupfeed)
-		if serializer.data['feed']['isglobal']:
-			groupfeeds.append(serializer.data)
-		groupfeedids.append(groupfeed.feed_id)
+	if request.data['id'] != '':
+		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+		if subid != None:
+			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+			if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
+				customfeeds = False
+		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+			serializer = GroupCategoryFeedSerializer(groupfeed)
+			if serializer.data['feed']['isglobal']:
+				groupfeeds.append(serializer.data)
+			groupfeedids.append(groupfeed.feed_id)
 	feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
 	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
 	tags = TagSerializer(Tags.objects.order_by('id').all(), many=True)
@@ -2181,17 +2182,17 @@ def invite(request):
 			print(response.status_code)
 		except Exception as e:
 			print(str(e))
-		data = [];
+		users = [];
 		for userid in request.data['userids']:
 			existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()
 			if len(existing_user) == 0:
 				UserIntelGroupRoles.objects.create(intelgroup_id=request.data['group_id'], user_id=userid, role=0)
 				user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid, role=0).all()
 				serializer = UserIntelGroupRolesSerializer(user[0])
-				data.append(serializer.data)
-		if(len(data) == 0):
-				data=[{'role': 'success'}]
-		return Response(data)
+				users.append(serializer.data)
+		if(len(users) == 0):
+				users={'role': True}
+		return Response(users)
 	else:
 		return Response({'message':True})
 

@@ -123,10 +123,10 @@ const App = () => {
               <IntelGroup client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
             </Route>
             <Route path="/users" >
-              <User isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />
+              <User mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />
             </Route>
             <Route path="/feeds">
-              <Feeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Feeds mygroups={mygroups} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/configuredfeeds">
               <ConfiguredFeeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>

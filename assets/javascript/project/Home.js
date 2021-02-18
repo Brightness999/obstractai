@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
-import { Tooltip, TextField, Grid, Paper } from "@material-ui/core";
+import { Tooltip, TextField, Grid, Container } from "@material-ui/core";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
-
+import { Steps, Hints } from 'intro.js-react';
 
 const Welcome = (props) => {
 	return (
@@ -28,6 +28,21 @@ const AddIntelgroup = (props) => {
 	const [isRefuse, setIsRefuse] = useState(false);
 	const [tags, setTags] = useState([]);
 	const history = useHistory();
+	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const initialStep = 0;
+	const steps = [{
+		title: 'Welcome',
+		intro: 'Hello World! 👋'
+	  },{
+		element: '.name',
+		intro: 'Intel Group Name'
+	  },{
+		element: '.description',
+		intro: 'Intel Group Description'
+	  },{
+		element: '.users',
+		intro: 'Users to invite'
+	  }]
 
 	const userOptions = props.users.map((user)=>({
 		id: user.id,
@@ -84,71 +99,88 @@ const AddIntelgroup = (props) => {
 	};
 
 	return (
-		<section className="section app-card">
-			<h2 className="subtitle">Intel Group Details</h2>
-			<label className="label">Name</label>
-			<TextField
-				placeholder="Name of intel group"
-				className="column is-three-quarters"
-				margin="normal"
-				InputLabelProps={{
-					shrink: true,
-				}}
-				variant="outlined"
-				value={name}
-				onChange={(event) => setName(event.target.value)}
-			/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-			<label className="label">Description</label>
-			<TextField
-				placeholder="Description of intel group"
-				className="column is-three-quarters"
-				margin="normal"
-				InputLabelProps={{
-					shrink: true,
-				}}
-				variant="outlined"
-				value={description}
-				onChange={(event) => setDescription(event.target.value)}
-			/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-			<div className="mb-4" style={{zIndex:1}}>
-				<label className="label mb-5">Invite Users</label>
-				<Grid container>
-				<Grid item xs={9}>
-					<ReactTags
-					ref={reacttag}
-					placeholderText="Comma separated list of emails for users to invite"
-					tags={tags}
-					suggestions={userOptions}
-					onDelete={onDelete}
-					onAddition={onAddition}
-					allowNew={true}
-					delimiters={['Enter', 'Tab', ',', ' ']}
-					/>
-				</Grid>
-				<Grid item xs={3}>
-					<Tooltip title="Users you want to invite" arrow><HelpIcon className="mt-2" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-				</Grid>
-				</Grid>
-			</div>
-			<div className="field is-grouped">
-				<div className="control">
-				<button type='button' className="button is-primary" onClick={() => saveIntelgroup()}>
-					<span>Create intel group</span>
-				</button>
+		<Container>
+			<section className="section app-card">
+				<Steps
+					enabled={stepsEnabled}
+					steps={steps}
+					initialStep={initialStep}
+					onExit={(index)=>{
+						setStepsEnabled(false);
+						if(index==3)
+							window.location.href="/home/users/new";
+					}}
+					options={{
+						doneLabel: 'Next'
+					}}
+				/>
+				<h2 className="subtitle">Create New Intel Group</h2>
+				<label className="label">Name</label>
+				<TextField
+					placeholder="Name of intel group"
+					className="column is-three-quarters name"
+					margin="normal"
+					InputLabelProps={{
+						shrink: true,
+					}}
+					variant="outlined"
+					value={name}
+					onChange={(event) => setName(event.target.value)}
+				/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+				<label className="label">Description</label>
+				<TextField
+					placeholder="Description of intel group"
+					className="column is-three-quarters description"
+					margin="normal"
+					InputLabelProps={{
+						shrink: true,
+					}}
+					variant="outlined"
+					value={description}
+					onChange={(event) => setDescription(event.target.value)}
+				/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+				<div className="mb-4 users" id="users" style={{zIndex:1}}>
+					<label className="label mb-5">Invite Users</label>
+					<Grid container>
+					<Grid item xs={9}>
+						<ReactTags
+							ref={reacttag}
+							placeholderText="Comma separated list of emails for users to invite"
+							tags={tags}
+							suggestions={userOptions}
+							onDelete={onDelete}
+							onAddition={onAddition}
+							allowNew={true}
+							delimiters={['Enter', 'Tab', ',', ' ']}
+						/>
+					</Grid>
+					<Grid item xs={3}>
+						<Tooltip title="Users you want to invite" arrow><HelpIcon className="mt-2" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+					</Grid>
+					</Grid>
 				</div>
-				<div className="control">
-					<button className="button is-text" onClick={()=>{setIsRefuse(true); saveIntelgroup();}}>
-						<span>Cancel</span>
+				<div className="field is-grouped">
+					<div className="control">
+					<button type='button' className="button is-primary" onClick={() => saveIntelgroup()}>
+						<span>Create intel group</span>
 					</button>
+					</div>
+					<div className="control">
+						<button className="button is-text" onClick={()=>{setIsRefuse(true); saveIntelgroup();}}>
+							<span>Cancel</span>
+						</button>
+					</div>
 				</div>
-			</div>
-		</section>
+			</section>
+		</Container>
 	);
 }
 
 const HomePage = (props) =>{
-	if(props.mygroups.length == 0)
+	if(props.mygroups.length == 0){
 		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />
+
+	}
 	else
 		return <Welcome mygroups={props.mygroups} re={props.re} />
 }

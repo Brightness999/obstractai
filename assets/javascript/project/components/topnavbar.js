@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useHistory, Link } from "react-router-dom";
-import { connect } from "react-redux";
+import { useHistory } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 
 const TopNavBar = (props) => {
@@ -40,6 +39,7 @@ const TopNavBar = (props) => {
 						<TextField id="outlined-basic" placeholder="Search for intelligence" variant="outlined" />
 					</div> */}
 					<div className="navbar-end">
+						{props.mygroups.length>0&&
 						<TextField
 							id="outlined-select-currency-native"
 							fullWidth
@@ -66,15 +66,16 @@ const TopNavBar = (props) => {
 								</option>
 							))}
 							<option value="add" className="has-text-primary">Create New Group</option>
-						</TextField>
+						</TextField>}
 						<div className="navbar-item has-dropdown is-hoverable">
 							<a className="navbar-link">
 								<span className="is-show-desktop">My Account</span>
 							</a>
 							<div className="navbar-dropdown is-right">
+								{props.mygroups.length>0&&
 								<a className="navbar-item" href="/home/account" >
 								<span>Profile</span>
-								</a>
+								</a>}
 								<a className="navbar-item" href="/accounts/password/change">
 								<span>Change Password</span>
 								</a>

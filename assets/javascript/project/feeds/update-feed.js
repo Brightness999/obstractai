@@ -134,9 +134,8 @@ const UpdateFeed = (props) => {
 			if(name.trim() == '') setNameError(true);
 			if(description.trim() == '') setDescriptionError(true);
 			if(category == '' || category == 'Select category') setCategoryError(true);
-			if(tags.trim() == '') setTagError(true);
 			if(type.trim() == '' || type == 'Select Type') setTypeError(true);
-			if(url && name && description && category && tags && type ){
+			if(url && name && description && category && type ){
 				if(props.currentgroup != ''){
 					fetch('/api/pullfeed', {
 						method: 'post',

@@ -102,7 +102,10 @@ const User = (props) => {
 	const history = useHistory();
 	
 	useEffect(() => {
-		if(props.currentgroup == '') history.push('/');
+		if(props.currentgroup == ''){
+			if(props.mygroups.length != 0)
+				history.push('/');
+		}
 		else{
 			let params = {
 				id: props.currentgroup
@@ -212,7 +215,7 @@ const User = (props) => {
 	return (
 	  <Switch>
 		<Route path="/users/new">
-		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} />
+		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} mygroups={props.mygroups} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}

@@ -1,13 +1,22 @@
-import { Container } from "@material-ui/core";
 import React, {useEffect, useState} from "react";
 import { useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
+import { Steps, Hints } from 'intro.js-react';
+import { Alert, AlertTitle } from '@material-ui/lab';
+import { Container, Dialog} from "@material-ui/core";
 
 const UpdateUser = function(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [allusers, setAllUsers] = useState([]);
   const [tags, setTags] = useState([]);
+  const [isAlert, setIsAlert] = useState(false);
   const history = useHistory();
+  const [stepsEnabled, setStepsEnabled] = useState(true);
+	const initialStep = 0;
+	const steps = [{
+		element: '.users',
+		intro: 'Comma separated list of emails for users to invite'
+	}]
   const userOptions = allusers.map((user)=>({
     id: user.id,
     name: user.email
@@ -75,10 +84,15 @@ const UpdateUser = function(props) {
         body: JSON.stringify(params)
       }).then(res=> {return res.json()})
       .then(res=>{
-        if(!Boolean(res[0].role)){
-          props.userSaved(res);
-        } 
-        history.push('/users');
+        if(Boolean(res.message)){
+          setIsAlert(true);
+        }
+        else{
+          if(!Boolean(res.role)){
+            props.userSaved(res);
+          } 
+          history.push('/users');
+        }
       })
     }
   };
@@ -88,36 +102,63 @@ const UpdateUser = function(props) {
   }
   return (
     <Container>
-    <section className="section app-card">
-      <h2 className="subtitle">User Details</h2>
-      <div className="field">
-        <label className="label">Email</label>
-        <ReactTags
-          ref={reacttag}
-          tags={tags}
-          suggestions={userOptions}
-          onDelete={onDelete}
-          onAddition={onAddition}
-          allowNew={true}
-          placeholderText="Comma separated list of emails for users to invite"
-          delimiters={['Enter', 'Tab', ',', ' ']}
-        />
-      </div>
-      
-      <div className="field is-grouped">
-        <div className="control">
-          <button type='button' className="button is-primary"
-                  onClick={() => inviteUser()}>
-            <span>Invite</span>
-          </button>
+      <Dialog
+				maxWidth="md"
+				fullWidth
+				open={isAlert}
+				onClose={()=>setIsAlert(false)}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+			>
+				<Alert severity="warning" className="my-5">
+				<AlertTitle className="subtitle is-4 has-text-weight-bold">Fail</AlertTitle>
+				<span className="subtitle is-5">! You must upgrade your Intel Group plan to perform that action.</span>
+				</Alert>
+			</Dialog>
+      {props.mygroups.length == 0 &&
+      <Steps
+        enabled={stepsEnabled}
+        steps={steps}
+        initialStep={initialStep}
+        onExit={(index)=>{
+          setStepsEnabled(false);
+          if(index==0)
+            window.location.href="/home/feeds/";
+        }}
+        options={{
+          doneLabel: 'Next'
+        }}
+      />}
+      <section className="section app-card">
+        <h2 className="subtitle">User Details</h2>
+        <div className="field users">
+          <label className="label">Email</label>
+          <ReactTags
+            ref={reacttag}
+            tags={tags}
+            suggestions={userOptions}
+            onDelete={onDelete}
+            onAddition={onAddition}
+            allowNew={true}
+            placeholderText="Comma separated list of emails for users to invite"
+            delimiters={['Enter', 'Tab', ',', ' ']}
+          />
         </div>
-        <div className="control">
-            <button className="button is-text" onClick={()=>history.goBack()}>
-              <span>Cancel</span>
+        
+        <div className="field is-grouped">
+          <div className="control">
+            <button type='button' className="button is-primary"
+                    onClick={() => inviteUser()}>
+              <span>Invite</span>
             </button>
+          </div>
+          <div className="control">
+              <button className="button is-text" onClick={()=>history.goBack()}>
+                <span>Cancel</span>
+              </button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
     </Container>
   );
 };

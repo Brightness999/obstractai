@@ -187,7 +187,9 @@ const Feeds = (props) => {
 	}
 
 	useEffect(()=>{
-		if(props.currentgroup == '') history.push('/');
+		if(props.currentgroup == '' && props.mygroups.length != 0){
+			history.push('/');
+		}
 		else{
 			let params = {
 				id: props.currentgroup
@@ -252,7 +254,7 @@ const Feeds = (props) => {
 						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
 					</div>
 				)
-			if(props.currentrole.role ==2){
+			if(props.currentrole.role ==2 || props.mygroups.length == 0){
 				if(props.isPlan)
 					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} groupfeeds={groupfeeds}
 							Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />

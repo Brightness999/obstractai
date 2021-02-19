@@ -163,12 +163,10 @@ const IntelGroup = function(props) {
                                 aria-labelledby="alert-dialog-title"
                                 aria-describedby="alert-dialog-description"
                             >
-                                <DialogTitle className="has-text-centered"><span className="subtitle is-3">Information</span></DialogTitle>
-                                <DialogContent >
-                                <DialogContentText id="alert-dialog-description" className="has-text-centered">
-                                    <span className="subtitle is-4">Your intel group is successfully changed.</span>
-                                </DialogContentText>
-                                </DialogContent>
+                                <Alert severity="success" className="my-5">
+                                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+                                    <span className="subtitle is-5">Your intel group is successfully changed.</span>
+                                </Alert>
                             </Dialog>
                         </div>
                     </section>

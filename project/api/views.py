@@ -2367,7 +2367,10 @@ def intelgroups(request):
 @api_view(['GET', 'POST'])
 def grouplist(request):
 	if request.method == 'GET':
-		groups = IntelGroupSerializer(IntelGroups.objects.filter(ispublic=True).order_by('id').all(), many=True)
+		mygroupids = []
+		for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all():
+			mygroupids.append(role.intelgroup_id)
+		groups = IntelGroupSerializer(IntelGroups.objects.exclude(id__in=mygroupids).filter(ispublic=True).order_by('id').all(), many=True)
 		return Response(groups.data)
 	elif request.method == 'POST':
 		UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=request.data['id'], role=4)
@@ -2389,7 +2392,11 @@ def grouplist(request):
 				print(response.status_code)
 			except Exception as e:
 				print(str(e))
-		return Response({'message':True})
+		mygroupids = []
+		for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all():
+			mygroupids.append(role.intelgroup_id)
+		groups = IntelGroupSerializer(IntelGroups.objects.exclude(id__in=mygroupids).filter(ispublic=True).order_by('id').all(), many=True)
+		return Response(groups.data)
 
 @swagger_auto_schema(methods=['post'], request_body=AccepInviteSerializer, responses={201: RoleGroupSerializer})
 @api_view(['POST'])

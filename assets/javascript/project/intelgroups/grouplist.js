@@ -45,7 +45,8 @@ const GroupList = (props) => {
             body: JSON.stringify(params)
         }).then(res=>{return res.json()})
         .then(res=>{
-            setRequest(res.message);
+            setGroups(res);
+            setRequest(true);
             setIsLoading(false);
         });
     }

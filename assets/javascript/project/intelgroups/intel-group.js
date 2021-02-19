@@ -53,24 +53,22 @@ const IntelGroup = function(props) {
             userids: [],
             emails: []
         };
-        if(name.trim() != '' && description.trim() != ''){
-            params['id'] = props.currentgroup;
-            fetch('/api/intelgroups', {
-            method: 'put',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': props.client.transports[0].auth.csrfToken
-            },
-            credentials: 'same-origin',
-            body:JSON.stringify(params)
-            }).then(res=>{return res.json()})
-            .then(res=>{
-                if(Boolean(res.id)){
-                    props.intelgroupSave(res);
-                    setOpen(true);
-                }
-            })
-        }
+        params['id'] = props.currentgroup;
+        fetch('/api/intelgroups', {
+        method: 'put',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': props.client.transports[0].auth.csrfToken
+        },
+        credentials: 'same-origin',
+        body:JSON.stringify(params)
+        }).then(res=>{return res.json()})
+        .then(res=>{
+            if(Boolean(res.id)){
+                props.intelgroupSave(res);
+                setOpen(true);
+            }
+        })
     };
     if(isLoading){
         return <Loading/>

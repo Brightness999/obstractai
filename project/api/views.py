@@ -2471,6 +2471,28 @@ def role(request):
 		serializer = UserIntelGroupRolesSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid']).all(), many=True)
 		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role.data})
 	if request.method == 'DELETE':
+		
+		if UserIntelGroupRoles.objects.filter(id=request.data['id']).last().role == 4:
+			userid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().user_id
+			groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
+			groupname = IntelGroups.objects.filter(id=groupid).last().name
+			message = Mail(
+				from_email=settings.USER_EMAIL,
+				to_emails=CustomUser.objects.filter(id=userid).last().email,
+				subject=f'Your request has been refused from {groupname} Intel Group',
+				html_content=f'''<strong>From:</strong><span>{request.user.email}</span><br/>
+				<strong>Reply-to:</strong><span>{request.user.email}</span><br/>
+				<strong>Title:</strong><span>Invite Refusing</span><br/>
+				<p>Hello!</p>
+				<p>Your request has been refused from {groupname} Intel Group</p>
+				<p>If you think this is a mistake, you can resend the request to {groupname} Intel Group.</p>
+				<p>Sherlock and the Cyobstract Team</p>''')
+			try:
+				sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+				response = sg.send(message)
+				print(response.status_code)
+			except Exception as e:
+				print(str(e))
 		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 		return Response('Success')
 

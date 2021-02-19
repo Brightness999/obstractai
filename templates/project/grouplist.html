@@ -1,0 +1,35 @@
+{% extends "web/base.html" %}
+{% load static %}
+{% block body %}
+<section class="section container">
+    <div class="columns columns-reversed">
+        <div id="tagline" class="column app-card">
+            <div class="semisection">
+                <p class="title is-size-3">Intel Group List</p>
+            </div>
+            <div class="section">
+                <Table class="table is-striped is-fullwidth has-vcentered-cells">
+                    <thead class="is-size-4">
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in groups %}
+                        <tr>
+                            <td>{{group.name}}</td>
+                            <td>{{group.description}}</td>
+                            <td>
+                                <a href="{% url 'account_login' %}"><button class="button is-success">Invite Request</button></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </Table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

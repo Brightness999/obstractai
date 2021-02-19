@@ -10,7 +10,7 @@ class IntelGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IntelGroups
-        fields = ('id', 'uniqueid', 'name', 'description', 'plan_id', 'created_at', 'updated_at')
+        fields = ('__all__')
 
 class UserSerializer(serializers.ModelSerializer):
 

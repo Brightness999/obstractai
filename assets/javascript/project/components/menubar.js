@@ -45,7 +45,7 @@ const MenuBar = (props) => {
                             <span className="is-show-desktop">Manage Observables</span>
                         </a>
                         <div className="navbar-dropdown is-left">
-                            <Link to="/categories/" className="navbar-item">Categories</Link>
+                            {/* <Link to="/categories/" className="navbar-item">Categories</Link> */}
                             <Link to="/extractions/" className="navbar-item">Extractions</Link>
                             <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
                         </div>

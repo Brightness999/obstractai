@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import {
-	Container,TextField,Button,Tooltip, Dialog, DialogContent, DialogTitle
+	Container,TextField,Button,Tooltip, Dialog, DialogContent, DialogTitle, Slider, Typography
 } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
@@ -24,7 +24,7 @@ const UpdateFeed = (props) => {
 	const [tags, setTags] = useState(props.tags || '');
 	const [type, setType] = useState(props.type || '');
 	const history = useHistory();
-	const [confidence, setConfidence] = useState(props.confidence || '');
+	const [confidence, setConfidence] = useState(props.confidence || 0);
 	const [urlError, setUrlError] = useState(false);
 	const [nameError, setNameError] = useState(false);
 	const [descriptionError, setDescriptionError] = useState(false);
@@ -38,7 +38,7 @@ const UpdateFeed = (props) => {
 	const [urlMessage, setUrlMessage] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [webhook, setWebhhook] = useState(false);
-	
+	const value = props.confidence ? props.confidence : 0;
 	const saveFeed = () => {
 		setIsLoading(true);
 		let params ={
@@ -327,24 +327,20 @@ const UpdateFeed = (props) => {
 								onChange={(event) => {setTags(event.target.value); setTagError(false);}}
 							/><Tooltip title="User can assign 0 or more tags (manual entry, auto identify existing tags, letters, numbers and - only)" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{tagError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
-							<><TextField
-								id="outlined-select-currency-native"
-								select
-								className="mt-4 column is-four-fifths"
-								label="Confidence"
-								value={confidence}
-								onChange={(event) => setConfidence(event.target.value)}
-								SelectProps={{
-									native: true,
-								}}
-								variant="outlined"
-							>
-								{props.confidences.map((confidence) => (
-									<option key={confidence} value={confidence}>
-										{confidence}
-									</option>
-								))}
-							</TextField><Tooltip title="Value between 1 and 100 for how reliable is source" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
+							<Typography id="non-linear-slider" gutterBottom>
+								Confidence
+							</Typography>
+							<Slider
+								className="mt-6 column is-four-fifths"
+								defaultValue={value}
+								onChange={(e,value)=>setConfidence(value)}
+								aria-labelledby="discrete-slider-always"
+								step={1}
+								min={0}
+								max={100}
+								marks={[{value:0, label:0},{value:100, label:100}]}
+								valueLabelDisplay="on"
+							/>
 						</div>
 						
 						<Dialog fullScreen open={open} onClose={()=>setOpen(false)}>

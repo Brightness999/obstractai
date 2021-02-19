@@ -29,6 +29,7 @@ urlpatterns = [
     path(r'leavegroup', views.leavegroup, name='leavegroup'),
     path(r'deleteaccount', views.deleteaccount, name='deleteaccount'),
     path(r'intelgroups', views.intelgroups, name='intelgroups'),
+    path(r'grouplist', views.grouplist, name='grouplist'),
     path(r'feedenable', views.feedenable, name='feedenable'),
     path(r'acceptinvite', views.acceptinvite, name='acceptinvite'),
     path(r'rejectinvite', views.rejectinvite, name='rejectinvite'),

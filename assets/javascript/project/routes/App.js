@@ -17,6 +17,7 @@ import User from '../users';
 import IntelGroups from '../intelgroups';
 import FeedLists from '../feedlist';
 import ConfiguredFeeds from '../configuredfeeds';
+import GroupList from '../intelgroups/grouplist';
 
 
 const Loading = () => {
@@ -121,6 +122,9 @@ const App = () => {
             </Route>
             <Route path="/intelgroup">
               <IntelGroup client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
+            </Route>
+            <Route path="/grouplist">
+              <GroupList client={client} />
             </Route>
             <Route path="/users" >
               <User mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />

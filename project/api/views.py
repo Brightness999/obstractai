@@ -2355,13 +2355,41 @@ def intelgroups(request):
 		else:
 			name = IntelGroups.objects.filter(id=request.data['id']).last().name
 			description = IntelGroups.objects.filter(id=request.data['id']).last().description
+			ispublic = IntelGroups.objects.filter(id=request.data['id']).last().ispublic
 			role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()[0])
-			return Response({'name':name, 'description':description, 'currentrole':role.data})
+			return Response({'name':name, 'description':description, 'ispublic':ispublic, 'currentrole':role.data})
 	if request.method == 'PUT':
-		IntelGroups.objects.filter(id=request.data['id']).update(name=request.data['name'],description=request.data['description'])
+		IntelGroups.objects.filter(id=request.data['id']).update(name=request.data['name'],description=request.data['description'], ispublic=request.data['ispublic'])
 		new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id'], user_id=request.user.id).all()
 		serializer = RoleGroupSerializer(new_role[0])
 		return Response(serializer.data)
+
+@api_view(['GET', 'POST'])
+def grouplist(request):
+	if request.method == 'GET':
+		groups = IntelGroupSerializer(IntelGroups.objects.filter(ispublic=True).order_by('id').all(), many=True)
+		return Response(groups.data)
+	elif request.method == 'POST':
+		UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=request.data['id'], role=4)
+		roles = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id'], role=2).order_by('id').all()
+		for role in roles:
+			message = Mail(
+				from_email=settings.USER_EMAIL,
+				to_emails=CustomUser.objects.filter(id=role.user_id).last().email,
+				subject=f'{request.user.email} has been sent you request to join your Intel Group',
+				html_content=f'''<strong>From:</strong><span>{request.user.email}</span><br/>
+				<strong>Reply-to:</strong><span>{request.user.email}</span><br/>
+				<strong>Title:</strong><span>Invite Request</span><br/>
+				<p>Hello!</p>
+				<p>{request.user.email} has been sent you request to join your Intel Group</p>
+				''')
+			try:
+				sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+				response = sg.send(message)
+				print(response.status_code)
+			except Exception as e:
+				print(str(e))
+		return Response({'message':True})
 
 @swagger_auto_schema(methods=['post'], request_body=AccepInviteSerializer, responses={201: RoleGroupSerializer})
 @api_view(['POST'])

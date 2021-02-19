@@ -4,10 +4,11 @@ import { Link } from "react-router-dom";
 const MenuBar = (props) => {
     return (
         <div className="container semisection">
-            {props.currentgroup != '' &&
+            {/* {props.currentgroup != '' && */}
             <div className="navbar-menu" id="nav-menu">
-                {props.currentrole.role != 0 &&
                 <div className="navbar-start">
+                    <Link to="/grouplist/" className="navbar-item">Intel Group List</Link>
+                {(props.currentrole.role == 1 || props.currentrole.role == 2)&&
                     <div className="navbar-item has-dropdown is-hoverable">
                         <a className="navbar-link">
                             <span className="is-show-desktop">View intel</span>
@@ -17,8 +18,8 @@ const MenuBar = (props) => {
                             <Link to="/intelreports/" className="navbar-item">Intel Reports</Link>
                         </div>
                     </div>
-                </div>
                 }
+                </div>
                 {props.currentrole.role == 2 &&
                 <div className="navbar-end">
                     <div className="navbar-item has-dropdown is-hoverable">
@@ -52,7 +53,8 @@ const MenuBar = (props) => {
                     <a href={`/subscriptions/intelgroup/${props.currentgroup}`} className="navbar-item">Plan</a>
                 </div>
                 }
-            </div>}
+            </div>
+            {/* } */}
         </div>
     );
 }

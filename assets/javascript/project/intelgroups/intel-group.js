@@ -17,6 +17,7 @@ const Loading = function() {
 const IntelGroup = function(props) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [isPublic, setIsPublic] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const history = useHistory();  
@@ -37,6 +38,7 @@ const IntelGroup = function(props) {
             .then(res=>{
                 setName(res.name);
                 setDescription(res.description);
+                setIsPublic(res.ispublic);
                 setIsLoading(false);
             })
 
@@ -47,6 +49,7 @@ const IntelGroup = function(props) {
         let params = {
             name: name.trim(),
             description: description.trim(),
+            ispublic: isPublic?true:false,
             userids: [],
             emails: []
         };
@@ -122,6 +125,22 @@ const IntelGroup = function(props) {
                             value={description}
                             onChange={(event) => setDescription(event.target.value)}
                             /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+                            <label className="label">Public</label>
+                            <TextField
+                            className="column is-three-quarters"
+                            select
+                            margin="normal"
+                            SelectProps={{
+                                native: true
+                            }}
+                            variant="outlined"
+                            value={isPublic}
+                            onChange={(event) => setIsPublic(event.target.value)}
+                            >
+                                <option value={false}>False</option>
+                                <option value={true}>True</option>
+                            </TextField>
+
                         </div>
                         <div className="field is-grouped">
                             <div className="control">

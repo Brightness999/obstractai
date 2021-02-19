@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, TextField, Grid } from "@material-ui/core";
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 import ReportCard from "./report-card";
 import ViewReport from "./view-report";
@@ -44,6 +45,11 @@ const ReportList = (props) => {
 	return (
 		<Container>
 			<section className="section">
+				{props.isInit&&
+				<Alert severity="info" className="my-5">
+					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+					<span className="subtitle is-5">{props.message}</span>
+				</Alert>}
 				<Grid container>
 					<Grid item md={3} xs={6}>
 							<label className="title is-2">Intel Reports</label>
@@ -289,7 +295,7 @@ const IntelReports = (props) => {
 			}
 			else{
 				if(props.isPlan)
-					return <ReportList categories={categories} tags={tags} client={props.client} mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
+					return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
 						indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} reports={reports} isInit={props.isInit} message={props.message}/>
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}

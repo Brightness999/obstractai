@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import { Switch,Route,Link,useHistory} from "react-router-dom";
-import { Container, TextField, Grid, Dialog} from "@material-ui/core";
+import { Container, TextField, Grid, Dialog, Slider} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 
 import UpdateFeed from "./update-feed";
@@ -51,6 +51,7 @@ const FeedList = (props) => {
 		setWebhhook(data.webhook_fail);
 		props.saveFeed(data);
 	}
+	
 	return (
 		<Container>
 			<Dialog
@@ -101,6 +102,25 @@ const FeedList = (props) => {
 									</option>
 								))}
 							</TextField>
+							{/* <button className="button is-large" onClick={()=>{
+								document.getElementById('confidence').style.display='block';
+							}}>
+								<span className="subtitle is-6">Confidence</span>
+							</button>
+							<Slider
+								className="mt-6 column is-four-fifths"
+								defaultValue={0}
+								id="confidence"
+								orientation="vertical"
+								style={{display:'none'}}
+								onChange={(e,value)=>setConfidence(value)}
+								aria-labelledby="discrete-slider-always"
+								step={1}
+								min={0}
+								max={100}
+								marks={[{value:0, label:0},{value:100, label:100}]}
+								valueLabelDisplay="on"
+							/> */}
 							<TextField
 								id="outlined-select-currency-native"
 								select

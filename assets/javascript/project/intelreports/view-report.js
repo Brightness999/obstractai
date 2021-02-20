@@ -269,6 +269,11 @@ const ViewReport = (props) => {
 									<span>Observables:</span>
 								</Grid>
 								<Grid item xs={9}>
+									{props.globalattributes.map((classification, index)=>{
+										return <button key={index} className="button is-warning is-rounded mx-1 my-1">
+											<span>{classification.globalattribute.words_matched}</span>
+										</button>
+									})}
 									{classifications.map((classification, index)=>{
 										return <button key={index} className="button is-warning is-rounded mx-1 my-1" >
 											<span>{classification.words_matched}</span>

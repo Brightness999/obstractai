@@ -28,7 +28,7 @@ const ReportCard = function (props) {
 										<span> Description: </span>
 										{/* <span> {props.report? props.report.feeditem.description: ""} </span> */}
 									</div>
-									<div className="">
+									<div>
 										<span className="title has-text-weight-bold is-4"> URL: </span>
 										<span> {props.report.feeditem? props.report.feeditem.link : ""} </span>
 									</div>
@@ -46,15 +46,13 @@ const ReportCard = function (props) {
 									<button className="button is-info is-rounded mx-2" >
 									<span>{props.report.groupfeed.category ? props.report.groupfeed.category.name : ""}</span>
 									</button>
-									{
-									tags.map((tag, index) => {
+									{tags.map((tag, index) => {
 										return (
 										<button key={index} className="button is-warning is-rounded mx-2" >
 											<span>{tag}</span>
 										</button>
 										);
-									})
-									}
+									})}
 									<Link to={`/intelreports/${props.report.id}`}>
 										<button className="button is-link is-rounded is-text mx-2">
 											<span>{props.report.groupfeed ? props.report.groupfeed.name : ""}</span>

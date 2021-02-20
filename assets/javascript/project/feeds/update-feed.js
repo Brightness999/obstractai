@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import {
-	Container,TextField,Button,Tooltip, Dialog, DialogContent, DialogTitle, Slider, Typography
+	Container,TextField,Button,Tooltip, Dialog, DialogContent, DialogTitle, Slider, Typography, Grid
 } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
@@ -34,6 +34,7 @@ const UpdateFeed = (props) => {
 	const [typeError, setTypeError] = useState(false);
 	const [isMessage, setIsMessage] = useState(false);
 	const [fulltext, setFullText] = useState({});
+	const [indicators, setIndicators] = useState([]);
 	const [open, setOpen] = useState(false);
 	const [urlMessage, setUrlMessage] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -41,12 +42,14 @@ const UpdateFeed = (props) => {
 	const value = props.confidence ? props.confidence : 0;
 	const saveFeed = () => {
 		setIsLoading(true);
+		let str = tags.trim();
+		if(str[str.length-1] == ',') str = str.substring(0, str.length-2);
 		let params ={
 			url: url.trim(),
 			name: name.trim(),
 			description: description.trim(),
 			category: category,
-			tags: tags.trim(),
+			tags: str,
 			confidence: confidence,
 			type:type.trim()
 		}
@@ -91,12 +94,14 @@ const UpdateFeed = (props) => {
 			if(cate.id == category)
 				data = cate;
 		});
+		let str = tags.trim();
+		if(str[str.length-1] == ',') str = str.substring(0, str.length-2);
 		let params ={
 			url: url.trim(),
 			name: name.trim(),
 			description: description.trim(),
 			category: category=='Select category'?'':category,
-			tags: tags.trim(),
+			tags: str,
 			confidence: confidence,
 			type: type=='Select Type'?'':type.trim()
 		}
@@ -135,6 +140,7 @@ const UpdateFeed = (props) => {
 			if(category == '' || category == 'Select category') setCategoryError(true);
 			if(type.trim() == '' || type == 'Select Type') setTypeError(true);
 			if(url && name && description && category && type ){
+				setIsLoading(true);
 				if(props.currentgroup != ''){
 					fetch('/api/pullfeed', {
 						method: 'post',
@@ -147,7 +153,9 @@ const UpdateFeed = (props) => {
 					}).then(res=>{return res.json()})
 					.then(res=>{
 						setFullText(res.fulltext);
-						setOpen(true)
+						setIndicators(res.indicators);
+						setOpen(true);
+						setIsLoading(false);
 					})
 				}
 			}
@@ -344,16 +352,154 @@ const UpdateFeed = (props) => {
 						</div>
 						
 						<Dialog fullScreen open={open} onClose={()=>setOpen(false)}>
-						<DialogTitle>
-							<button onClick={()=>{saveFeed()}} className="button is-success mx-4" autoFocus>
-								Save
-							</button>
-							<button onClick={()=>{setOpen(false); }} className="button is-danger" >
-								Cancel
-							</button>
-						</DialogTitle>
+							<DialogTitle>
+								<button onClick={()=>{saveFeed()}} className="button is-success mx-4" autoFocus>
+									Save
+								</button>
+								<button onClick={()=>{setOpen(false); }} className="button is-danger" >
+									Cancel
+								</button>
+							</DialogTitle>
 							<DialogContent>
-								<pre>{JSON.stringify(fulltext, null, 2) }</pre>
+								{Boolean(fulltext.rss) && typeof(fulltext.rss.channel.item)=='array' && fulltext.rss.channel.item.map((item, index)=>{
+									return <section className="section app-card" key={index}>
+										<div className="columns">
+											<div className="column is-one-thirds">
+												<Grid container>
+													<Grid item xs={12} md={8} className="container" style={{position:'relative'}}>
+														<Grid container>
+															<Grid item xs={12} md={6}>
+																<div>
+																	<span className="title has-text-weight-bold is-4"> Name: </span>
+																	<span> {item.title} </span>
+																</div>
+																<div dangerouslySetInnerHTML={{__html:item.description}}>
+																</div>
+																<div>
+																	<span className="title has-text-weight-bold is-4"> URL: </span>
+																	<span> {item.link} </span>
+																</div>
+							
+															</Grid>
+															<Grid item xs={12} md={6}>
+																<div>
+																	<span className="title has-text-weight-bold is-4"> Publish Date: </span>
+																	<span>{ new Date(item.pubDate).toLocaleString()}</span>
+																</div>
+															</Grid>
+														</Grid>
+														<div>
+															<span>
+																<button className="button is-info is-rounded mx-2" >
+																<span>{category}</span>
+																</button>
+																<button className="button is-link is-rounded is-text mx-2">
+																	<span>{name}</span>
+																</button>
+															</span>
+														</div>
+													</Grid>
+													<Grid item xs={12} md={4}>
+														<Grid container>
+															<Grid item xs={3} className="pt-4">
+																<span>Confidence:</span>
+															</Grid>
+															<Grid item xs={9} className="py-2">
+																<button className="button is-primary is-rounded">
+																	<span>{confidence}</span>
+																</button>
+															</Grid>
+														</Grid>
+														<Grid container>
+															<Grid item xs={3} className="pt-4">
+																<span>Indicators:</span>
+															</Grid>
+															<Grid item xs={9} className="py-2">
+																{indicators[index].map((indicator, i)=>{
+																	return <button key={i} className="button is-success is-rounded mx-1 my-1" >
+																		<span>{indicator}</span>
+																	</button>
+																})}
+																
+															</Grid>
+														</Grid>
+													</Grid>
+											</Grid>
+											</div>
+										</div>
+									</section>
+								
+								})}
+								{Boolean(fulltext.rss) && typeof(fulltext.rss.channel.item)=='object' && 
+									<section className="section app-card">
+										<div className="columns">
+											<div className="column is-one-thirds">
+												<Grid container>
+													<Grid item xs={12} md={8} className="container" style={{position:'relative'}}>
+														<Grid container>
+															<Grid item xs={12} md={6}>
+																<div>
+																	<span className="title has-text-weight-bold is-4"> Name: </span>
+																	<span> {fulltext.rss.channel.item.title} </span>
+																</div>
+																<div dangerouslySetInnerHTML={{__html:fulltext.rss.channel.item.description}}>
+																</div>
+																<div>
+																	<span className="title has-text-weight-bold is-4"> URL: </span>
+																	<span> {fulltext.rss.channel.item.link} </span>
+																</div>
+							
+															</Grid>
+															<Grid item xs={12} md={6}>
+																<div>
+																	<span className="title has-text-weight-bold is-4"> Publish Date: </span>
+																	<span>{ new Date(fulltext.rss.channel.item.pubDate).toLocaleString()}</span>
+																</div>
+															</Grid>
+														</Grid>
+														<div>
+															<span>
+																<button className="button is-info is-rounded mx-2" >
+																<span>{props.categories.map((ca, index)=>{
+																	if(ca.id == category) return ca.name
+																})}</span>
+																</button>
+																<button className="button is-link is-rounded is-text mx-2">
+																	<span>{name}</span>
+																</button>
+															</span>
+														</div>
+													</Grid>
+													<Grid item xs={12} md={4}>
+														<Grid container>
+															<Grid item xs={3} className="pt-4">
+																<span>Confidence:</span>
+															</Grid>
+															<Grid item xs={9} className="py-2">
+																<button className="button is-primary is-rounded">
+																	<span>{confidence}</span>
+																</button>
+															</Grid>
+														</Grid>
+														<Grid container>
+															<Grid item xs={3} className="pt-4">
+																<span>Indicators:</span>
+															</Grid>
+															<Grid item xs={9} className="py-2">
+																{indicators.map((indicator, i)=>{
+																	return <button key={i} className="button is-success is-rounded mx-1 my-1" >
+																		<span>{indicator}</span>
+																	</button>
+																})}
+																
+															</Grid>
+														</Grid>
+													</Grid>
+											</Grid>
+											</div>
+										</div>
+									</section>
+								}
 							</DialogContent>
 						</Dialog>
 					</div>

@@ -46,7 +46,7 @@ const MenuBar = (props) => {
                         </a>
                         <div className="navbar-dropdown is-left">
                             {/* <Link to="/categories/" className="navbar-item">Categories</Link> */}
-                            <Link to="/extractions/" className="navbar-item">Extractions</Link>
+                            <Link to="/extractions/" className="navbar-item">Attributes</Link>
                             <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
                         </div>
                     </div>

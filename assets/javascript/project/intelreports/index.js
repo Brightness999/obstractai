@@ -318,7 +318,7 @@ const IntelReports = (props) => {
 			const report_id = data.match.params.id;
 			const report = getFeedById(report_id);
 			return(
-				<ViewReport client={props.client} {...report} classifications={classifications} indicators={indicators} />
+				<ViewReport client={props.client} {...report} classifications={classifications}	globalattributes={globalattributes} indicators={indicators} />
 			)
 		}
 	}

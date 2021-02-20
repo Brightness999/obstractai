@@ -1336,9 +1336,17 @@ def pullfeed(request):
 	ftr = "http://ftr-premium.fivefilters.org/"
 	encode = urllib.parse.quote_plus(request.data['url'])
 	key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
-	req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key)
+	req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
 	contents = urllib.request.urlopen(req).read()
-	return Response({'fulltext':xmltodict.parse(contents)})
+	results = []
+	for item in xmltodict.parse(contents)['rss']['channel']['item']:
+		data = []
+		for indicator in extract.extract_observables(json.dumps(item)):
+			if len(extract.extract_observables(json.dumps(item))[indicator]) > 0:
+				data.append(indicator)
+		if not data == []:
+			results.append(data)
+	return Response({'fulltext':xmltodict.parse(contents), 'indicators':results})
 
 @swagger_auto_schema(methods=['post'], request_body=FeedCreateSerializer, responses={201: FeedCategorySerializer})
 @swagger_auto_schema(methods=['put'], request_body=FeedUpdateSerializer, responses={200: FeedCategorySerializer})
@@ -2496,17 +2504,14 @@ def role(request):
 		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 		return Response('Success')
 
-@swagger_auto_schema(methods=['get'], responses={200: CustomUserSerializer})
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 def users(request):
-	if request.method == 'GET':
-		serializer = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True)
-		return Response(serializer.data)
 	if request.method == 'POST':
+		allusers = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True)
 		user_role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['id'], user_id=request.user.id).last())
-		serializer = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
-		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role.data})
+		users = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
+		return Response({'myId':request.user.id, 'users':users.data, 'allusers':allusers.data, 'grouprole':user_role.data})
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])

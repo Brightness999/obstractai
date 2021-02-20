@@ -6,8 +6,7 @@ import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container, Dialog} from "@material-ui/core";
 
 const UpdateUser = function(props) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [allusers, setAllUsers] = useState([]);
+  const [allusers, setAllUsers] = useState(props.allusers);
   const [tags, setTags] = useState([]);
   const [isAlert, setIsAlert] = useState(false);
   const history = useHistory();
@@ -33,28 +32,6 @@ const UpdateUser = function(props) {
       var temp = [].concat(tags, tag)
       setTags(temp)
     }
-  }
-  useEffect(() => {
-    fetch('/api/users', {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'same-origin',
-    }).then(res=>{return res.json()})
-    .then(res=>{
-      setAllUsers(res);
-      setIsLoading(false);
-    })
-  },[]);
-  
-  const Loading = function() {
-    return (
-      <div className='app-card has-text-centered'>
-        <div className="lds-ripple"><div></div><div></div></div>
-        <p className="heading has-text-primary">Loading...</p>
-      </div>
-    )
   }
   
   const inviteUser = function() {
@@ -97,9 +74,6 @@ const UpdateUser = function(props) {
     }
   };
 
-  if(isLoading){
-    return <Loading/>
-  }
   return (
     <Container>
       <Dialog

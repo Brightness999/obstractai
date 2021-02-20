@@ -97,6 +97,7 @@ const Loading = function() {
 const User = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [users, setUsers] = useState([]);
+	const [allusers, setAllUsers] = useState([]);
 	const [myId, setMyId] = useState([]);
 	const [groupRole, setGroupRole] = useState({});
 	const history = useHistory();
@@ -121,6 +122,7 @@ const User = (props) => {
 			}).then(res=>{return res.json()})
 			.then(res=>{
 				console.log(res);
+				setAllUsers(res.allusers);
 				setUsers(res.users);
 				setMyId(res.myId);
 				setGroupRole(res.grouprole);
@@ -215,7 +217,7 @@ const User = (props) => {
 	return (
 	  <Switch>
 		<Route path="/users/new">
-		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} mygroups={props.mygroups} />
+		  <UpdateUser client={props.client} allusers={allusers} userSaved={handleUserSaved} group_id={props.currentgroup} mygroups={props.mygroups} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}

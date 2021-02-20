@@ -138,7 +138,7 @@ const IntelGroup = function(props) {
                                 <option value={false}>False</option>
                                 <option value={true}>True</option>
                             </TextField>
-
+                            <Tooltip title="Boolean to make public or private Intel Group." arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
                         </div>
                         <div className="field is-grouped">
                             <div className="control">

@@ -260,6 +260,7 @@ const IntelReports = (props) => {
 				body: JSON.stringify(params)
 			}).then((res)=> { return res.json();})
 			.then((res)=>{
+				console.log(res);
 				setFeeds(res.feeds);
 				setCategories(res.categories);
 				setClassifications(res.extractions);
@@ -340,7 +341,7 @@ const IntelReports = (props) => {
 			const report_id = data.match.params.id;
 			const report = getFeedById(report_id);
 			return(
-				<ViewReport client={props.client} {...report} mygroups={props.mygroups} classifications={classifications}	globalattributes={globalattributes} indicators={indicators} />
+				<ViewReport client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
 			)
 		}
 	}

@@ -4,6 +4,7 @@ import { Container, Grid } from "@material-ui/core";
 import { Steps } from 'intro.js-react';
 
 const ViewReport = (props) => {
+	console.log(props);
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
 		element: '#card',
@@ -29,6 +30,26 @@ const ViewReport = (props) => {
 			indicators.push(indicator)
 		}
 	});
+	const data = {
+		UUID: props.uniqueid,
+		Intel_Group_UUID: props.intelgroup.id,
+		Report_URL: `https://sherlock-staging.obstractai.com/api/v1/reports?UUID=${props.uniqueid}`,
+		Datetime_added: props.created_at,
+		RSS_data: {
+			Title:props.feeditem.title,
+			Link:props.feeditem.link,
+			Description:props.feeditem.description,
+			Author:props.feeditem.author,
+			Category:props.feeditem.category,
+			Comments:props.feeditem.comments,
+			Enclosure:props.feeditem.enclosure,
+			Guid:props.feeditem.guid,
+			pubDate:props.feeditem.pubdate,
+			Source:props.feeditem.source,
+		},
+		Indicators: indicators,
+		Attributes: classifications
+	}
 	
 	useEffect(()=>{
 		let str=props.feeditem.description;
@@ -44,7 +65,8 @@ const ViewReport = (props) => {
 					for(let i=0;i<ids.length;i++){
 						let target = str.substring(ids[i], ids[i]+item.length+2);
 						let target1 = "<span style='background:#faeb42;'>" + item + "</span>";
-						let target2 = `><Tooltip title='${indicator.globalindicator.value}=${item}'>${target1}</Tooltip><`;
+						let target2 = `><Tooltip title='indicator = ${indicator.globalindicator.value}'>${target1}</Tooltip><`;
+						// let target2 = `><Tooltip title='${indicator.globalindicator.value}=${item}'>${target1}</Tooltip><`;
 						for(let j=i+1;j<ids.length;j++){
 							ids[j] = ids[j] + target2.length - target.length;
 						}
@@ -72,7 +94,8 @@ const ViewReport = (props) => {
 						if(index>astart[i] && index<alast[i]){
 							target = str.substring(astart[i], alast[i]+2);
 							let target1 = target.substring(0,2) + " style='background:#faeb42;'" + target.substr(2);
-							str = str.replace(target, `<Tooltip title="${indicator.globalindicator.value}=${url}">${target1}</Tooltip>`)
+							str = str.replace(target, `<Tooltip title="indicator = ${indicator.globalindicator.value}">${target1}</Tooltip>`)
+							// str = str.replace(target, `<Tooltip title="${indicator.globalindicator.value}=${url}">${target1}</Tooltip>`)
 						}
 					}
 				});
@@ -86,7 +109,8 @@ const ViewReport = (props) => {
 					}
 					for(let i=0;i<ids.length;i++){
 						let target = "<span style='background:#faeb42;'>" + item + "</span>";
-						let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+						let target1 = `<Tooltip title="indicator = ${indicator.globalindicator.value}">${target}</Tooltip>`;
+						// let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
 						for(let j=i+1;j<ids.length;j++){
 							ids[j] = ids[j] + target1.length - target.length;
 						}
@@ -104,7 +128,8 @@ const ViewReport = (props) => {
 					for(let i=0;i<ids.length;i++){
 						let target = str.substring(ids[i], ids[i]+item.length);
 						let target1 = "<span style='background:#faeb42;'>" + target + "</span>";
-						let target2 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target1}</Tooltip>`;
+						let target2 = `<Tooltip title="indicator = ${indicator.globalindicator.value}">${target1}</Tooltip>`;
+						// let target2 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target1}</Tooltip>`;
 						for(let j=i+1;j<ids.length;j++){
 							ids[j] = ids[j] + target2.length - target.length;
 						}
@@ -124,7 +149,8 @@ const ViewReport = (props) => {
 						console.log(str.substr(ids[i]+item.length-1, 1));
 						if(!(str.substr(ids[i]+item.length, 1)*1 > 0 && str.substr(ids[i]+item.length, 1)*1 < 9) && str.substr(ids[i]+item.length, 1) != '/'){
 							let target = "<span style='background:#faeb42;'>" + item + "</span>";
-							let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+							let target1 = `<Tooltip title="indicator = ${indicator.globalindicator.value}">${target}</Tooltip>`;
+							// let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
 							for(let j=i+1;j<ids.length;j++){
 								if(!(str.substr(ids[j]+item.length, 1)*1 > 0 && str.substr(ids[j]+item.length, 1)*1 < 9) && str.substr(ids[j]+item.length, 1) != '/')
 									ids[j] = ids[j] + target1.length - item.length;
@@ -143,7 +169,8 @@ const ViewReport = (props) => {
 					}
 					for(let i=0;i<ids.length;i++){
 						let target = "<span style='background:#faeb42;'>" + item + "</span>";
-						let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+						let target1 = `<Tooltip title="indicator = ${indicator.globalindicator.value}">${target}</Tooltip>`;
+						// let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
 						for(let j=i+1;j<ids.length;j++){
 							ids[j] = ids[j] + target1.length - item.length;
 						}
@@ -160,7 +187,8 @@ const ViewReport = (props) => {
 					}
 					for(let i=0;i<ids.length;i++){
 						let target = "<span style='background:#faeb42;'>" + item + "</span>";
-						let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
+						let target1 = `<Tooltip title="indicator = ${indicator.globalindicator.value}">${target}</Tooltip>`;
+						// let target1 = `<Tooltip title="${indicator.globalindicator.value}=${item}">${target}</Tooltip>`;
 						for(let j=i+1;j<ids.length;j++){
 							ids[j] = ids[j] + target1.length - item.length;
 						}
@@ -198,7 +226,8 @@ const ViewReport = (props) => {
 						}
 					});
 					let target = str.substring(start[i], last[i]+1);
-					let target1 = `<Tooltip title="${indicator.globalindicator.value}=${temp.join(',')}">${target}</Tooltip>`;
+					let target1 = `<Tooltip title="indicator = ${indicator.globalindicator.value}">${target}</Tooltip>`;
+					// let target1 = `<Tooltip title="${indicator.globalindicator.value}=${temp.join(',')}">${target}</Tooltip>`;
 					for(let j=i+1;j<start.length;j++){
 						start[j] = start[j] + target1.length-target.length;
 						last[j] = last[j] + target1.length-target.length;
@@ -314,14 +343,15 @@ const ViewReport = (props) => {
 								</Grid>
 							</Grid>
 							<p>JSON object: </p>
-							<p>API call</p>
+							<pre>{JSON.stringify(data, null, 2)}</pre>
+							<p>API Call</p>
 							<div>
 								<span>Feed: </span>
-								<span>https://www.cyobstract.com/api/v1/feed?UUID={props.feeditem.feed.uniqueid}</span>
+								<span>https://sherlock-staging.obstractai.com/api/v1/feeds?UUID={props.feeditem.feed.uniqueid}</span>
 							</div>
 							<div>
 								<span>Report: </span>
-								<span>https://www.cyobstract.com/api/v1/report?UUID={props.uniqueid}</span>
+								<span>https://sherlock-staging.obstractai/api/v1/reports?UUID={props.uniqueid}</span>
 							</div>
 							<a href="/api/docs" className="muted-link">API docs</a>
 						</section>

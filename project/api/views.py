@@ -86,7 +86,7 @@ def apifeeds(request):
 	groupids = []
 	tempids = []
 	for apikey in APIKeys.objects.all():
-		if apikey.value == request.headers['key']:
+		if apikey.value == request.headers['x-api-key']:
 			tempids = apikey.groupids.split(',')
 			userid = apikey.user_id
 	if userid == 0:
@@ -417,7 +417,7 @@ def apireports(request):
 	tempids = []
 	reports = []
 	for apikey in APIKeys.objects.all():
-		if apikey.value == request.headers['key']:
+		if apikey.value == request.headers['x-api-key']:
 			tempids = apikey.groupids.split(',')
 		userid = apikey.user_id
 	if userid == 0:
@@ -689,7 +689,7 @@ def apigroups(request):
 	tempids = []
 	userid = 0
 	for apikey in APIKeys.objects.all():
-		if apikey.value == request.headers['key']:
+		if apikey.value == request.headers['x-api-key']:
 			tempids = apikey.groupids.split(',')
 			userid = apikey.user_id
 	if userid == 0:
@@ -2069,7 +2069,7 @@ def feedenable(request):
 		if serializer.data['feed']['isglobal']:
 			groupfeeds.append(serializer.data)
 		groupfeedids.append(groupfeed.feed_id)
-	feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).order_by('id').all(), many=True)
+	feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
 	return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data, 'webhook_fail':webhook_fail})
 
 @swagger_auto_schema(methods=['post'], request_body=AttributeCreateSerializer, responses={201: UserGroupAttributeSerializer})
@@ -2272,7 +2272,7 @@ def home(request):
 	# print(','.join(results['topic']))
 	# for result in results:
 	# 	print(result)
-	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all(), many=True)
+	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').filter(user_id=request.user.id).all(), many=True)
 	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True)
 	intelgroups = IntelGroupSerializer(IntelGroups.objects.order_by('id').all(), many=True)
 	return Response({'mygroups':groups.data, 'users':users.data, 'intelgroups':intelgroups.data, 're':'result'})

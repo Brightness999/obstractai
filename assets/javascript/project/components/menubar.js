@@ -42,7 +42,7 @@ const MenuBar = (props) => {
                     </div>
                     <div className="navbar-item has-dropdown is-hoverable">
                         <a className="navbar-link">
-                            <span className="is-show-desktop">Manage Observables</span>
+                            <span className="is-show-desktop">Manage Extractions</span>
                         </a>
                         <div className="navbar-dropdown is-left">
                             {/* <Link to="/categories/" className="navbar-item">Categories</Link> */}

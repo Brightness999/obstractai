@@ -8,6 +8,7 @@ import { Table, Tbody, Thead, Th, Tr, Td } from "react-super-responsive-table";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 import ExtractionTable from "./extraction-table";
+import { Steps } from 'intro.js-react';
 
 const Loading = () => {
 	return (
@@ -46,6 +47,14 @@ const ExtractionList = (props) => {
 	const [groupError, setGroupError] = useState(false);
 	const [bannerCustom, setBannerCustom] = useState(false);
 	const [bannerAdd, setBannerAdd] = useState(false);
+	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const steps = [{
+		element: '#attribute',
+		intro: 'Custom attributes  by matching text in each Intel Report'
+	},{
+		element: '#globalattribute',
+		intro: 'Global attributes  by matching text in each Intel Report'
+	}]
 	
 	const saveExtraction = () => {
 
@@ -175,7 +184,22 @@ const ExtractionList = (props) => {
 
 	return (
 		<Container>
-			<section className="section">
+			{props.mygroups.length == 0 &&
+			<Steps
+				enabled={stepsEnabled}
+				steps={steps}
+				initialStep={0}
+				onStart={()=>setIsAdd(true)}
+				onExit={(index)=>{
+					setStepsEnabled(false);
+					if(index==1)
+						window.location.href="/home/whitelist";
+				}}
+				options={{
+					doneLabel: 'Next'
+				}}
+			/>}
+			<section className="section" id="attribute">
 				{props.isInit&&
 				<Alert severity="info" className="my-5">
 					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
@@ -222,7 +246,7 @@ const ExtractionList = (props) => {
 					</Tbody>
 				</Table>
 			</section>
-			<section className="section">
+			<section className="section"  id="globalattribute">
 				<label className="title is-5">Global extractions</label>
 				<Table className="table is-striped is-fullwidth has-vcentered-cells">
 					<Thead>
@@ -254,12 +278,11 @@ const Extractions = (props) => {
 	const [extractionlist, setExtractionList] = useState([]);
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [currentrole, setCurrentRole] = useState({});
 	const [customobservable, setCustomObservable] = useState(true);
 	const history = useHistory();
 
 	useEffect(() => {
-		if(props.currentgroup == '') history.push('/');
+		if(props.currentgroup == '' && props.mygroups.length != 0) history.push('/');
 		else{
 			let params = {currentgroup:props.currentgroup};
 			fetch('/api/attributes', {
@@ -272,10 +295,9 @@ const Extractions = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				console.log(res)
+				console.log(res);
 				setExtractionList(res.attributes);
 				setGlobalAttributes(res.globalattributes);
-				setCurrentRole(res.currentrole);
 				setCustomObservable(res.customobservable)
 				setIsLoading(false);
 			})
@@ -323,33 +345,24 @@ const Extractions = (props) => {
 			return <Loading/>
 		}
 		else {
-			if(currentrole.role ==0)
+			if(props.currentrole.role ==0)
 				return (
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/account" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3 has-text-danger" to="/account" >Click here to accept.</Link></p>
 					</div>
 				)
-			// else{
-			// 	if(props.isPlan){
-			// 		return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable}
-			// 			currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} customobservable={customobservable} isAutoDown={props.isAutoDown} />
-			// 	}
-			// 	else{
-			// 		return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
-			// 	}
-			// }
-			if(currentrole.role == 1)
+			if(props.currentrole.role == 1)
 				return(
 					<div className='section has-text-centered'>
-						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
 					</div>
 				)
-			if(currentrole.role ==2){
+			if(props.currentrole.role ==2 || props.mygroups.length == 0){
 				if(props.isPlan)
-					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable} saveGlobal={saveGlobal}
+					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable} saveGlobal={saveGlobal} mygroups={props.mygroups}
 								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
-				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 		}
 	}

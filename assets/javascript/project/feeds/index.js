@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import { Switch,Route,Link,useHistory} from "react-router-dom";
 import { Container, TextField, Grid, Dialog, Slider} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
+import { Steps } from 'intro.js-react';
 
 import UpdateFeed from "./update-feed";
 import FeedCard from "./feed-card";
@@ -38,7 +39,11 @@ const FeedList = (props) => {
 	const [tag, setTag] = useState('');
 	const [confidence, setConfidence] = useState('');
 	const [webhook, setWebhhook] = useState(false);
-
+	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const steps = [{
+		element: '#card',
+		intro: 'Intel Group Feed'
+	}]
 	const search = () =>{
 		let tag_value = "";
 		for(const t of props.tags){
@@ -54,6 +59,20 @@ const FeedList = (props) => {
 	
 	return (
 		<Container>
+			{props.mygroups.length == 0 &&
+			<Steps
+				enabled={stepsEnabled}
+				steps={steps}
+				initialStep={0}
+				onExit={(index)=>{
+				setStepsEnabled(false);
+				if(index==0)
+					window.location.href="/home/feeds/new";
+				}}
+				options={{
+					doneLabel: 'Next'
+				}}
+			/>}
 			<Dialog
 				maxWidth="md"
 				fullWidth
@@ -178,12 +197,12 @@ const FeedList = (props) => {
 			</section>}
 			{
 				props.groupfeeds.map((groupfeed, index) => {
-					return <FeedCard index={index} key={groupfeed.id} feed={groupfeed} currentrole={props.currentrole} client={props.client} />;
+					return <FeedCard  index={index} key={groupfeed.id} feed={groupfeed} currentrole={props.currentrole} client={props.client} />;
 				})
 			}
 			{
 				props.feedlist.map((feed, index) => {
-					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>saveFeed(data)} client={props.client} />;
+					return <FeedCard  index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>saveFeed(data)} client={props.client} />;
 				})
 			}
 			
@@ -276,7 +295,7 @@ const Feeds = (props) => {
 				)
 			if(props.currentrole.role ==2 || props.mygroups.length == 0){
 				if(props.isPlan)
-					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} groupfeeds={groupfeeds}
+					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} groupfeeds={groupfeeds} mygroups={props.mygroups}
 							Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
@@ -322,7 +341,7 @@ const Feeds = (props) => {
 	return (
 		<Switch>
 			<Route path="/feeds/new">
-				<UpdateFeed client={props.client} categories={categories}  currentrole={props.currentrole}
+				<UpdateFeed client={props.client} categories={categories} mygroups={props.mygroups} currentrole={props.currentrole}
 					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 			</Route>
 			<Route path="/feeds/edit/:id" render={(props) => renderUpdateFeed(props)} >

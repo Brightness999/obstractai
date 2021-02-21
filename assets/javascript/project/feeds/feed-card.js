@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Grid } from "@material-ui/core";
 
 import Styles from "../styles";
@@ -53,7 +53,7 @@ const FeedCard = function (props) {
   }
   else{
     return (
-      <section className="section app-card" style={Styles.FeedStoreCard}>
+      <section className="section app-card" id={props.index==0?"card":""} style={Styles.FeedStoreCard}>
         <div className="columns">
           <Grid container>
             <Grid item xs={12} md={10}>

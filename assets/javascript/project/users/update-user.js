@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import { useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
-import { Steps, Hints } from 'intro.js-react';
+import { Steps } from 'intro.js-react';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container, Dialog} from "@material-ui/core";
 
@@ -11,7 +11,6 @@ const UpdateUser = function(props) {
   const [isAlert, setIsAlert] = useState(false);
   const history = useHistory();
   const [stepsEnabled, setStepsEnabled] = useState(true);
-	const initialStep = 0;
 	const steps = [{
 		element: '.users',
 		intro: 'Comma separated list of emails for users to invite'
@@ -93,7 +92,7 @@ const UpdateUser = function(props) {
       <Steps
         enabled={stepsEnabled}
         steps={steps}
-        initialStep={initialStep}
+        initialStep={0}
         onExit={(index)=>{
           setStepsEnabled(false);
           if(index==0)

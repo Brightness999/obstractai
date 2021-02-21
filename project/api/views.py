@@ -827,7 +827,14 @@ def reports(request):
 	groupfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).all(), many=True)
 	for report in IntelReports.objects.filter(intelgroup_id=groupid).order_by('id').all():
 		itemids.append(report.feeditem_id)
-	indicators = ItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True)
+	indicators = []
+	for indicator in ItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True).data:
+		for white in UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data:
+			flag = True
+			if indicator['globalindicator_id'] == white['globalindicator_id'] and white['value'] in indicator['value']:
+				flag = False
+			if flag:
+				indicators.append(indicator)
 	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all(), many=True)
 	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
 	tags = TagSerializer(Tags.objects.filter(Q(isglobal=True) | Q(intelgroup_id=groupid)).order_by('id').all(), many=True)
@@ -838,7 +845,7 @@ def reports(request):
 		if serializer.data['groupfeed']['isenable']:
 			reports.append(serializer.data)
 	globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid, isenable=True), many=True)
-	return Response({'feeds':groupfeeds.data, 'indicators':indicators.data, 'extractions':extractions.data, 'categories':categories.data, 'tags':tags.data, 'globalindicators':globalindicators.data, 'reports':reports, 'globalattributes':globalattributes.data})
+	return Response({'feeds':groupfeeds.data, 'indicators':indicators, 'extractions':extractions.data, 'categories':categories.data, 'tags':tags.data, 'globalindicators':globalindicators.data, 'reports':reports, 'globalattributes':globalattributes.data})
 
 @swagger_auto_schema(methods=['post'], request_body=SearchReportSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
@@ -1322,8 +1329,14 @@ def searchreports(request):
 										reports.append(serializer.data)
 								itemids.append(report.feeditem.id)
 	
-	indicators = Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all()
-	indicator_serializer = ItemIndicatorSerializer(indicators, many=True)
+	indicators = []
+	for indicator in ItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True).data:
+		for white in UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data:
+			flag = True
+			if indicator['globalindicator_id'] == white['globalindicator_id'] and white['value'] in indicator['value']:
+				flag = False
+			if flag:
+				indicators.append(indicator)
 	extractions = Attributes.objects.filter(intelgroup_id=request.data['id'], isenable=True).order_by('id').all()
 	extraction_serializer = UserGroupAttributeSerializer(extractions, many=True)
 	categories = Categories.objects.order_by('id').all()
@@ -1333,7 +1346,7 @@ def searchreports(request):
 	globalindicators = GlobalIndicators.objects.order_by('id').all()
 	global_serializer = GlobalIndicatorSerializer(globalindicators, many=True)
 
-	return Response({'reports':reports, 'indicators':indicator_serializer.data, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
+	return Response({'reports':reports, 'indicators':indicators, 'extractions':extraction_serializer.data, 'categories':category_serializer.data, 'tags':tag_serializer.data, 'globalindicators':global_serializer.data})
 
 @api_view(['POST'])
 def pullfeed(request):

@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, TextField, Grid } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
+import { Steps } from 'intro.js-react';
 
 import ReportCard from "./report-card";
 import ViewReport from "./view-report";
@@ -41,9 +42,28 @@ const ReportList = (props) => {
 	const [feedname, setFeedName] = useState('0');
 	const [classification, setClassification] = useState('0');
 	const [intelligence, setIntelligence] = useState('');
+	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const steps = [{
+		element: '#card',
+		intro: 'Intel Report'
+	}]
 	
 	return (
 		<Container>
+			{props.mygroups.length == 0 &&
+			<Steps
+				enabled={stepsEnabled}
+				steps={steps}
+				initialStep={0}
+				onExit={(index)=>{
+				setStepsEnabled(false);
+				if(index==0)
+					window.location.href=`/home/intelreports/${props.reports[0].id}`;
+				}}
+				options={{
+				doneLabel: 'Next'
+				}}
+			/>}
 			<section className="section">
 				{props.isInit&&
 				<Alert severity="info" className="my-5">
@@ -225,11 +245,11 @@ const IntelReports = (props) => {
 	}
 
 	useEffect(()=>{
-		if(props.currentgroup == '') history.push('/')
+		if(props.currentgroup == '' && props.mygroups.length != 0) history.push('/')
 		else{
 			setIsLoading(true);
 			let params = {id:props.currentgroup}
-			fetch(`/api/reports/${props.currentgroup}`, {
+			fetch('/api/reports', {
 				method: 'post',
 				headers: {
 				  'Content-Type': 'application/json',
@@ -295,8 +315,10 @@ const IntelReports = (props) => {
 			}
 			else{
 				if(props.isPlan)
-					return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
-						indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} reports={reports} isInit={props.isInit} message={props.message}/>
+					return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} 
+						mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
+						indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} 
+						reports={reports} isInit={props.isInit} message={props.message}/>
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			
@@ -318,7 +340,7 @@ const IntelReports = (props) => {
 			const report_id = data.match.params.id;
 			const report = getFeedById(report_id);
 			return(
-				<ViewReport client={props.client} {...report} classifications={classifications}	globalattributes={globalattributes} indicators={indicators} />
+				<ViewReport client={props.client} {...report} mygroups={props.mygroups} classifications={classifications}	globalattributes={globalattributes} indicators={indicators} />
 			)
 		}
 	}

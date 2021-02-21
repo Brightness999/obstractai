@@ -142,13 +142,13 @@ const App = () => {
               <Categories client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/extractions">
-              <Extractions client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Extractions mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/intelreports" >
-              <IntelReports client={client} currentgroup={currentgroup} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <IntelReports mygroups={mygroups} client={client} currentgroup={currentgroup} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/whitelist" >
-              <WhiteLists client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <WhiteLists mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/account" >
               <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>

@@ -1,10 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Container, Grid } from "@material-ui/core";
+import { Steps } from 'intro.js-react';
 
 const ViewReport = (props) => {
-	console.log(props);
+	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const steps = [{
+		element: '#card',
+		intro: 'Intel Report Details'
+	}]
 	const history = useHistory();
+
 	let tags = [];
 	if(props.groupfeed.tags){
 		if(props.groupfeed.tags.indexOf(",") > -1)
@@ -219,6 +225,20 @@ const ViewReport = (props) => {
 	},[]);
 	return (
 		<Container>
+			{props.mygroups.length == 0 &&
+			<Steps
+				enabled={stepsEnabled}
+				steps={steps}
+				initialStep={0}
+				onExit={(index)=>{
+					setStepsEnabled(false);
+				if(index==0)
+					window.location.href='/home/extractions';
+				}}
+				options={{
+					doneLabel: 'Next'
+				}}
+			/>}
 			<section className="section">
 				<Grid container>
 					<Grid item xs={12} md={6}>
@@ -248,7 +268,7 @@ const ViewReport = (props) => {
 				<button className="button is-info is-pulled-left" onClick={()=>history.goBack()}>Back</button>
 			</section>
 			<section>
-				<Grid container>
+				<Grid container id="card">
 					<Grid item xs={12} id="extraction">
 						
 					</Grid>

@@ -3,6 +3,7 @@ import { Switch, Route, Link, useHistory } from "react-router-dom";
 import { Container, Grid } from "@material-ui/core";
 import { Table, Thead, Tbody, Tr, Th } from "react-super-responsive-table";
 import { Alert, AlertTitle } from "@material-ui/lab";
+import { Steps } from 'intro.js-react';
 
 import ListTable from "./list-table";
 import AddWhitelist from "./add-whitelist";
@@ -37,6 +38,15 @@ const Plan = (props) => {
 }
 
 const WhiteList = (props) => {
+    const [stepsEnabled, setStepsEnabled] = useState(true);
+	const steps = [{
+		element: '#indicator',
+		intro: 'Indicators extracted from text'
+	},{
+		element: '#whitelist',
+		intro: 'Whitelist Indicators'
+	}]
+
     const ListEnable = (index) =>{
         let params;
         if(props.whitelist[index].enabled === 'Enable')
@@ -73,6 +83,14 @@ const WhiteList = (props) => {
 
     return (
 		<Container>
+            {props.mygroups.length == 0 &&
+			<Steps
+				enabled={stepsEnabled}
+				steps={steps}
+				initialStep={0}
+				onExit={()=>setStepsEnabled(false)}
+				options={{doneLabel: 'Done'}}
+			/>}
 			<section className="section">
                 {props.isInit&&
 				<Alert severity="info" className="my-5">
@@ -81,7 +99,7 @@ const WhiteList = (props) => {
 				</Alert>}
                 <h1 className="title is-3">Manage Indicator visibility</h1>
                 <h1 className="title is-5">Manage by type</h1>
-                <Table className="table is-striped is-fullwidth has-vcentered-cells">
+                <Table id="indicator" className="table is-striped is-fullwidth has-vcentered-cells">
                     <Thead>
                         <Tr>
                             <Th>Type</Th>
@@ -96,7 +114,7 @@ const WhiteList = (props) => {
                     </Tbody>
                 </Table>
             </section>
-            <section className="section">
+            <section className="section" id="whitelist">
                 <span className="title is-5">Manage by whitelist</span>
                 <Link to="/whitelist/new">
                     <button className={props.isAutoDown ? "button is-static is-pulled-right" : "button is-info is-pulled-right"}  >
@@ -132,11 +150,10 @@ const WhiteLists = (props) => {
     const [whitelist, setWhitelist] = useState([]);
     const [indicators, setIndicators] = useState([]);
     const [globalindicators, setGlobalIndicators] = useState([]);
-    const [currentrole, setCurrentRole] = useState({});
     const history = useHistory();
 
     useEffect(() => {
-        if(props.currentgroup == '') history.push('/');
+        if(props.currentgroup == '' && props.mygroups.length != 0) history.push('/');
         else{
             let params = {
                 currentgroup: props.currentgroup
@@ -154,7 +171,6 @@ const WhiteLists = (props) => {
                 setWhitelist(res.whitelist);
                 setIndicators(res.indicators);
                 setGlobalIndicators(res.globalindicators);
-                setCurrentRole(res.currentrole);
                 setIsLoading(false);
             })
         }
@@ -194,48 +210,25 @@ const WhiteLists = (props) => {
         if(isLoading)
             return <Loading/>
         else{
-            if(currentrole.role ==0)
+            if(props.currentrole.role ==0)
 				return (
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
-						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
+						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
 					</div>
                 )
-            if(currentrole.role == 1)
+            if(props.currentrole.role == 1)
 				return(
 					<div className='section has-text-centered'>
-						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
+						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
 					</div>
 				)
-			if(currentrole.role ==2){
+			if(props.currentrole.role ==2 || props.mygroups.length == 0){
 				if(props.isPlan)
 					return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
-                        indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
-				else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+                        indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} mygroups={props.mygroups} />
+				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
-            // else{
-            //     if(props.isPlan){
-            //         if(currentrole.role == 1)
-            //             if(props.isAutoDown){
-            //                 return <div className='section has-text-centered my-6'>
-            //                     <p className="title is-3 py-6">Please contact the feed group administrator to manage intel group plan payment.</p>
-            //                 </div>
-            //             }
-            //             else{
-            //                 return(
-            //                     <div className='section has-text-centered'>
-            //                         <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{currentrole.intelgroup.name}</span>.</p>
-            //                     </div>
-            //                 )
-            //             }
-            //         if(currentrole.role ==2)
-            //             return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
-            //                 indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} />
-            //     }
-            //     else{
-            //         return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
-            //     }
-            // }
         }
     }
 
@@ -251,4 +244,4 @@ const WhiteLists = (props) => {
     );
 }
 
-export default WhiteLists
+export default WhiteLists;

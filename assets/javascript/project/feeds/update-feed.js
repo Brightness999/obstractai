@@ -6,6 +6,7 @@ import {
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
 import { yellow } from '@material-ui/core/colors';
+import { Steps } from 'intro.js-react';
 
 const Loading = () => {
 	return (
@@ -40,6 +41,30 @@ const UpdateFeed = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [webhook, setWebhhook] = useState(false);
 	const value = props.confidence ? props.confidence : 0;
+	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const steps = [{
+		element: '#type',
+		intro: 'Type of Intel Group Feed'
+	},{
+		element: '#url',
+		intro: 'Url of Intel Group Feed'
+	},{
+		element: '#name',
+		intro: 'Name to be displayed in U'
+	},{
+		element: '#description',
+		intro: 'Description to be displayed in UI'
+	},{
+		element: '#category',
+		intro: 'User can select from fixed list set by admin'
+	},{
+		element: '#tags',
+		intro: 'User can assign 0 or more tags (manual entry, auto identify existing tags, letters, numbers and - only)'
+	},{
+		element: '#confidence',
+		intro: 'Confidence of Intel Group Feed'
+	},]
+
 	const saveFeed = () => {
 		setIsLoading(true);
 		let str = tags.trim();
@@ -168,6 +193,20 @@ const UpdateFeed = (props) => {
 	else{
 		return (
 			<Container>
+				{props.mygroups.length == 0 &&
+				<Steps
+					enabled={stepsEnabled}
+					steps={steps}
+					initialStep={0}
+					onExit={(index)=>{
+					setStepsEnabled(false);
+					if(index==6)
+						window.location.href="/home/intelreports";
+					}}
+					options={{
+					doneLabel: 'Next'
+					}}
+				/>}
 				<h1 className="title is-3 pt-1" >Add Custom Feed</h1>
 				<Dialog
 					maxWidth="md"
@@ -231,7 +270,7 @@ const UpdateFeed = (props) => {
 								<option value="curated">Curated</option>
 							</TextField>:
 							<><TextField
-								id="outlined-select-currency-native"
+								id="type"
 								select
 								className="mt-4 mb-2 column is-four-fifths"
 								label="Type"
@@ -262,6 +301,7 @@ const UpdateFeed = (props) => {
 								onChange={(event) => {setUrl(event.target.value); setUrlError(false);}}
 							/>:
 							<><TextField
+								id="url"
 								label="URL"
 								placeholder="http://rss.cnn.com/rss/edition.rss"
 								className="column is-four-fifths"
@@ -276,6 +316,7 @@ const UpdateFeed = (props) => {
 							{urlError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<TextField
 								label="Name"
+								id="name"
 								placeholder="write a name of feed"
 								className="column is-four-fifths"
 								margin="normal"
@@ -288,7 +329,7 @@ const UpdateFeed = (props) => {
 							/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
 							{nameError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<><TextField
-								id="outlined-full-width3"
+								id="description"
 								label="Description"
 								placeholder="write about description of feed"
 								className="column is-four-fifths"
@@ -302,7 +343,7 @@ const UpdateFeed = (props) => {
 							/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{descriptionError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<><TextField
-								id="outlined-select-currency-native"
+								id="category"
 								select
 								className="mt-4 mb-2 column is-four-fifths"
 								label="Category"
@@ -322,7 +363,7 @@ const UpdateFeed = (props) => {
 							</TextField><Tooltip title="User can select from fixed list set by admin" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>
 							{categoryError&&<p className="help is-danger"><span>This field may not be blank.</span></p>}
 							<><TextField
-								id="outlined-full-width5"
+								id="tags"
 								label="Tags"
 								placeholder="Tags Field, e.g. "
 								className="column is-four-fifths"
@@ -340,6 +381,7 @@ const UpdateFeed = (props) => {
 							</Typography>
 							<Slider
 								className="mt-6 column is-four-fifths"
+								id="confidence"
 								defaultValue={value}
 								onChange={(e,value)=>setConfidence(value)}
 								aria-labelledby="discrete-slider-always"

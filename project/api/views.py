@@ -818,22 +818,26 @@ def webhooks(request):
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: ItemFeedGroupReportSerializer})
 @api_view(['POST'])
-def reports(request, id):
+def reports(request):
+	if request.data['id'] == '':
+		groupid = IntelGroups.objects.order_by('id').first().id
+	else:
+		groupid = request.data['id']
 	itemids = []
-	groupfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
-	for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+	groupfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).all(), many=True)
+	for report in IntelReports.objects.filter(intelgroup_id=groupid).order_by('id').all():
 		itemids.append(report.feeditem_id)
 	indicators = ItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True)
-	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=request.data['id'], isenable=True).order_by('id').all(), many=True)
+	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all(), many=True)
 	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
-	tags = TagSerializer(Tags.objects.filter(Q(isglobal=True) | Q(intelgroup_id=request.data['id'])).order_by('id').all(), many=True)
+	tags = TagSerializer(Tags.objects.filter(Q(isglobal=True) | Q(intelgroup_id=groupid)).order_by('id').all(), many=True)
 	globalindicators = GlobalIndicatorSerializer(GlobalIndicators.objects.order_by('id').all(), many=True)
 	reports = []
-	for report in IntelReports.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+	for report in IntelReports.objects.filter(intelgroup_id=groupid).order_by('id').all():
 		serializer = ItemFeedGroupReportSerializer(report)
 		if serializer.data['groupfeed']['isenable']:
 			reports.append(serializer.data)
-	globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['id'], isenable=True), many=True)
+	globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid, isenable=True), many=True)
 	return Response({'feeds':groupfeeds.data, 'indicators':indicators.data, 'extractions':extractions.data, 'categories':categories.data, 'tags':tags.data, 'globalindicators':globalindicators.data, 'reports':reports, 'globalattributes':globalattributes.data})
 
 @swagger_auto_schema(methods=['post'], request_body=SearchReportSerializer, responses={201: FeedCategorySerializer})
@@ -2082,20 +2086,22 @@ def attributes(request):
 			serializer = UserGroupAttributeSerializer(create_data)
 			return Response(serializer.data)
 		else:
-			created_at = IntelGroups.objects.filter(id=request.data['currentgroup']).last().created_at
-			subid = IntelGroups.objects.filter(id=request.data['currentgroup']).last().plan_id
+			if request.data['currentgroup'] == '':
+				groupid = IntelGroups.objects.order_by('id').first().id
+			else:
+				groupid = request.data['currentgroup']
+			created_at = IntelGroups.objects.filter(id=groupid).last().created_at
+			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			customobservable = True
 			if subid != None:
 				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
 				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 				if Product.objects.filter(djstripe_id=productid).last().metadata['custom_observables'] == 'false':
 					customobservable = False
-			attributes = Attributes.objects.filter(intelgroup_id=request.data['currentgroup']).order_by('id').all()
+			attributes = Attributes.objects.filter(intelgroup_id=groupid).order_by('id').all()
 			attribute_serializer = UserGroupAttributeSerializer(attributes, many=True)
-			enableglobalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['currentgroup']).all(), many=True)
-			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-			role_serializer = UserGroupRoleSerializer(currentrole[0])
-			return Response({'attributes':attribute_serializer.data, 'currentrole':role_serializer.data, 'globalattributes':enableglobalattributes.data, 'customobservable':customobservable})
+			enableglobalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True)
+			return Response({'attributes':attribute_serializer.data, 'globalattributes':enableglobalattributes.data, 'customobservable':customobservable})
 	elif request.method == 'PUT':
 		Attributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], isenable=request.data['isenable'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).all()[0])
@@ -2114,18 +2120,20 @@ def enableglobal(request):
 def whitelist(request):
 	if request.method == 'POST':
 		if not 'indicator' in request.data:
-			feedids = [];
-			feeditemids = [];
-			for feed in GroupFeeds.objects.filter(intelgroup_id=request.data['currentgroup']).all():
+			feedids = []
+			feeditemids = []
+			if request.data['currentgroup'] == '':
+				groupid = IntelGroups.objects.order_by('id').first().id
+			else:
+				groupid = request.data['currentgroup']
+			for feed in GroupFeeds.objects.filter(intelgroup_id=groupid).all():
 				feedids.append(feed.feed_id)
 			for feeditem in FeedItems.objects.filter(feed_id__in=feedids).all():
 				feeditemids.append(feeditem.id)
 			indicator_serializer = IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id__in=feeditemids).order_by('id').all(), many=True)
 			whitelist_serializer = UserIndicatorWhitelistSerializer(Whitelists.objects.order_by('id').all(), many=True)
 			global_serializer = GlobalIndicatorSerializer(GlobalIndicators.objects.order_by('id').all(), many=True)
-			currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['currentgroup']).all()
-			serializer = UserGroupRoleSerializer(currentrole[0])
-			return Response({'indicators': indicator_serializer.data, 'whitelist': whitelist_serializer.data, 'globalindicators': global_serializer.data, 'currentrole': serializer.data})
+			return Response({'indicators': indicator_serializer.data, 'whitelist': whitelist_serializer.data, 'globalindicators': global_serializer.data})
 		else:
 			flag = True
 			if len(Whitelists.objects.filter(globalindicator_id=request.data['indicator'],value=request.data['value']).all())>0:

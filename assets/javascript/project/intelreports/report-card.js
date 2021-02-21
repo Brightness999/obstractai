@@ -6,14 +6,17 @@ const ReportCard = function (props) {
 	let tags = [];
 	if(props.report.groupfeed){
 		if(props.report.groupfeed.tags.indexOf(",") > -1)
-		tags = props.report.groupfeed.tags.split(',');
-		else tags.push(props.report.groupfeed.tags);
+			tags = props.report.groupfeed.tags.split(',');
+		else{
+			if(props.report.groupfeed.tags != '')
+				tags.push(props.report.groupfeed.tags);
+		}
 	}
 	useEffect(()=>{
 		// document.querySelector('#description'+props.index).innerHTML=props.report.feeditem.description;
 	},[]);
 	return (
-		<section className="section app-card" >
+		<section className="section app-card" id={props.index==0?"card":""} >
 			<div className="columns">
 				<div className="column is-one-thirds">
 					<Grid container>
@@ -46,7 +49,7 @@ const ReportCard = function (props) {
 									<button className="button is-info is-rounded mx-2" >
 									<span>{props.report.groupfeed.category ? props.report.groupfeed.category.name : ""}</span>
 									</button>
-									{tags.map((tag, index) => {
+									{tags!=[] && tags.map((tag, index) => {
 										return (
 										<button key={index} className="button is-warning is-rounded mx-2" >
 											<span>{tag}</span>

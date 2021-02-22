@@ -67,7 +67,8 @@ from project import views
 from django.conf.urls import url
 # from rest_framework_swagger.views import get_swagger_view
 from project.api.swagger import get_swagger_view
-
+# from two_factor.urls import urlpatterns as tf_urls
+# from two_factor.gateways.twilio.urls import urlpatterns as tf_twilio_urls
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -94,6 +95,7 @@ urlpatterns = [
     url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     url(r'^api/docs/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # url(r'', include(tf_urls)),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('users/', include('apps.users.urls')),
@@ -115,19 +117,4 @@ urlpatterns = [
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 router = routers.DefaultRouter()
-# router.register(r'api/intelgroups', views.RoleIntelGroupViewSet)
-# router.register(r'api/intelgroup', views.IntelGroupViewSet)
-# router.register(r'api/intelgrouprole', views.IntelGroupRoleViewSet)
-# router.register(r'api/users', views.UserViewSet)
-# router.register(r'api/user', views.UserInvitationViewSet)
-# router.register(r'api/customers', views.CustomerViewSet)
-# router.register(r'api/plans', views.PlanViewSet)
-# router.register(r'api/feeds', views.FeedViewSet)
-# router.register(r'api/categories', views.CategoryViewSet)
-# router.register(r'api/tags', views.TagViewSet)
-# router.register(r'api/extractions', views.ExtractionViewSet)
-# router.register(r'api/globalindicators', views.GlobalIndicatorViewSet)
-# router.register(r'api/whitelist', views.WhitelistViewSet)
-# router.register(r'api/apikeys', views.APIKeysViewSet)
-# router.register(r'api/fulltext', views.FullTextViewSet)
 urlpatterns += router.urls

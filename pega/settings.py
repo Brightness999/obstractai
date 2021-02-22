@@ -80,13 +80,20 @@ PROJECT_APPS = [
     'project',
 ]
 
+TWO_FACTOR_AUTHENTICATION = [
+    # 'django_otp',
+    # 'django_otp.plugins.otp_static',
+    # 'django_otp.plugins.otp_totp',
+    # 'two_factor',
+    # 'otp_yubikey',
+]
 
 SWAGGER_APPS = [
     'rest_framework_swagger',
     'drf_yasg',
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PEGASUS_APPS + PROJECT_APPS + SWAGGER_APPS + TWO_FACTOR_AUTHENTICATION
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -96,6 +103,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django_otp.middleware.OTPMiddleware',
+    # 'two_factor.middleware.threadlocals.ThreadLocals',
 ]
 
 ROOT_URLCONF = 'pega.urls'
@@ -180,7 +189,11 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_LOGOUT_ON_GET = True
-
+# TWO_FACTOR_SMS_GATEWAY = 'two_factor.gateways.twilio.gateway.Twilio'
+# TWO_FACTOR_CALL_GATEWAY = 'two_factor.gateways.twilio.gateway.Twilio'
+# TWILIO_ACCOUNT_SID =
+# TWILIO_AUTH_TOKEN =
+# TWILIO_CALLER_ID =
 
 
 # User signup configuration: change to "mandatory" to require users to confirm email before signing in.
@@ -245,17 +258,26 @@ MEDIA_URL = '/media/'
 # use in development
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# print(EMAIL_BACKEND)
 # use in production
 # see https://github.com/anymail/django-anymail for more details/examples
 # EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+ANYMAIL = {
+    "MAILGUN_API_KEY": os.environ.get('MAILGUN_API_KEY'),
+    "MAILGUN_SENDER_DOMAIN": os.environ.get('SITE_DOMAIN'),
+    'MAILGUN_API_URL': 'https://api.eu.mailgun.net/v3',
+}
 
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'pro_dev_master@outlook.com')
-EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'TestSite Team <noreply@example.com>')
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL')
+DEFAULT_FROM_EMAIL = os.environ.get('REPLY')
+ADMINS = [(os.environ.get('USER_EMAIL'), os.environ.get('REPLY')),]
+
+
+# EMAIL_HOST = 'smtp.sendgrid.net'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'pro_dev_master@outlook.com')
+# EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
+# EMAIL_USE_TLS = True
+# DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'TestSite Team <noreply@example.com>')
 
 
 
@@ -270,7 +292,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 100,
+    'PAGE_SIZE': 10,
 }
 
 
@@ -286,12 +308,13 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 # replace any values below with specifics for your project
 PROJECT_METADATA = {
-    'NAME': 'pega',
+    'NAME': 'PEGA NAME | Obstract AI',
     'URL': 'https://sherlock-staging.obstractai.com',
-    'DESCRIPTION': 'pega',
+    'DESCRIPTION': 'Obstract AI makes it easy to collect and parse cyber threat intelligence',
     'IMAGE': 'https://upload.wikimedia.org/wikipedia/commons/2/20/PEO-pegasus_black.svg',
-    'KEYWORDS': 'SaaS, django',
+    'KEYWORDS': 'security, rss',
     'CONTACT_EMAIL': os.environ.get('CONTACT_EMAIL'),
+    'TITLE': 'PEGA NAME | Obstract AI'
 }
 
 

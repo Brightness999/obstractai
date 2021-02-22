@@ -268,7 +268,7 @@ ANYMAIL = {
 }
 
 SERVER_EMAIL = os.environ.get('SERVER_EMAIL')
-DEFAULT_FROM_EMAIL = os.environ.get('SERVER_EMAIL')
+DEFAULT_FROM_EMAIL = os.environ.get('USER_EMAIL')
 ADMINS = [(os.environ.get('USER_EMAIL'), os.environ.get('REPLY')),]
 
 

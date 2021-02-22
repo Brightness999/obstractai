@@ -10,13 +10,6 @@
     <title>{{ title }}</title>
     <meta name="description" content="{{ description }}">
     <meta name="keywords" content="{{ project_meta.KEYWORDS }}">
-    <!-- Open Graph data -->
-    <meta property="og:title" content="{{ title }}" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="{{ page_url }}" />
-    <meta property="og:description" content="{{ description }}" />
-    <meta property="og:site_name" content="{{ project_meta.NAME }}" />
-    <link rel="canonical" href="{% if page_canonical_url %}{{ page_canonical_url }}{% else %}{{ page_url }}{% endif %}">
     {% endwith %}
     {% endwith %}
     {% endwith %}

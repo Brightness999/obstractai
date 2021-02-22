@@ -1,1 +1,15 @@
-{{groups}}
+<pre id="groups"></pre>
+<script>
+    let groups = "{{groups}}";
+    groups = groups.replaceAll("&quot;", '"')
+    function strToObj(str){
+        var obj = {};
+        if(str&&typeof str ==='string'){
+            var objStr = str.match(/\{(.)+\}/g);
+            eval("obj ="+objStr);
+        }
+        return obj
+    }
+    groups = strToObj(groups);
+    document.getElementById("groups").textContent = JSON.stringify(groups, null, 2)
+</script>

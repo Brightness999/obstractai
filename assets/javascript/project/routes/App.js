@@ -37,10 +37,10 @@ const App = () => {
 	const client = new coreapi.Client({auth: auth});
 	const [isLoading, setIsLoading] = useState(true);
   const [mygroups, setMyGroups] = useState([]);
-  const [intelgroups, setIntelGroups] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentgroup, setCurrentGroup] = useState('');
   const [isPlan, setIsPlan] = useState(true);
+  const [planname, setPlanName] = useState('');
   const [isInit, setIsInit] = useState(false);
   const [isAutoDown, setIsAutoDown] = useState(false);
   const [message, setMessage] = useState('');
@@ -58,7 +58,6 @@ const App = () => {
     .then(res=>{
       console.log(res);
       setMyGroups(res.mygroups);
-      setIntelGroups(res.intelgroups);
       setUsers(res.users);
       setRe(res.re);
       setIsLoading(false);
@@ -80,6 +79,7 @@ const App = () => {
       setCurrentRole(res.currentrole);
       setCurrentGroup(intelgroup);
       setIsPlan(res.isPlan);
+      setPlanName(res.planname);
       setIsInit(res.isInit);
       setIsAutoDown(res.isAutoDown);
       setMessage(res.message);
@@ -121,7 +121,7 @@ const App = () => {
               <IntelGroups currentgroup={currentgroup} currentrole={currentrole} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
             </Route>
             <Route path="/intelgroup">
-              <IntelGroup client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
+              <IntelGroup planname={planname} client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
             </Route>
             <Route path="/grouplist">
               <GroupList client={client} />

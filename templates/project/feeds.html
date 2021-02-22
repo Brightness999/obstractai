@@ -1,2 +1,16 @@
-{{feeds}}
-<pre><script>JSON.stringify(feeds, undefined, 2);</script></pre>
+<pre id="feeds"></pre>
+<script>
+    let feeds = "{{feeds}}";
+    feeds = feeds.replaceAll("&quot;", '"')
+    console.log(feeds)
+    function strToObj(str){
+        var obj = {};
+        if(str&&typeof str ==='string'){
+            var objStr = str.match(/\{(.)+\}/g);
+            eval("obj ="+objStr);
+        }
+        return obj
+    }
+    feeds = strToObj(feeds);
+    document.getElementById("feeds").textContent = JSON.stringify(feeds, null, 2)
+</script>

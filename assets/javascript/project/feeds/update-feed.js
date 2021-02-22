@@ -365,7 +365,7 @@ const UpdateFeed = (props) => {
 							<><TextField
 								id="tags"
 								label="Tags"
-								placeholder="Tags Field, e.g. "
+								placeholder="Tags Field, e.g."
 								className="column is-four-fifths"
 								margin="normal"
 								InputLabelProps={{

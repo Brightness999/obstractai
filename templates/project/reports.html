@@ -1,1 +1,24 @@
+<!-- <pre id="reports"></pre>
+<script>
+    let reports = "{{reports}}";
+    // reports = reports.replaceAll("&quot;", '"')
+    // reports = reports.replaceAll("&#x27;", '"')
+    // reports = reports.replaceAll("nbsp;", ' ')
+    // reports = reports.replaceAll("&gt;", '>')
+    // reports = reports.replaceAll("&lt;", '<')
+    // reports = reports.replaceAll("&amp;", '&')
+    // console.log(JSON.parse(reports))
+    // console.log(reports);
+    // function strToObj(str){
+    //     var obj = {};
+    //     if(str&&typeof str ==='string'){
+    //         var objStr = str.match(/\{(.)+\}/g);
+    //         eval("obj ="+objStr);
+    //     }
+    //     return obj
+    // }
+    // reports = strToObj(reports);
+    
+    document.getElementById("reports").textContent = JSON.stringify(reports, null, 2)
+</script> -->
 {{reports}}

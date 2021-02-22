@@ -15,6 +15,7 @@ class GroupPlan(BaseModel):
     daily_amount = models.PositiveIntegerField(default=0)
     max_users = models.PositiveIntegerField(default=0)
     max_feeds = models.PositiveIntegerField(default=0)
+    group_public = models.BooleanField(default=True)
     custom_feeds = models.BooleanField(default=False)
     custom_observables = models.BooleanField(default=False)
     api_access = models.BooleanField(default=False)

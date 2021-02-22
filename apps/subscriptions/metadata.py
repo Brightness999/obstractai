@@ -21,6 +21,12 @@ class ProductMetadata(object):
 
     @classmethod
     def from_stripe_product(cls, stripe_product, **kwargs):
+        if stripe_product.name == 'Free':
+            group = 'Public'
+        elif stripe_product.name == 'Silver':
+            group = 'Public/Private'
+        elif stripe_product.name == 'Gold':
+            group = 'Public/Private'
         defaults = dict(
             stripe_id=stripe_product.id,
             name=stripe_product.name,
@@ -31,6 +37,7 @@ class ProductMetadata(object):
                 {'label':'Custom Feeds:', 'value':stripe_product.metadata['custom_feeds']},
                 {'label':'Custom Observables:', 'value':stripe_product.metadata['custom_observables']},
                 {'label':'API Access:', 'value':stripe_product.metadata['api_access']},
+                {'label':'Intel Group:', 'value':group},
             ]
         )
         defaults.update(kwargs)
@@ -130,43 +137,6 @@ ACTIVE_PLAN_INTERVALS = [
 # These are the products that will be shown to users in the UI and allowed to be associated
 # with plans on your side
 ACTIVE_PRODUCTS = [
-    # ProductMetadata(
-    #     stripe_id='prod_IlpzzY6T9Vok8h',
-    #     name=_('Starter'),
-    #     description=_('For hobbyists and side-projects'),
-    #     features=[
-    #         {'label':'Max feeds:', 'value':'1~5'},
-    #         {'label':'Max users:', 'value':'3'},
-    #         {'label':'Custom feeds:', 'value':'FASLE'},
-    #         {'label':'Custom observables:', 'value':'FALSE'},
-    #         {'label':'API access:', 'value':'FASLE'},
-    #     ],
-    # ),
-    # ProductMetadata(
-    #     stripe_id='prod_Ilpx3g4g3izlxt',
-    #     name=_('Medium'),
-    #     description=_('For small businesses and teams'),
-    #     is_default=True,
-    #     features=[
-    #         {'label':'Max feeds:', 'value':'10~50'},
-    #         {'label':'Max users:', 'value':'20'},
-    #         {'label':'Custom feeds:', 'value':'TRUE'},
-    #         {'label':'Custom observables:', 'value':'FALSE'},
-    #         {'label':'API access:', 'value':'FASLE'},
-    #     ],
-    # ),
-    # ProductMetadata(
-    #     stripe_id='prod_IlpvQKIe7ROUXX',
-    #     name=_('Premium'),
-    #     description=_('For small businesses and teams'),
-    #     features=[
-    #         {'label':'Max feeds:', 'value':'200'},
-    #         {'label':'Max users:', 'value':'100'},
-    #         {'label':'Custom feeds:', 'value':'TRUE'},
-    #         {'label':'Custom observables:', 'value':'TRUE'},
-    #         {'label':'API access:', 'value':'TRUE'},
-    #     ],
-    # ),
 ]
 
 ACTIVE_PRODUCTS_BY_ID = {

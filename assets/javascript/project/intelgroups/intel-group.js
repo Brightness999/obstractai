@@ -123,7 +123,8 @@ const IntelGroup = function(props) {
                             value={description}
                             onChange={(event) => setDescription(event.target.value)}
                             /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-                            <label className="label">Public</label>
+                            {(props.planname == 'Silver' || props.planname == 'Gold') &&
+                            <><label className="label">Public</label>
                             <TextField
                             className="column is-three-quarters"
                             select
@@ -138,7 +139,7 @@ const IntelGroup = function(props) {
                                 <option value={false}>False</option>
                                 <option value={true}>True</option>
                             </TextField>
-                            <Tooltip title="Boolean to make public or private Intel Group." arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+                            <Tooltip title="Boolean to make public or private Intel Group." arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
                         </div>
                         <div className="field is-grouped">
                             <div className="control">

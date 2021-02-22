@@ -400,7 +400,8 @@ class GroupPlanAdmin(admin.ModelAdmin):
 					'max_feeds':form.cleaned_data['max_feeds'],
 					'custom_feeds':form.cleaned_data['custom_feeds'],
 					'custom_observables':form.cleaned_data['custom_observables'],
-					'api_access':form.cleaned_data['api_access']
+					'api_access':form.cleaned_data['api_access'],
+					'group_public':form.cleaned_data['group_public']
 				}
 			)
 			stripe.Plan.create(

@@ -192,6 +192,16 @@ const ReportList = (props) => {
 									</option>
 								))}
 							</TextField>
+							<TextField
+								className="px-2 py-1"
+								value={intelligence}
+								placeholder="Search for intelligence"
+								onChange={(event) => setIntelligence(event.target.value)}
+								InputLabelProps={{
+									shrink: true,
+								}}
+								variant="outlined"
+							/>
 						</span>
 					</Grid>
 					<Grid item md={1} xs={4}>
@@ -283,7 +293,8 @@ const IntelReports = (props) => {
 			confidence: confidence,
 			tag:tag,
 			feedname:feedname,
-			classification:classification
+			classification:classification,
+			intelligence:intelligence
 		}
 		fetch('/api/searchreports', {
 			method: 'post',

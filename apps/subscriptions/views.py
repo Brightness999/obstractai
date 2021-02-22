@@ -265,7 +265,7 @@ def create_customer(request, subscription_holder=None):
             return JsonResponse(
                 data = {'weekday':True}
             )
-        if (current_product_name=='Large' and product_name=='Medium') or (current_product_name=='Large' and product_name=='Starter') or (current_product_name=='Medium' and product_name=='Starter'):
+        if (current_product_name=='Gold' and product_name=='Silver') or (current_product_name=='Gold' and product_name=='Free') or (current_product_name=='Silver' and product_name=='Free'):
             users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()
             feeds = Feeds.objects.filter(intelgroup_id=request_body['groupid'])
             if len(users) > int(max_users) and len(feeds) > int(max_feeds):
@@ -290,7 +290,7 @@ def create_customer(request, subscription_holder=None):
                 return JsonResponse(
                     data=result,
                 )
-        if current_product_name == 'Medium' and product_name == 'Large':
+        if current_product_name == 'Silver' and product_name == 'Gold':
             delta_time = current_period_end.date()-datetime.now().date()
             current_amount = Plan.objects.filter(djstripe_id=planid).last().amount
             amount = Plan.objects.filter(id=request_body['plan_id']).last().amount
@@ -313,8 +313,6 @@ def create_customer(request, subscription_holder=None):
                 name=name,
                 user=user,
             )
-            print(addition_amount)
-
     
     payment_method = request_body['payment_method']
     plan_id = request_body['plan_id']
@@ -352,7 +350,15 @@ def create_customer(request, subscription_holder=None):
     subscription_holder.subscription = djstripe_subscription
     subscription_holder.save()
     sub_id = djstripe.models.Subscription.objects.last()
-    IntelGroups.objects.filter(id=request_body['groupid']).update(plan_id=sub_id.djstripe_id);
+    productid = Plan.objects.filter(djstripe_id=sub_id.plan_id).last().product_id
+    if Product.objects.filter(djstripe_id=productid).last().name.strip() == 'Free':
+        IntelGroups.objects.filter(id=request_body['groupid']).update(ispublic=True)
+    else:
+        if Product.objects.filter(djstripe_id=productid).last().metadata['group_public'] == 'True':
+            IntelGroups.objects.filter(id=request_body['groupid']).update(ispublic=True)
+        else:
+            IntelGroups.objects.filter(id=request_body['groupid']).update(ispublic=False)
+    IntelGroups.objects.filter(id=request_body['groupid']).update(plan_id=sub_id.djstripe_id)
     PlanHistory.objects.create(intelgroup_id=request_body['groupid'], sub_id=sub_id.djstripe_id, start=sub_id.current_period_start, end=sub_id.current_period_end)
     data = {
         'customer': customer,

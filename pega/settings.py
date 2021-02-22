@@ -257,10 +257,10 @@ MEDIA_URL = '/media/'
 
 # use in development
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # use in production
 # see https://github.com/anymail/django-anymail for more details/examples
-# EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 ANYMAIL = {
     "MAILGUN_API_KEY": os.environ.get('MAILGUN_API_KEY'),
     "MAILGUN_SENDER_DOMAIN": os.environ.get('SITE_DOMAIN'),
@@ -318,7 +318,7 @@ PROJECT_METADATA = {
 }
 
 
-ADMINS = [('pega', 'pega')]
+ADMINS = [('pega', 'kardzavaryan@gmail.com')]
 
 GOOGLE_ANALYTICS_ID = ''  # replace with your google analytics ID to connect to Google Analytics
 

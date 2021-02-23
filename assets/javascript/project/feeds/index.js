@@ -314,7 +314,7 @@ const Feeds = (props) => {
 
 	const getFeedById = (id) => {
 		for(const feed of feedlist){
-			if(feed.id.toString() == id)
+			if(feed.uniqueid == id)
 				return feed;
 		};
 	}
@@ -329,22 +329,26 @@ const Feeds = (props) => {
 			return <Loading/>;
 		}
 		else {
-		const feed_id = data.location.state.feedId;
-			const feed = getFeedById(feed_id);			
-			return(
-				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole} mygroups={props.mygroups}
-					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
-			) ;
+			const feed_id = data.match.params.id;
+			if(feed_id == 'new'){
+				return (
+					<UpdateFeed client={props.client} categories={categories} mygroups={props.mygroups} currentrole={props.currentrole}
+						alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
+				);
+			}
+			else{
+				const feed = getFeedById(feed_id);			
+				return(
+					<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole} mygroups={props.mygroups}
+						alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
+				) ;
+			}
 		}
 	}
 
 	return (
 		<Switch>
-			<Route path="/feeds/new">
-				<UpdateFeed client={props.client} categories={categories} mygroups={props.mygroups} currentrole={props.currentrole}
-					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
-			</Route>
-			<Route path="/feeds/edit" render={(props) => renderUpdateFeed(props)} >
+			<Route path="/feeds/:id" render={(props) => renderUpdateFeed(props)} >
 			</Route>
 			<Route path="/feeds">
 				{FeedListView()}

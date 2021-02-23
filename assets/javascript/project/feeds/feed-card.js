@@ -102,7 +102,7 @@ const FeedCard = function (props) {
               <Link to="/feedlist" className="button is-text">
                 <span>See in feed list</span>
               </Link>:
-              <Link to={{pathname:'/feeds/edit/', state:{feedId:props.feed.id}}} className="button is-text">
+              <Link to={`/feeds/${props.feed.uniqueid}`} className="button is-text">
                 <span>Custom settings and enable</span>
               </Link>}
             </Grid>

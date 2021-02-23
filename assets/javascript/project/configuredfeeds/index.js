@@ -236,7 +236,7 @@ const ConfiguredFeeds = (props) => {
 
 	const getFeedById = (id) => {
 		for(const feed of configuredfeeds){
-			if(feed.id.toString() == id)
+			if(feed.uniqueid == id)
 				return feed;
 		};
 	}
@@ -250,7 +250,7 @@ const ConfiguredFeeds = (props) => {
 			return <Loading/>;
 		}
 		else {
-		const feed_id = data.location.state.feedId;
+		const feed_id = data.match.params.id;
 			const feed = getFeedById(feed_id);			
 			return(
 				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole}
@@ -261,7 +261,7 @@ const ConfiguredFeeds = (props) => {
 
 	return (
 		<Switch>
-			<Route path="/configuredfeeds/edit" render={(props) => renderUpdateFeed(props)} >
+			<Route path="/configuredfeeds/:id" render={(props) => renderUpdateFeed(props)} >
 			</Route>
 			<Route path="/configuredfeeds">
 				{ConfiguredFeedsView()}

@@ -2240,7 +2240,7 @@ def invite(request):
 		if len(users) < int(max_users):
 			flag = True
 	if flag:
-		# groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
+		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
 		# message = Mail(
 		# 	from_email=settings.USER_EMAIL,
 		# 	to_emails=request.data['emails'],
@@ -2262,6 +2262,7 @@ def invite(request):
 		# 	print(response.status_code)
 		# except Exception as e:
 		# 	print(str(e))
+		print(request.data['emails'])
 		try:
 			send_mail(
 				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',

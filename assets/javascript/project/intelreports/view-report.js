@@ -58,7 +58,7 @@ const ViewReport = (props) => {
 			items.forEach(item => {
 				if(!(item*1>0 && item*1<10)){
 					item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
-					let reg = new RegExp(item, 'gi'), result, ids = [];
+					let reg = new RegExp(item, 'g'), result, ids = [];
 					while ( (result = reg.exec(str)) ) {
 						ids.push(result.index);
 					}

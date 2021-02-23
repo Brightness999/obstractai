@@ -1395,14 +1395,25 @@ def pullfeed(request):
 	req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
 	contents = urllib.request.urlopen(req).read()
 	results = []
-	for item in xmltodict.parse(contents)['rss']['channel']['item']:
+	if type(xmltodict.parse(contents)['rss']['channel']['item']) == list:
+		for item in xmltodict.parse(contents)['rss']['channel']['item']:
+			data = []
+			for indicator in extract.extract_observables(json.dumps(item)):
+				if len(extract.extract_observables(json.dumps(item))[indicator]) > 0:
+					data.append({'indicator':indicator, 'value':extract.extract_observables(json.dumps(item))[indicator]})
+			if not data == []:
+				results.append(data)
+	else:
+		item = xmltodict.parse(contents)['rss']['channel']['item']
 		data = []
 		for indicator in extract.extract_observables(json.dumps(item)):
 			if len(extract.extract_observables(json.dumps(item))[indicator]) > 0:
-				data.append(indicator)
+				data.append({'indicator':indicator, 'value':extract.extract_observables(json.dumps(item))[indicator]})
 		if not data == []:
 			results.append(data)
-	return Response({'fulltext':xmltodict.parse(contents), 'indicators':results})
+	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all(), many=True).data
+	globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True), many=True).data
+	return Response({'fulltext':xmltodict.parse(contents), 'indicators':results, 'attributes':extractions, 'globalattributes':globalattributes})
 
 @swagger_auto_schema(methods=['post'], request_body=FeedCreateSerializer, responses={201: FeedCategorySerializer})
 @swagger_auto_schema(methods=['put'], request_body=FeedUpdateSerializer, responses={200: FeedCategorySerializer})

@@ -260,25 +260,35 @@ MEDIA_URL = '/media/'
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # use in production
 # see https://github.com/anymail/django-anymail for more details/examples
-EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
-ANYMAIL = {
-    "MAILGUN_API_KEY": os.environ.get('MAILGUN_API_KEY'),
-    "MAILGUN_SENDER_DOMAIN": os.environ.get('SITE_DOMAIN'),
-    'MAILGUN_API_URL': 'https://api.eu.mailgun.net/v3',
-}
+# EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+# ANYMAIL = {
+#     "MAILGUN_API_KEY": os.environ.get('MAILGUN_API_KEY'),
+#     "MAILGUN_SENDER_DOMAIN": os.environ.get('SITE_DOMAIN'),
+#     'MAILGUN_API_URL': 'https://api.eu.mailgun.net/v3',
+# }
 
-SERVER_EMAIL = os.environ.get('SERVER_EMAIL')
-DEFAULT_FROM_EMAIL = os.environ.get('SERVER_EMAIL')
-ADMINS = [(os.environ.get('USER_EMAIL'), os.environ.get('REPLY')),]
+# SERVER_EMAIL = os.environ.get('SERVER_EMAIL')
+# DEFAULT_FROM_EMAIL = os.environ.get('SERVER_EMAIL')
+# ADMINS = [(os.environ.get('USER_EMAIL'), os.environ.get('REPLY')),]
 
 
-EMAIL_HOST = 'smtp.mailgun.org'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get('SERVER_EMAIL')
-EMAIL_HOST_PASSWORD = '17f182638111cac40e82c7800fa7e036-4de08e90-978dec83'
-EMAIL_USE_TLS = True
+# EMAIL_HOST = 'smtp.mailgun.org'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = os.environ.get('SERVER_EMAIL')
+# EMAIL_HOST_PASSWORD = '17f182638111cac40e82c7800fa7e036-4de08e90-978dec83'
+# EMAIL_USE_TLS = True
 # DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'TestSite Team <noreply@example.com>')
-
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('SMTP_HOSTNAME')
+SMTP_USER = os.environ.get('SMTP_USER')
+EMAIL_HOST_USER = SMTP_USER
+EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD')
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+SMTP_FROM_NAME = os.environ.get('SMTP_FROM_NAME')
+DEFAULT_FROM_EMAIL = '%s <%s>' % (SMTP_FROM_NAME, SMTP_USER)
+SMTP_REPLY_TO = os.environ.get('SMTP_REPLY_TO')
 
 
 # Django sites

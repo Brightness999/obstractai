@@ -177,6 +177,8 @@ const UpdateFeed = (props) => {
 						body: JSON.stringify(params)
 					}).then(res=>{return res.json()})
 					.then(res=>{
+						console.log(typeof(res.fulltext.rss.channel.item))
+						console.log( res.fulltext.rss.channel.item)
 						setFullText(res.fulltext);
 						setIndicators(res.indicators);
 						setOpen(true);
@@ -403,7 +405,7 @@ const UpdateFeed = (props) => {
 								</button>
 							</DialogTitle>
 							<DialogContent>
-								{Boolean(fulltext.rss) && typeof(fulltext.rss.channel.item)=='array' && fulltext.rss.channel.item.map((item, index)=>{
+								{Boolean(fulltext.rss) && Boolean(fulltext.rss.channel.item.length) && fulltext.rss.channel.item.map((item, index)=>{
 									return <section className="section app-card" key={index}>
 										<div className="columns">
 											<div className="column is-one-thirds">
@@ -472,7 +474,7 @@ const UpdateFeed = (props) => {
 									</section>
 								
 								})}
-								{Boolean(fulltext.rss) && typeof(fulltext.rss.channel.item)=='object' && 
+								{Boolean(fulltext.rss) && !Boolean(fulltext.rss.channel.item.length) && 
 									<section className="section app-card">
 										<div className="columns">
 											<div className="column is-one-thirds">

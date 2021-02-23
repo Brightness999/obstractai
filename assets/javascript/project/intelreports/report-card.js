@@ -64,7 +64,7 @@ const ReportCard = function (props) {
 								</span>
 							</div>
 							<div>
-								<Link to={{pathname:'/intelreports/detail', state:{reportId:props.report.id}}}>
+								<Link to={`/intelreports/${props.report.uniqueid}`}>
 									<button className="button is-danger is-medium is-rounded mx-2 my-4">
 										<span>View intel</span>
 									</button>

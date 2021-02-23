@@ -5,11 +5,13 @@ import { Grid } from "@material-ui/core";
 const ReportCard = function (props) {
 	let tags = [];
 	if(props.report.groupfeed){
-		if(props.report.groupfeed.tags.indexOf(",") > -1)
-			tags = props.report.groupfeed.tags.split(',');
-		else{
-			if(props.report.groupfeed.tags != '')
-				tags.push(props.report.groupfeed.tags);
+		if(props.report.groupfeed.tags != ''){
+			if(props.report.groupfeed.tags.indexOf(",") > -1)
+				tags = props.report.groupfeed.tags.split(',');
+			else{
+				if(props.report.groupfeed.tags != '')
+					tags.push(props.report.groupfeed.tags);
+			}
 		}
 	}
 	useEffect(()=>{

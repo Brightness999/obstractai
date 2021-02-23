@@ -17,9 +17,11 @@ const FeedCard = function (props) {
   const [isLoading, setIsLoading] = useState(false);
   let tags = [];
   if(props.feed.feed){
-    if(props.feed.feed.tags.indexOf(",") > -1)
-      tags = props.feed.feed.tags.split(',');
-    else tags.push(props.feed.feed.tags);
+    if(props.feed.feed.tags != ''){
+      if(props.feed.feed.tags.indexOf(",") > -1)
+        tags = props.feed.feed.tags.split(',');
+      else tags.push(props.feed.feed.tags);
+    }
   }
   else{
     if(props.feed.tags.indexOf(",") > -1)

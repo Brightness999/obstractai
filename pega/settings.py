@@ -272,11 +272,11 @@ DEFAULT_FROM_EMAIL = os.environ.get('SERVER_EMAIL')
 ADMINS = [(os.environ.get('USER_EMAIL'), os.environ.get('REPLY')),]
 
 
-# EMAIL_HOST = 'smtp.sendgrid.net'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'pro_dev_master@outlook.com')
-# EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
-# EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.mailgun.org'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.environ.get('SERVER_EMAIL')
+EMAIL_HOST_PASSWORD = '17f182638111cac40e82c7800fa7e036-4de08e90-978dec83'
+EMAIL_USE_TLS = True
 # DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'TestSite Team <noreply@example.com>')
 
 

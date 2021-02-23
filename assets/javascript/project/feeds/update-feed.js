@@ -36,6 +36,8 @@ const UpdateFeed = (props) => {
 	const [isMessage, setIsMessage] = useState(false);
 	const [fulltext, setFullText] = useState({});
 	const [indicators, setIndicators] = useState([]);
+	const [attributes, setAttributes] = useState([]);
+	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [open, setOpen] = useState(false);
 	const [urlMessage, setUrlMessage] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -177,10 +179,11 @@ const UpdateFeed = (props) => {
 						body: JSON.stringify(params)
 					}).then(res=>{return res.json()})
 					.then(res=>{
-						console.log(typeof(res.fulltext.rss.channel.item))
-						console.log( res.fulltext.rss.channel.item)
+						console.log( res)
 						setFullText(res.fulltext);
 						setIndicators(res.indicators);
+						setAttributes(res.attributes);
+						setGlobalAttributes(res.globalattributes);
 						setOpen(true);
 						setIsLoading(false);
 					})
@@ -406,144 +409,325 @@ const UpdateFeed = (props) => {
 							</DialogTitle>
 							<DialogContent>
 								{Boolean(fulltext.rss) && Boolean(fulltext.rss.channel.item.length) && fulltext.rss.channel.item.map((item, index)=>{
-									return <section className="section app-card" key={index}>
-										<div className="columns">
-											<div className="column is-one-thirds">
-												<Grid container>
-													<Grid item xs={12} md={8} className="container" style={{position:'relative'}}>
-														<Grid container>
-															<Grid item xs={12} md={6}>
-																<div>
-																	<span className="title has-text-weight-bold is-4"> Name: </span>
-																	<span> {item.title} </span>
-																</div>
-																<div dangerouslySetInnerHTML={{__html:item.description}}>
-																</div>
-																<div>
-																	<span className="title has-text-weight-bold is-4"> URL: </span>
-																	<span> {item.link} </span>
-																</div>
-							
-															</Grid>
-															<Grid item xs={12} md={6}>
-																<div>
-																	<span className="title has-text-weight-bold is-4"> Publish Date: </span>
-																	<span>{ new Date(item.pubDate).toLocaleString()}</span>
-																</div>
-															</Grid>
-														</Grid>
-														<div>
+									let str=item.description;
+									indicators[index].forEach(indicator => {
+										indicator.value.forEach(item => {
+											if(!(item*1>0 && item*1<10)){
+												item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
+												let reg = new RegExp(item, 'g'), result, ids = [];
+												while ( (result = reg.exec(str)) ) {
+													ids.push(result.index);
+												}
+												for(let i=0;i<ids.length;i++) {
+													let astartreg = />/gi, alastreg = /</gi, re, astart = [], alast = [];
+													while ( (re = astartreg.exec(str)) ) {
+														astart.push(re.index);
+													}
+													while ( (re = alastreg.exec(str)) ) {
+														alast.push(re.index);
+													}
+													for(let j=0;j<astart.length-1;j++){
+														if(ids[i] >= astart[j] && ids[i] <= alast[j+1]){
+															let flag = true
+															if(indicator.indicator == 'ipv4addr'){
+																if((str.substr(ids[i]+item.length, 1)*1 > 0 && str.substr(ids[i]+item.length, 1)*1 < 9) || str.substr(ids[i]+item.length, 1) == '/'){
+																	flag = false
+																}
+															}
+															if(indicator.indicator == 'fqdn'){
+																if(str.substr(ids[i]-1, 1) == '.' || str.substr(ids[i]-1, 1) == '/' || str.substr(ids[i]-1, 1) == '@'){
+																	flag = false
+																}
+															}
+															if(flag){
+																let target = "<span style='background:#faeb42;'>" + item + "</span>";
+																let target1 = `<Tooltip title='indicator = ${indicator.indicator}'>${target}</Tooltip>`;
+																str = str.substring(0, ids[i]) + target1 + str.substr(ids[i]+item.length);
+																for(let k=i+1;k<ids.length;k++){
+																	ids[k] = ids[k] + target1.length - item.length;
+																}
+															}
+														}
+													}
+												};
+											}
+										});
+										if(indicator.indicator == 'filename'){
+											let imgstart = new RegExp('<img', 'gi'), result, start = [], last=[];
+											while ( (result = imgstart.exec(str)) ) {
+												start.push(result.index);
+											}
+											start.forEach(s => {
+												for(let i=0;i<str.length;i++){
+													let p=0
+													if(str[i] == '>' && i > s){
+														p++;
+														if(p == 1){
+															last.push(i);
+															break;
+														}
+													}
+												}
+											});
+											for(let i=0;i<start.length;i++){
+												let temp=[];
+												indicator.value.forEach(item => {
+													let reg = new RegExp(item, 'gi'), result, ids=[];
+													while ( (result = reg.exec(str)) ) {
+														ids.push(result.index);
+													}
+													if(ids[0]>start[i] && ids[0]<last[i]){
+														temp.push(item);
+													}
+												});
+												let target = str.substring(start[i], last[i]+1);
+												let target1 = `<Tooltip title="indicator = ${indicator.indicator}">${target}</Tooltip>`;
+												for(let j=i+1;j<start.length;j++){
+													start[j] = start[j] + target1.length-target.length;
+													last[j] = last[j] + target1.length-target.length;
+												}
+												str = str.replace(target, target1)
+											}
+										}
+									});
+									
+									let words = [];
+									attributes.forEach(attribute => {
+										if(attribute.words_matched.indexOf(",")>-1){
+											let temp = attribute.words_matched.split(",");
+											words = words.concat(temp);
+										}
+										else words.push(attribute.words_matched);
+									});
+									globalattributes.forEach(globalattribute => {
+										if(globalattribute.globalattribute.words_matched.indexOf(",")>-1){
+											let temp = globalattribute.globalattribute.words_matched.split(",");
+											words = words.concat(temp);
+										}
+										else words.push(globalattribute.globalattribute.words_matched);
+									});
+									words.forEach(word => {
+										let reg = new RegExp(word.trim(), "g"), result, ids = [];
+										while ((result = reg.exec(str))) {
+											ids.push(result.index);
+										}
+										for(let i=0;i<ids.length;i++) {
+											let astartreg = />/gi, alastreg = /</gi, re, astart = [], alast = [];
+											while ( (re = astartreg.exec(str)) ) {
+												astart.push(re.index);
+											}
+											while ( (re = alastreg.exec(str)) ) {
+												alast.push(re.index);
+											}
+											for(let j=0;j<astart.length-1;j++){
+												if(ids[i] >= astart[j] && ids[i] <= alast[j+1]){
+													let target = `<span style="background:#00e7ff;">${word.trim()}</span>`;
+													str = str.substring(0, ids[i]) + target + str.substr(ids[i]+word.trim().length);
+													for(let k=i+1;k<ids.length;k++){
+														ids[k] = ids[k] + target.length - word.trim().length;
+													}
+												}
+											}
+										}
+									});
+									return <div className="section app-card" key={index}>
+										<section className="section">
+											<Grid container>
+												<Grid item xs={12} md={6}>
+													<h1 className="title is-2">{item.title}</h1>
+												</Grid>
+												<Grid item xs={12} md={6}>
+													<span>
+														<button className="button is-info is-rounded mx-2">
 															<span>
-																<button className="button is-info is-rounded mx-2" >
-																<span>{category}</span>
-																</button>
-																<button className="button is-link is-rounded is-text mx-2">
-																	<span>{name}</span>
-																</button>
-															</span>
-														</div>
-													</Grid>
-													<Grid item xs={12} md={4}>
-														<Grid container>
-															<Grid item xs={3} className="pt-4">
-																<span>Confidence:</span>
-															</Grid>
-															<Grid item xs={9} className="py-2">
-																<button className="button is-primary is-rounded">
-																	<span>{confidence}</span>
-																</button>
-															</Grid>
-														</Grid>
-														<Grid container>
-															<Grid item xs={3} className="pt-4">
-																<span>Indicators:</span>
-															</Grid>
-															<Grid item xs={9} className="py-2">
-																{indicators[index].map((indicator, i)=>{
-																	return <button key={i} className="button is-success is-rounded mx-1 my-1" >
-																		<span>{indicator}</span>
-																	</button>
-																})}
-																
-															</Grid>
-														</Grid>
-													</Grid>
-											</Grid>
-											</div>
-										</div>
-									</section>
-								
-								})}
-								{Boolean(fulltext.rss) && !Boolean(fulltext.rss.channel.item.length) && 
-									<section className="section app-card">
-										<div className="columns">
-											<div className="column is-one-thirds">
-												<Grid container>
-													<Grid item xs={12} md={8} className="container" style={{position:'relative'}}>
-														<Grid container>
-															<Grid item xs={12} md={6}>
-																<div>
-																	<span className="title has-text-weight-bold is-4"> Name: </span>
-																	<span> {fulltext.rss.channel.item.title} </span>
-																</div>
-																<div dangerouslySetInnerHTML={{__html:fulltext.rss.channel.item.description}}>
-																</div>
-																<div>
-																	<span className="title has-text-weight-bold is-4"> URL: </span>
-																	<span> {fulltext.rss.channel.item.link} </span>
-																</div>
-							
-															</Grid>
-															<Grid item xs={12} md={6}>
-																<div>
-																	<span className="title has-text-weight-bold is-4"> Publish Date: </span>
-																	<span>{ new Date(fulltext.rss.channel.item.pubDate).toLocaleString()}</span>
-																</div>
-															</Grid>
-														</Grid>
-														<div>
-															<span>
-																<button className="button is-info is-rounded mx-2" >
-																<span>{props.categories.map((ca, index)=>{
+																{props.categories.map((ca, index)=>{
 																	if(ca.id == category) return ca.name
-																})}</span>
-																</button>
-																<button className="button is-link is-rounded is-text mx-2">
-																	<span>{name}</span>
-																</button>
-															</span>
-														</div>
-													</Grid>
-													<Grid item xs={12} md={4}>
-														<Grid container>
-															<Grid item xs={3} className="pt-4">
-																<span>Confidence:</span>
-															</Grid>
-															<Grid item xs={9} className="py-2">
-																<button className="button is-primary is-rounded">
-																	<span>{confidence}</span>
-																</button>
-															</Grid>
-														</Grid>
-														<Grid container>
-															<Grid item xs={3} className="pt-4">
-																<span>Indicators:</span>
-															</Grid>
-															<Grid item xs={9} className="py-2">
-																{indicators.map((indicator, i)=>{
-																	return <button key={i} className="button is-success is-rounded mx-1 my-1" >
-																		<span>{indicator}</span>
-																	</button>
 																})}
-																
-															</Grid>
-														</Grid>
-													</Grid>
+															</span>
+														</button>
+														{tags != '' && tags.map((tag, index)=>{
+															return <button key={index} className="button is-warning is-rounded mx-2" >
+																<span>{tag}</span>
+															</button>
+														})}
+														<button className="button is-danger is-rounded mx-2" >
+															<span>{name}</span>
+														</button>
+														<button className="button is-primary is-rounded mx-2" >
+															<span>{confidence}</span>
+														</button>
+													</span>
+												</Grid>
 											</Grid>
-											</div>
+										</section>
+										<section>
+											<Grid container id="">
+												<Grid item xs={12} dangerouslySetInnerHTML={{__html:str}}></Grid>
+											</Grid>
+										</section>
+									</div>
+								})}
+								{(()=>{
+									if(Boolean(fulltext.rss) && !Boolean(fulltext.rss.channel.item.length)){
+										let str=fulltext.rss.channel.item.description;
+										indicators[0].forEach(indicator => {
+											indicator.value.forEach(item => {
+												if(!(item*1>0 && item*1<10)){
+													item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
+													let reg = new RegExp(item, 'g'), result, ids = [];
+													while ( (result = reg.exec(str)) ) {
+														ids.push(result.index);
+													}
+													for(let i=0;i<ids.length;i++) {
+														let astartreg = />/gi, alastreg = /</gi, re, astart = [], alast = [];
+														while ( (re = astartreg.exec(str)) ) {
+															astart.push(re.index);
+														}
+														while ( (re = alastreg.exec(str)) ) {
+															alast.push(re.index);
+														}
+														for(let j=0;j<astart.length-1;j++){
+															if(ids[i] >= astart[j] && ids[i] <= alast[j+1]){
+																let flag = true
+																if(indicator.indicator == 'ipv4addr'){
+																	if((str.substr(ids[i]+item.length, 1)*1 > 0 && str.substr(ids[i]+item.length, 1)*1 < 9) || str.substr(ids[i]+item.length, 1) == '/'){
+																		flag = false
+																	}
+																}
+																if(indicator.indicator == 'fqdn'){
+																	if(str.substr(ids[i]-1, 1) == '.' || str.substr(ids[i]-1, 1) == '/' || str.substr(ids[i]-1, 1) == '@'){
+																		flag = false
+																	}
+																}
+																if(flag){
+																	let target = "<span style='background:#faeb42;'>" + item + "</span>";
+																	let target1 = `<Tooltip title='indicator = ${indicator.indicator}'>${target}</Tooltip>`;
+																	str = str.substring(0, ids[i]) + target1 + str.substr(ids[i]+item.length);
+																	for(let k=i+1;k<ids.length;k++){
+																		ids[k] = ids[k] + target1.length - item.length;
+																	}
+																}
+															}
+														}
+													};
+												}
+											});
+											if(indicator.indicator == 'filename'){
+												let imgstart = new RegExp('<img', 'gi'), result, start = [], last=[];
+												while ( (result = imgstart.exec(str)) ) {
+													start.push(result.index);
+												}
+												start.forEach(s => {
+													for(let i=0;i<str.length;i++){
+														let p=0
+														if(str[i] == '>' && i > s){
+															p++;
+															if(p == 1){
+																last.push(i);
+																break;
+															}
+														}
+													}
+												});
+												for(let i=0;i<start.length;i++){
+													let temp=[];
+													indicator.value.forEach(item => {
+														let reg = new RegExp(item, 'gi'), result, ids=[];
+														while ( (result = reg.exec(str)) ) {
+															ids.push(result.index);
+														}
+														if(ids[0]>start[i] && ids[0]<last[i]){
+															temp.push(item);
+														}
+													});
+													let target = str.substring(start[i], last[i]+1);
+													let target1 = `<Tooltip title="indicator = ${indicator.indicator}">${target}</Tooltip>`;
+													for(let j=i+1;j<start.length;j++){
+														start[j] = start[j] + target1.length-target.length;
+														last[j] = last[j] + target1.length-target.length;
+													}
+													str = str.replace(target, target1)
+												}
+											}
+										});
+										
+										let words = [];
+										attributes.forEach(attribute => {
+											if(attribute.words_matched.indexOf(",")>-1){
+												let temp = attribute.words_matched.split(",");
+												words = words.concat(temp);
+											}
+											else words.push(attribute.words_matched);
+										});
+										globalattributes.forEach(globalattribute => {
+											if(globalattribute.globalattribute.words_matched.indexOf(",")>-1){
+												let temp = globalattribute.globalattribute.words_matched.split(",");
+												words = words.concat(temp);
+											}
+											else words.push(globalattribute.globalattribute.words_matched);
+										});
+										words.forEach(word => {
+											let reg = new RegExp(word.trim(), "g"), result, ids = [];
+											while ((result = reg.exec(str))) {
+												ids.push(result.index);
+											}
+											for(let i=0;i<ids.length;i++) {
+												let astartreg = />/gi, alastreg = /</gi, re, astart = [], alast = [];
+												while ( (re = astartreg.exec(str)) ) {
+													astart.push(re.index);
+												}
+												while ( (re = alastreg.exec(str)) ) {
+													alast.push(re.index);
+												}
+												for(let j=0;j<astart.length-1;j++){
+													if(ids[i] >= astart[j] && ids[i] <= alast[j+1]){
+														let target = `<span style="background:#00e7ff;">${word.trim()}</span>`;
+														str = str.substring(0, ids[i]) + target + str.substr(ids[i]+word.trim().length);
+														for(let k=i+1;k<ids.length;k++){
+															ids[k] = ids[k] + target.length - word.trim().length;
+														}
+													}
+												}
+											}
+										});
+										return <div className="section app-card">
+											<section className="section">
+												<Grid container>
+													<Grid item xs={12} md={6}>
+														<h1 className="title is-2">{fulltext.rss.channel.item.title}</h1>
+													</Grid>
+													<Grid item xs={12} md={6}>
+														<span>
+															<button className="button is-info is-rounded mx-2">
+																<span>
+																	{props.categories.map((ca, index)=>{
+																		if(ca.id == category) return ca.name
+																	})}
+																</span>
+															</button>
+															{tags != '' && tags.map((tag, index)=>{
+																return <button key={index} className="button is-warning is-rounded mx-2" >
+																	<span>{tag}</span>
+																</button>
+															})}
+															<button className="button is-danger is-rounded mx-2" >
+																<span>{name}</span>
+															</button>
+															<button className="button is-primary is-rounded mx-2" >
+																<span>{confidence}</span>
+															</button>
+														</span>
+													</Grid>
+												</Grid>
+											</section>
+											<section>
+												<Grid container id="">
+													<Grid item xs={12} dangerouslySetInnerHTML={{__html:str}}></Grid>
+												</Grid>
+											</section>
 										</div>
-									</section>
-								}
+									}
+								})()}
 							</DialogContent>
 						</Dialog>
 					</div>

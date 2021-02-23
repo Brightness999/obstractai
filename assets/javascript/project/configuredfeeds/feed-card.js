@@ -7,9 +7,11 @@ import Styles from "../styles";
 const FeedCard = function (props) {
   let tags = [];
   if(props.feed){
-    if(props.feed.tags.indexOf(",") > -1)
-      tags = props.feed.tags.split(',');
-    else tags.push(props.feed.tags);
+    if(props.feed.tags != ''){
+      if(props.feed.tags.indexOf(",") > -1)
+        tags = props.feed.tags.split(',');
+      else tags.push(props.feed.tags);
+    }
   }
 
   const enableFeed = () => {

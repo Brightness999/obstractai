@@ -56,12 +56,17 @@ const ReportCard = function (props) {
 										</button>
 										);
 									})}
-									<Link to={`/intelreports/${props.report.id}`}>
-										<button className="button is-link is-rounded is-text mx-2">
-											<span>{props.report.groupfeed ? props.report.groupfeed.name : ""}</span>
-										</button>
-									</Link>
+									<button className="button is-link is-rounded mx-2">
+										<span>{props.report.groupfeed ? props.report.groupfeed.name : ""}</span>
+									</button>
 								</span>
+							</div>
+							<div>
+								<Link to={{pathname:'/intelreports/detail', state:{reportId:props.report.id}}}>
+									<button className="button is-danger is-medium is-rounded mx-2 my-4">
+										<span>View intel</span>
+									</button>
+								</Link>
 							</div>
 						</Grid>
 						<Grid item xs={12} md={4}>

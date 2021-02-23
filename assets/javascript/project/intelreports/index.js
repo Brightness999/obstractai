@@ -345,11 +345,12 @@ const IntelReports = (props) => {
 	}
 
 	const renderViewReport = (data) => {
+		console.log(data);
 		if(isLoading){
 			return <Loading/>;
 		} 
 		else {
-			const report_id = data.match.params.id;
+			const report_id = data.location.state.reportId;
 			const report = getFeedById(report_id);
 			return(
 				<ViewReport client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
@@ -359,7 +360,7 @@ const IntelReports = (props) => {
 
 	return (
 		<Switch>
-			<Route path="/intelreports/:id" render={(props) => renderViewReport(props)} >
+			<Route path="/intelreports/detail" render={(props) => renderViewReport(props)} >
 			</Route>
 			<Route path="/intelreports">
 				{ReportListView()}

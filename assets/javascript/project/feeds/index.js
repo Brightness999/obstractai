@@ -329,10 +329,10 @@ const Feeds = (props) => {
 			return <Loading/>;
 		}
 		else {
-		const feed_id = data.match.params.id;
+		const feed_id = data.location.state.feedId;
 			const feed = getFeedById(feed_id);			
 			return(
-				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole}
+				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole} mygroups={props.mygroups}
 					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 			) ;
 		}
@@ -344,7 +344,7 @@ const Feeds = (props) => {
 				<UpdateFeed client={props.client} categories={categories} mygroups={props.mygroups} currentrole={props.currentrole}
 					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 			</Route>
-			<Route path="/feeds/edit/:id" render={(props) => renderUpdateFeed(props)} >
+			<Route path="/feeds/edit" render={(props) => renderUpdateFeed(props)} >
 			</Route>
 			<Route path="/feeds">
 				{FeedListView()}

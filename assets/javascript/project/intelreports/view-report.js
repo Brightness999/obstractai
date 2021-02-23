@@ -270,7 +270,7 @@ const ViewReport = (props) => {
 								</Grid>
 							</Grid>
 							<p>JSON object: </p>
-							{/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
+							<pre>{JSON.stringify(data, null, 2)}</pre>
 							<p>API Call</p>
 							<div>
 								<span>Feed: </span>

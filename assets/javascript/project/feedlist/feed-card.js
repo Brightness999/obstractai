@@ -33,18 +33,20 @@ const FeedCard = function (props) {
     let params = {
       id: props.feed.id
     };
-    fetch('/api/configuredfeeds', {
-      method: 'delete',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': props.client.transports[0].auth.csrfToken
-      },
-      credentials: 'same-origin',
-      body: JSON.stringify(params)
-    }).then(res=>{return res.json()})
-    .then(res=>{
-      props.saveFeed(res);
-    })
+    if(confirm('Are you sure to delete this feed?')){
+      fetch('/api/configuredfeeds', {
+        method: 'delete',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': props.client.transports[0].auth.csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(params)
+      }).then(res=>{return res.json()})
+      .then(res=>{
+        props.saveFeed(res);
+      });
+    }
   }
 
   return (

@@ -14,6 +14,7 @@ const IntelgroupTable = (props) => {
             {props.intelgroup.role == 2 && <Td>Admin</Td>}
             {props.intelgroup.role == 1 && <Td>Member</Td>}
             {props.intelgroup.role == 0 && <Td>Pending</Td>}
+            {props.intelgroup.role == 4 && <Td>Request</Td>}
             {props.intelgroup.role == 0 && <Td>
                 <button className="button is-success" onClick={()=>setOpen(true)}>Accept invite</button>
                 <Dialog
@@ -41,7 +42,8 @@ const IntelgroupTable = (props) => {
                     </DialogActions>
                 </Dialog>
             </Td>}
-            {props.intelgroup.role != 0 && <Td><button className="button is-primary" onClick={()=>props.leaveGroup(props.index)}>Leave group</button></Td>}
+            {(props.intelgroup.role == 1 || props.intelgroup.role == 2) && <Td><button className="button is-primary" onClick={()=>props.leaveGroup(props.index)}>Leave group</button></Td>}
+            {props.intelgroup.role == 4 && <Td><button className="button is-primary" onClick={()=>props.leaveGroup(props.index)}>Cancel Request</button></Td>}
         </Tr>
     );
 }

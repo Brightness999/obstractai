@@ -257,7 +257,7 @@ const UpdateFeed = (props) => {
 				>
 					<Alert severity="warning" className="my-5 has-text-centered">
 						<AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
-						<span className="subtitle is-5">! You already have an enabled feed with this URL with title XXXXX. Please edit it.</span>
+						<span className="subtitle is-5">! You already have an enabled feed with this URL with title {name}. Please edit it.</span>
 					</Alert>
 				</Dialog>
 				<section className="section app-card">

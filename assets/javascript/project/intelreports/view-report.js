@@ -278,7 +278,7 @@ const ViewReport = (props) => {
 							</div>
 							<div>
 								<span>Report: </span>
-								<span>https://sherlock-staging.obstractai/api/v1/reports?UUID={props.uniqueid}</span>
+								<span>https://sherlock-staging.obstractai.com/api/v1/reports?UUID={props.uniqueid}</span>
 							</div>
 							<a href="/api/docs" className="muted-link">API docs</a>
 						</section>

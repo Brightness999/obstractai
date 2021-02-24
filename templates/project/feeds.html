@@ -12,5 +12,9 @@
         return obj
     }
     feeds = strToObj(feeds);
-    document.getElementById("feeds").textContent = JSON.stringify(feeds, null, 2)
+    console.log(feeds);
+    if(feeds == null)
+        document.getElementById("feeds").textContent = "{{feeds}}"
+    else
+        document.getElementById("feeds").textContent = JSON.stringify(feeds, null, 2)
 </script>

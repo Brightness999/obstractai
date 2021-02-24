@@ -2254,7 +2254,7 @@ def invite(request):
 				To confirm or reject this invitation, click the link below.
 				{settings.SITE_ROOT_URL}
 				If you have any questions, simply reply to this email to get in contact with a real person on the team.
-				Sherlock and the Cyobstract Team''',
+				Sherlock and the Cyobstract Team'''.strip(),
 				settings.SMTP_USER,
 				request.data['emails'],
 				fail_silently=False

@@ -88,7 +88,11 @@ const WhiteList = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onExit={()=>setStepsEnabled(false)}
+				onExit={()=>{
+                    setStepsEnabled(false);
+                    if(index==1)
+						window.location.href='/home/intelgroups';
+                }}
 				options={{doneLabel: 'Done'}}
 			/>}
 			<section className="section">

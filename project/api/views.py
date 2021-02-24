@@ -2244,17 +2244,19 @@ def invite(request):
 		try:
 			send_mail(
 				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-				f'''From: {settings.FROM}
+				f'''
+				From: {settings.FROM}
 				Name: Sherlock at Cyobstract
 				Reply-to: {settings.REPLY}.com
 				Title: You've been invited to join the {groupname} Intel Group on Cyobstract
 				Hello!
 				{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
-				By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
+				By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.
 				To confirm or reject this invitation, click the link below.
-				<a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a>
+				{settings.SITE_ROOT_URL}
 				If you have any questions, simply reply to this email to get in contact with a real person on the team.
-				Sherlock and the Cyobstract Team''',
+				Sherlock and the Cyobstract Team
+				''',
 				settings.SMTP_USER,
 				request.data['emails'],
 				fail_silently=False
@@ -2306,36 +2308,9 @@ def categories(request):
 		Categories.objects.filter(id=request.data['id']).delete()
 		return Response({"Successfully deleted!"})
 
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def test(request):
-# 	print(request.POST['success'])
-# 	return Response({'success':True})
-# 	# return Response({'message':True})
-
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def home(request):
-	# response = requests.post('http://localhost:8000/api/test/', data={"success":True})
-	# print(response.text)
-	# if response.text == True:
-	# 	print('success')
-	# else:
-	# 	print('failed')
-	# ftr = "http://ftr-premium.fivefilters.org/"
-	# # encode = urllib.parse.quote_plus("https://apnews.com/apf-topnews")
-	# encode = urllib.parse.quote_plus("http://feeds.bbci.co.uk/news/rss.xml")
-	# # encode = urllib.parse.quote_plus("https://www.microsoft.com/security/blog/security-blog-series/")
-	# key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
-	# req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
-	# # req = urllib.request.Request("http://ftr-premium.fivefilters.org/makefulltextfeed.php?url=http://feeds.bbci.co.uk/news/rss.xml&key=KSF8GH22GZRKA8&summary=1&max=1&links=remove&content=1&xss=1&lang=2&parser=html5php&accept=application/json")
-	# contents = urllib.request.urlopen(req).read()
-	# text = json.dumps(xmltodict.parse(contents)['rss']['channel']['item'])
-	# # text = json.dumps(xmltodict.parse(contents))
-	# results = extract.extract_observables(text)
-	# print(','.join(results['topic']))
-	# for result in results:
-	# 	print(result)
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').filter(user_id=request.user.id).all(), many=True)
 	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True)
 	return Response({'mygroups':groups.data, 'users':users.data, 're':'result'})
@@ -2401,21 +2376,23 @@ def intelgroups(request):
 				name = 'Intel Group' + ''. join(random.choice(letters) for i in range(10))
 			else:
 				name = request.data['name']
-			message = Mail(
-				from_email=settings.USER_EMAIL,
-				to_emails=request.data['emails'],
-				subject=f'You’ve been invited to join the {name} Intel Group on Cyobstract',
-				html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
-				<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-				<strong>Reply-to:</strong><span>{settings.REPLY}</span><br/>
-				<strong>Title:</strong><span>You've been invited to join the {name} Intel Group on Cyobstract</span><br/>
-				<p>Hello!</p>
-				<p>{settings.USER_EMAIL} has invited to join the {name} Intel Group on Cyobstract as a Member.</p>
-				<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.</p>
-				<p>To confirm or reject this invitation, click the link below.</p>
-				<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
-				<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
-				<p>Sherlock and the Cyobstract Team</p>''')
+			send_mail(
+				f'You’ve been invited to join the {name} Intel Group on Cyobstract',
+				f'''From: {settings.FROM}
+				Name: Sherlock at Cyobstract
+				Reply-to: {settings.REPLY}
+				Title: You've been invited to join the {name} Intel Group on Cyobstract
+				Hello!
+				{settings.USER_EMAIL} has invited to join the {name} Intel Group on Cyobstract as a Member.
+				By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.
+				To confirm or reject this invitation, click the link below.
+				{settings.SITE_ROOT_URL}
+				If you have any questions, simply reply to this email to get in contact with a real person on the team.
+				Sherlock and the Cyobstract Team''',
+				settings.SMTP_USER,
+				request.data['emails'],
+				fail_silently=False
+			)
 			try:
 				sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
 				response = sg.send(message)
@@ -2455,20 +2432,18 @@ def grouplist(request):
 		UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=request.data['id'], role=4)
 		roles = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id'], role=2).order_by('id').all()
 		for role in roles:
-			message = Mail(
-				from_email=settings.USER_EMAIL,
-				to_emails=CustomUser.objects.filter(id=role.user_id).last().email,
-				subject=f'{request.user.email} has been sent you request to join your Intel Group',
-				html_content=f'''<strong>From:</strong><span>{request.user.email}</span><br/>
-				<strong>Reply-to:</strong><span>{request.user.email}</span><br/>
-				<strong>Title:</strong><span>Invite Request</span><br/>
-				<p>Hello!</p>
-				<p>{request.user.email} has been sent you request to join your Intel Group</p>
-				''')
 			try:
-				sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-				response = sg.send(message)
-				print(response.status_code)
+				send_mail(
+					f'{request.user.email} has been sent you request to join your Intel Group',
+					f'''From: {request.user.email}
+					Reply-to: {request.user.email}
+					Title: Invite Request
+					Hello!
+					{request.user.email} has been sent you request to join your Intel Group''',
+					settings.SMTP_USER,
+					CustomUser.objects.filter(id=role.user_id).last().email,
+					fail_silently=False
+				)
 			except Exception as e:
 				print(str(e))
 		mygroupids = []
@@ -2485,23 +2460,22 @@ def acceptinvite(request):
 	useremail = CustomUser.objects.filter(id=userid).last().email
 	groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
 	groupname = IntelGroups.objects.filter(id=groupid).last().name
-	message = Mail(
-		from_email=settings.USER_EMAIL,
-		to_emails=request.user.email,
-		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-		html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
-		<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-		<strong>Reply-to:</strong><span>{settings.REPLY}</span><br/>
-		<strong>Title:</strong><span>{useremail} has accepted your invitation to join {groupname}</span><br/>
-		<p>Hello!</p>
-		<p>This email is just to confirm {useremail} has accepted your invitation to join {groupname}</p>
-		<p>To manage members in your intel group, click the link below.</p>
-		<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
-		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
-		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-		response = sg.send(message)
-		print(response.status_code)
+		send_mail(
+			f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+			f'''From: {settings.FROM}
+			Name: Sherlock at Cyobstract
+			Reply-to: {settings.REPLY}
+			Title: {useremail} has accepted your invitation to join {groupname}
+			Hello!
+			This email is just to confirm {useremail} has accepted your invitation to join {groupname}
+			To manage members in your intel group, click the link below.
+			{settings.SITE_ROOT_URL}
+			Sherlock and the Cyobstract Team''',
+			settings.SMTP_USER,
+			request.user.email,
+			fail_silently=False
+		)
 	except Exception as e:
 		print(str(e))
 	groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
@@ -2516,24 +2490,23 @@ def rejectinvite(request):
 	groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
 	groupname = IntelGroups.objects.filter(id=groupid).last().name
 	UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
-	message = Mail(
-		from_email=settings.USER_EMAIL,
-		to_emails=request.user.email,
-		subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-		html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
-		<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-		<strong>Reply-to:</strong><span>{settings.REPLY}</span><br/>
-		<strong>Title:</strong><span>{useremail} has rejected your invitation to join {groupname}</span><br/>
-		<p>Hello!</p>
-		<p>{useremail} has rejected your invitation to join {groupname}</p>
-		<p>If you think this is a mistake, you can resend the invitation to {useremail} to join {groupname}.</p>
-		<p>To manage members in your intel group, click the link below:</p>
-		<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
-		<p>Sherlock and the Cyobstract Team</p>''')
 	try:
-		sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-		response = sg.send(message)
-		print(response.status_code)
+		send_mail(
+			f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+			f'''From: {settings.FROM}
+			Name: Sherlock at Cyobstract
+			Reply-to: {settings.REPLY}
+			Title: {useremail} has rejected your invitation to join {groupname}
+			Hello!
+			{useremail} has rejected your invitation to join {groupname}
+			If you think this is a mistake, you can resend the invitation to {useremail} to join {groupname}.
+			To manage members in your intel group, click the link below:
+			{settings.SITE_ROOT_URL}
+			Sherlock and the Cyobstract Team''',
+			settings.SMTP_USER,
+			request.user.email,
+			fail_silently=False
+		)
 	except Exception as e:
 		print(str(e))
 	groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
@@ -2555,21 +2528,20 @@ def role(request):
 			userid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().user_id
 			groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
 			groupname = IntelGroups.objects.filter(id=groupid).last().name
-			message = Mail(
-				from_email=settings.USER_EMAIL,
-				to_emails=CustomUser.objects.filter(id=userid).last().email,
-				subject=f'Your request has been refused from {groupname} Intel Group',
-				html_content=f'''<strong>From:</strong><span>{request.user.email}</span><br/>
-				<strong>Reply-to:</strong><span>{request.user.email}</span><br/>
-				<strong>Title:</strong><span>Invite Refusing</span><br/>
-				<p>Hello!</p>
-				<p>Your request has been refused from {groupname} Intel Group</p>
-				<p>If you think this is a mistake, you can resend the request to {groupname} Intel Group.</p>
-				<p>Sherlock and the Cyobstract Team</p>''')
 			try:
-				sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-				response = sg.send(message)
-				print(response.status_code)
+				send_mail(
+					f'Your request has been refused from {groupname} Intel Group',
+					f'''From: {request.user.email}
+					Reply-to: {request.user.email}
+					Title: Invite Refusing
+					Hello!
+					Your request has been refused from {groupname} Intel Group
+					If you think this is a mistake, you can resend the request to {groupname} Intel Group.
+					Sherlock and the Cyobstract Team''',
+					settings.SMTP_USER,
+					CustomUser.objects.filter(id=userid).last().email,
+					fail_silently=False
+				)
 			except Exception as e:
 				print(str(e))
 		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()

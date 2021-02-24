@@ -1391,31 +1391,38 @@ def searchreports(request):
 
 @api_view(['POST'])
 def pullfeed(request):
-	ftr = "http://ftr-premium.fivefilters.org/"
-	encode = urllib.parse.quote_plus(request.data['url'])
-	key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
-	req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
-	contents = urllib.request.urlopen(req).read()
-	results = []
-	if type(xmltodict.parse(contents)['rss']['channel']['item']) == list:
-		for item in xmltodict.parse(contents)['rss']['channel']['item']:
+	isUrlExist = False
+	for feed in Feeds.objects.all():
+		if(request.data['url'] in feed.url):
+			if len(GroupFeeds.objects.filter(feed_id=feed.id).all()) > 0:
+				isUrlExist = True
+				return Response({'isUrlExist':isUrlExist})
+	if not isUrlExist:
+		ftr = "http://ftr-premium.fivefilters.org/"
+		encode = urllib.parse.quote_plus(request.data['url'])
+		key = urllib.parse.quote_plus("KSF8GH22GZRKA8")
+		req = urllib.request.Request(ftr+"makefulltextfeed.php?url="+encode+"&key="+key+"&max=25")
+		contents = urllib.request.urlopen(req).read()
+		results = []
+		if type(xmltodict.parse(contents)['rss']['channel']['item']) == list:
+			for item in xmltodict.parse(contents)['rss']['channel']['item']:
+				data = []
+				for indicator in extract.extract_observables(json.dumps(item)):
+					if len(extract.extract_observables(json.dumps(item))[indicator]) > 0:
+						data.append({'indicator':indicator, 'value':extract.extract_observables(json.dumps(item))[indicator]})
+				if not data == []:
+					results.append(data)
+		else:
+			item = xmltodict.parse(contents)['rss']['channel']['item']
 			data = []
 			for indicator in extract.extract_observables(json.dumps(item)):
 				if len(extract.extract_observables(json.dumps(item))[indicator]) > 0:
 					data.append({'indicator':indicator, 'value':extract.extract_observables(json.dumps(item))[indicator]})
 			if not data == []:
 				results.append(data)
-	else:
-		item = xmltodict.parse(contents)['rss']['channel']['item']
-		data = []
-		for indicator in extract.extract_observables(json.dumps(item)):
-			if len(extract.extract_observables(json.dumps(item))[indicator]) > 0:
-				data.append({'indicator':indicator, 'value':extract.extract_observables(json.dumps(item))[indicator]})
-		if not data == []:
-			results.append(data)
-	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all(), many=True).data
-	globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True), many=True).data
-	return Response({'fulltext':xmltodict.parse(contents), 'indicators':results, 'attributes':extractions, 'globalattributes':globalattributes})
+		extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all(), many=True).data
+		globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True), many=True).data
+		return Response({'fulltext':xmltodict.parse(contents), 'indicators':results, 'attributes':extractions, 'globalattributes':globalattributes, 'isUrlExist':isUrlExist})
 
 @swagger_auto_schema(methods=['post'], request_body=FeedCreateSerializer, responses={201: FeedCategorySerializer})
 @swagger_auto_schema(methods=['put'], request_body=FeedUpdateSerializer, responses={200: FeedCategorySerializer})
@@ -1426,13 +1433,15 @@ def feeds(request):
 		tags = data['tags'].split(',')
 		groupid= request.data['intelgroup_id']
 		isUrlExist = False
-		isEqualGroup = False
 		for feed in Feeds.objects.all():
 			if(data['url'] in feed.url):
-				if data['tags'] == '':
-					GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+				if len(GroupFeeds.objects.filter(feed_id=feed.id).all()) > 0:
+					isUrlExist = True
 				else:
-					GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+					if data['tags'] == '':
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+					else:
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
 		if not isUrlExist:
 			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			max_feeds = 0
@@ -1442,7 +1451,7 @@ def feeds(request):
 				max_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['max_feeds']
 				feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
 				if len(feeds) > int(max_feeds):
-					return Response({'message':True})
+					return Response({'message':True, 'isUrlExist':isUrlExist})
 			Feeds.objects.create(type=data['type'], url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isglobal=False, confidence=data['confidence'], intelgroup_id=groupid)
 			GroupFeeds.objects.create(feed_id=Feeds.objects.last().id, intelgroup_id=groupid, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], confidence=data['confidence'], isenable=True)
 			for tag in tags:
@@ -1823,7 +1832,7 @@ def feeds(request):
 				groupfeeds.append(serializer.data)
 			groupfeedids.append(groupfeed.feed_id)
 		feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
-		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data, 'webhook_fail':webhook_fail})
+		return Response({'groupfeeds':groupfeeds, 'feeds':feeds.data, 'webhook_fail':webhook_fail, 'isUrlExist':isUrlExist})
 	if request.method == 'PUT':
 		data = request.data
 		feed = Feeds.objects.filter(id=data['id']).last()
@@ -1853,30 +1862,35 @@ def feeds(request):
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=request.data['groupid'])
 		flag = True
+		is_exist = True
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			while flag:
-				for webhook in WebHooks.objects.filter(intelgroup_id=request.data['groupid']).order_by('id').all():
-					channelunique = FeedChannels.objects.filter(feed_id=data['id']).last().uniqueid
-					groupunique = IntelGroups.objects.filter(id=request.data['groupid']).last().uniqueid
-					data = {
-						'uuid': webhook.uniqueid,
-						'channel': channelunique,
-						'intelgroup': groupunique,
-						'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
-						'addedtime': IntelReports.objects.last().created_at,
-						'data': {
-							'title': item.title,
-							'link': item.link,
-							'description': item.description
+				if len(WebHooks.objects.filter(intelgroup_id=data['groupid']).order_by('id').all()) > 0:
+					for webhook in WebHooks.objects.filter(intelgroup_id=data['groupid']).order_by('id').all():
+						channelunique = FeedChannels.objects.filter(feed_id=data['id']).last().uniqueid
+						groupunique = IntelGroups.objects.filter(id=data['groupid']).last().uniqueid
+						data = {
+							'uuid': webhook.uniqueid,
+							'channel': channelunique,
+							'intelgroup': groupunique,
+							'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
+							'addedtime': IntelReports.objects.last().created_at,
+							'data': {
+								'title': item.title,
+								'link': item.link,
+								'description': item.description
+							}
 						}
-					}
-					try:
-						requests.post(webhook.endpoint, data=data)
-					except Exception as e:
-						print(str(e))
-						flag = False
+						try:
+							requests.post(webhook.endpoint, data=data)
+						except Exception as e:
+							print(str(e))
+							flag = False
+				else:
+					flag = False
+					is_exist = False
 		webhook_fail = False
-		if not flag:
+		if is_exist and not flag:
 			webhook_fail=True			
 		groupfeeds = []
 		groupfeedids = []

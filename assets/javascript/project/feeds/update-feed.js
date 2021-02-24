@@ -68,7 +68,6 @@ const UpdateFeed = (props) => {
 	},]
 
 	const saveFeed = () => {
-		setIsLoading(true);
 		let str = tags.trim();
 		if(str[str.length-1] == ',') str = str.substring(0, str.length-2);
 		let params ={
@@ -80,28 +79,52 @@ const UpdateFeed = (props) => {
 			confidence: confidence,
 			type:type.trim()
 		}
-		params['intelgroup_id'] = props.currentgroup;
-		params['manage_enabled'] = 'false';
-		if(props.currentgroup == '') setGroupError(true);
-		if(props.currentgroup != '')
+		if(props.id){
+			params['id'] = props.id;
+			params['groupid'] = props.currentgroup;
+		}
+		else{
+			params['groupid'] = props.currentgroup;
+			if(props.currentgroup == '') setGroupError(true);
+		}
+		if(Boolean(props.id)){
+			setIsLoading(true);
 			fetch('/api/feeds', {
-				method: 'post',
+				method: 'put',
 				headers: {
 					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
 				},
 				credentials: 'same-origin',
-				body: JSON.stringify(params),
+				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				if(Boolean(res.message)){
-					setIsLoading(false);
-					setIsMessage(true);
-				}
-				else{
-					if(Boolean(res.isUrlExist)){
+				setWebhhook(res.webhook_fail);
+				setIsLoading(false);
+				props.saveFeed(res);
+				history.push('/feeds');
+			})
+		}
+		else{
+			setIsLoading(true);
+			
+			params['intelgroup_id'] = props.currentgroup;
+			params['manage_enabled'] = 'false';
+			if(props.currentgroup == '') setGroupError(true);
+			if(props.currentgroup != '')
+				fetch('/api/feeds', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params),
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					if(Boolean(res.message)){
 						setIsLoading(false);
-						setUrlMessage(true);
+						setIsMessage(true);
 					}
 					else{
 						setIsLoading(false);
@@ -111,8 +134,8 @@ const UpdateFeed = (props) => {
 						setOpen(false);
 						history.push('/feeds');
 					}
-				}
-			})
+				})
+		}
 	}
 
 	const updateFeed = () => {
@@ -141,53 +164,38 @@ const UpdateFeed = (props) => {
 			params['groupid'] = props.currentgroup;
 			if(props.currentgroup == '') setGroupError(true);
 		}
-		
-		if(Boolean(props.id)){
+		if(url.trim() == '') setUrlError(true);
+		if(name.trim() == '') setNameError(true);
+		if(description.trim() == '') setDescriptionError(true);
+		if(category == '' || category == 'Select category') setCategoryError(true);
+		if(type.trim() == '' || type == 'Select Type') setTypeError(true);
+		if(url && name && description && category && type ){
 			setIsLoading(true);
-			fetch('/api/feeds', {
-				method: 'put',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res=>{return res.json()})
-			.then(res=>{
-				setWebhhook(res.webhook_fail);
-				setIsLoading(false);
-				props.saveFeed(res);
-				history.push('/feeds');
-			})
-		}
-		else{
-			if(url.trim() == '') setUrlError(true);
-			if(name.trim() == '') setNameError(true);
-			if(description.trim() == '') setDescriptionError(true);
-			if(category == '' || category == 'Select category') setCategoryError(true);
-			if(type.trim() == '' || type == 'Select Type') setTypeError(true);
-			if(url && name && description && category && type ){
-				setIsLoading(true);
-				if(props.currentgroup != ''){
-					fetch('/api/pullfeed', {
-						method: 'post',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-CSRFToken': props.client.transports[0].auth.csrfToken
-						},
-						credentials: 'same-origin',
-						body: JSON.stringify(params)
-					}).then(res=>{return res.json()})
-					.then(res=>{
-						console.log( res)
+			if(props.currentgroup != ''){
+				fetch('/api/pullfeed', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res=>{return res.json()})
+				.then(res=>{
+					console.log(res);
+					if(res.isUrlExist){
+						setUrlMessage(true);
+						setIsLoading(false);
+					}
+					else{
 						setFullText(res.fulltext);
 						setIndicators(res.indicators);
 						setAttributes(res.attributes);
 						setGlobalAttributes(res.globalattributes);
 						setOpen(true);
 						setIsLoading(false);
-					})
-				}
+					}
+				})
 			}
 		}
 	}
@@ -243,13 +251,13 @@ const UpdateFeed = (props) => {
 					maxWidth="md"
 					fullWidth
 					open={urlMessage}
-					onClose={()=>setUrlMessage(false)}
+					onClose={()=>{setUrlMessage(false);history.push('/feeds');}}
 					aria-labelledby="alert-dialog-title"
 					aria-describedby="alert-dialog-description"
 				>
 					<Alert severity="warning" className="my-5 has-text-centered">
 						<AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
-						<span className="subtitle is-5">! This URL already exists.</span>
+						<span className="subtitle is-5">! You already have an enabled feed with this URL with title XXXXX. Please edit it.</span>
 					</Alert>
 				</Dialog>
 				<section className="section app-card">
@@ -412,7 +420,7 @@ const UpdateFeed = (props) => {
 									let str=item.description;
 									indicators[index].forEach(indicator => {
 										indicator.value.forEach(item => {
-											if(!(item*1>0 && item*1<10)){
+											if(!(item*1>0 && item*1<10) && item.indexOf('?') == -1){
 												item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 												let reg = new RegExp(item, 'g'), result, ids = [];
 												while ( (result = reg.exec(str)) ) {
@@ -545,7 +553,7 @@ const UpdateFeed = (props) => {
 																})}
 															</span>
 														</button>
-														{tags != '' && tags.map((tag, index)=>{
+														{tags.trim() != '' && tags.split(',').map((tag, index)=>{
 															return <button key={index} className="button is-warning is-rounded mx-2" >
 																<span>{tag}</span>
 															</button>
@@ -572,7 +580,7 @@ const UpdateFeed = (props) => {
 										let str=fulltext.rss.channel.item.description;
 										indicators[0].forEach(indicator => {
 											indicator.value.forEach(item => {
-												if(!(item*1>0 && item*1<10)){
+												if(!(item*1>0 && item*1<10) && item.indexOf('?') == -1){
 													item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 													let reg = new RegExp(item, 'g'), result, ids = [];
 													while ( (result = reg.exec(str)) ) {
@@ -705,7 +713,7 @@ const UpdateFeed = (props) => {
 																	})}
 																</span>
 															</button>
-															{tags != '' && tags.map((tag, index)=>{
+															{tags.trim() != '' && tags.trim().split(',').map((tag, index)=>{
 																return <button key={index} className="button is-warning is-rounded mx-2" >
 																	<span>{tag}</span>
 																</button>
@@ -731,34 +739,14 @@ const UpdateFeed = (props) => {
 							</DialogContent>
 						</Dialog>
 					</div>
-					{ (()=>{
-						if(Boolean(props.id)){
-							return (<>
-								<Button variant="contained" className="button is-primary" onClick={() => updateFeed()}>
-									Enable
-								</Button>
-								<Link to="/feeds">
-									<button className="button is-text">
-										<span>Cancel</span>
-									</button>
-								</Link></>
-							);
-						}
-						else{
-							return (<>
-								<Button variant="contained" className="button is-primary" onClick={() => updateFeed()}>
-									Preview
-								</Button>
-								<Link to="/feeds">
-									<button className="button is-text">
-										<span>Cancel</span>
-									</button>
-								</Link></>
-							);
-						}
-	
-					}
-					)()}
+					<Button variant="contained" className="button is-primary" onClick={() => updateFeed()}>
+						Preview
+					</Button>
+					<Link to="/feeds">
+						<button className="button is-text">
+							<span>Cancel</span>
+						</button>
+					</Link>
 				</section>
 			</Container>
 		);

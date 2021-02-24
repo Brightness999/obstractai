@@ -826,7 +826,7 @@ def webhook(request):
 @api_view(['GET'])
 def account(request):
 	profile = UserSerializer(CustomUser.objects.filter(id=request.user.id).last()).data
-	intelgroups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all(), many=True).data
+	intelgroups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').all(), many=True).data
 	apikeys = APIkeySerializer(APIKeys.objects.filter(user_id=request.user.id).order_by('id').all(), many=True).data
 	webhooks = GroupWebHookSerializer(WebHooks.objects.filter(user_id=request.user.id).order_by('id').all(), many=True).data
 	return Response({'profile':profile, 'intelgroups':intelgroups, 'apikeys':apikeys, 'webhooks':webhooks});
@@ -2245,16 +2245,16 @@ def invite(request):
 			send_mail(
 				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 				f'''From: {settings.FROM}
-			Name: Sherlock at Cyobstract
-			Reply-to: {settings.REPLY}.com
-			Title: You've been invited to join the {groupname} Intel Group on Cyobstract
-			Hello!
-			{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
-			By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.
-			To confirm or reject this invitation, click the link below.
-			{settings.SITE_ROOT_URL}
-			If you have any questions, simply reply to this email to get in contact with a real person on the team.
-			Sherlock and the Cyobstract Team''',
+Name: Sherlock at Cyobstract
+Reply-to: {settings.REPLY}.com
+Title: You've been invited to join the {groupname} Intel Group on Cyobstract
+Hello!
+{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
+By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.
+To confirm or reject this invitation, click the link below.
+{settings.SITE_ROOT_URL}
+If you have any questions, simply reply to this email to get in contact with a real person on the team.
+Sherlock and the Cyobstract Team''',
 				settings.SMTP_USER,
 				request.data['emails'],
 				fail_silently=False
@@ -2320,10 +2320,7 @@ def leavegroup(request):
 	role = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().role
 	if role == 1:
 		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
-		groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
-		for group in groups:
-			serializer = RoleGroupSerializer(group)
-			result.append(serializer.data)
+		groups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').all(), many=True).data
 	elif role == 2:
 		intelgroup_id = UserIntelGroupRoles.objects.filter(id=request.data['id']).all()[0].intelgroup_id
 		admins = UserIntelGroupRoles.objects.filter(intelgroup_id=intelgroup_id, role=2).all()
@@ -2332,20 +2329,16 @@ def leavegroup(request):
 			if len(users)==1:
 				UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
 				IntelGroups.objects.filter(id=intelgroup_id).delete()
-				groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
-				for group in groups:
-					serializer = RoleGroupSerializer(group)
-					result.append(serializer.data)
+				groups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').all(), many=True).data
 			else:
 				return Response({'message':True})
 		else:
 			UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
-			groups = UserIntelGroupRoles.objects.order_by('id').filter(user_id=request.user.id).all()
-			for group in groups:
-				serializer = RoleGroupSerializer(group)
-				result.append(serializer.data)
-
-	return Response(result)
+			groups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').all(), many=True).data
+	elif role == 4:
+		UserIntelGroupRoles.objects.filter(id=request.data['id']).delete()
+		groups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').all(), many=True).data
+	return Response(groups)
 
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
@@ -2377,16 +2370,16 @@ def intelgroups(request):
 			send_mail(
 				f'You’ve been invited to join the {name} Intel Group on Cyobstract',
 				f'''From: {settings.FROM}
-				Name: Sherlock at Cyobstract
-				Reply-to: {settings.REPLY}
-				Title: You've been invited to join the {name} Intel Group on Cyobstract
-				Hello!
-				{settings.USER_EMAIL} has invited to join the {name} Intel Group on Cyobstract as a Member.
-				By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.
-				To confirm or reject this invitation, click the link below.
-				{settings.SITE_ROOT_URL}
-				If you have any questions, simply reply to this email to get in contact with a real person on the team.
-				Sherlock and the Cyobstract Team''',
+Name: Sherlock at Cyobstract
+Reply-to: {settings.REPLY}
+Title: You've been invited to join the {name} Intel Group on Cyobstract
+Hello!
+{settings.USER_EMAIL} has invited to join the {name} Intel Group on Cyobstract as a Member.
+By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.
+To confirm or reject this invitation, click the link below.
+{settings.SITE_ROOT_URL}
+If you have any questions, simply reply to this email to get in contact with a real person on the team.
+Sherlock and the Cyobstract Team''',
 				settings.SMTP_USER,
 				request.data['emails'],
 				fail_silently=False
@@ -2434,10 +2427,10 @@ def grouplist(request):
 				send_mail(
 					f'{request.user.email} has been sent you request to join your Intel Group',
 					f'''From: {request.user.email}
-					Reply-to: {request.user.email}
-					Title: Invite Request
-					Hello!
-					{request.user.email} has been sent you request to join your Intel Group''',
+Reply-to: {request.user.email}
+Title: Invite Request
+Hello!
+{request.user.email} has been sent you request to join your Intel Group''',
 					settings.SMTP_USER,
 					CustomUser.objects.filter(id=role.user_id).last().email,
 					fail_silently=False
@@ -2462,14 +2455,14 @@ def acceptinvite(request):
 		send_mail(
 			f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 			f'''From: {settings.FROM}
-			Name: Sherlock at Cyobstract
-			Reply-to: {settings.REPLY}
-			Title: {useremail} has accepted your invitation to join {groupname}
-			Hello!
-			This email is just to confirm {useremail} has accepted your invitation to join {groupname}
-			To manage members in your intel group, click the link below.
-			{settings.SITE_ROOT_URL}
-			Sherlock and the Cyobstract Team''',
+Name: Sherlock at Cyobstract
+Reply-to: {settings.REPLY}
+Title: {useremail} has accepted your invitation to join {groupname}
+Hello!
+This email is just to confirm {useremail} has accepted your invitation to join {groupname}
+To manage members in your intel group, click the link below.
+{settings.SITE_ROOT_URL}
+Sherlock and the Cyobstract Team''',
 			settings.SMTP_USER,
 			request.user.email,
 			fail_silently=False
@@ -2492,15 +2485,15 @@ def rejectinvite(request):
 		send_mail(
 			f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 			f'''From: {settings.FROM}
-			Name: Sherlock at Cyobstract
-			Reply-to: {settings.REPLY}
-			Title: {useremail} has rejected your invitation to join {groupname}
-			Hello!
-			{useremail} has rejected your invitation to join {groupname}
-			If you think this is a mistake, you can resend the invitation to {useremail} to join {groupname}.
-			To manage members in your intel group, click the link below:
-			{settings.SITE_ROOT_URL}
-			Sherlock and the Cyobstract Team''',
+Name: Sherlock at Cyobstract
+Reply-to: {settings.REPLY}
+Title: {useremail} has rejected your invitation to join {groupname}
+Hello!
+{useremail} has rejected your invitation to join {groupname}
+If you think this is a mistake, you can resend the invitation to {useremail} to join {groupname}.
+To manage members in your intel group, click the link below:
+{settings.SITE_ROOT_URL}
+Sherlock and the Cyobstract Team''',
 			settings.SMTP_USER,
 			request.user.email,
 			fail_silently=False
@@ -2530,12 +2523,12 @@ def role(request):
 				send_mail(
 					f'Your request has been refused from {groupname} Intel Group',
 					f'''From: {request.user.email}
-					Reply-to: {request.user.email}
-					Title: Invite Refusing
-					Hello!
-					Your request has been refused from {groupname} Intel Group
-					If you think this is a mistake, you can resend the request to {groupname} Intel Group.
-					Sherlock and the Cyobstract Team''',
+Reply-to: {request.user.email}
+Title: Invite Refusing
+Hello!
+Your request has been refused from {groupname} Intel Group
+If you think this is a mistake, you can resend the request to {groupname} Intel Group.
+Sherlock and the Cyobstract Team''',
 					settings.SMTP_USER,
 					CustomUser.objects.filter(id=userid).last().email,
 					fail_silently=False

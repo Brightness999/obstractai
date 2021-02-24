@@ -2241,73 +2241,24 @@ def invite(request):
 			flag = True
 	if flag:
 		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
-		# message = Mail(
-		# 	from_email=settings.USER_EMAIL,
-		# 	to_emails=request.data['emails'],
-		# 	subject=f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-		# 	html_content=f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
-		# 	<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-		# 	<strong>Reply-to:</strong><span>{settings.REPLY}com</span><br/>
-		# 	<strong>Title:</strong><span>You've been invited to join the {groupname} Intel Group on Cyobstract</span><br/>
-		# 	<p>Hello!</p>
-		# 	<p>{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
-		# 	<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
-		# 	<p>To confirm or reject this invitation, click the link below.</p>
-		# 	<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
-		# 	<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
-		# 	<p>Sherlock and the Cyobstract Team</p>''')
-		# try:
-		# 	sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-		# 	response = sg.send(message)
-		# 	print(response.status_code)
-		# except Exception as e:
-		# 	print(str(e))
-		print(request.data['emails'])
 		try:
-			# html_message = render_to_string(
-			# 	'project/invite.html',
-			# 	{'from': settings.FROM, 'reply': settings.REPLY, 'groupname': groupname, 'site':settings.SITE_ROOT_URL, 'domain':settings.SITE_DOMAIN },
-			# 	request
-			# )
-			# send_mail(
-			# 	f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-			# 	f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
-			# 	<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-			# 	<strong>Reply-to:</strong><span>{settings.REPLY}com</span><br/>
-			# 	<strong>Title:</strong><span>You've been invited to join the {groupname} Intel Group on Cyobstract</span><br/>
-			# 	<p>Hello!</p>
-			# 	<p>{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
-			# 	<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
-			# 	<p>To confirm or reject this invitation, click the link below.</p>
-			# 	<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
-			# 	<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
-			# 	<p>Sherlock and the Cyobstract Team</p>''',
-			# 	settings.SMTP_USER,
-			# 	request.data['emails'],
-			# 	fail_silently=False
-			# )
-			# subject, from_email, to = f'You’ve been invited to join the {groupname} Intel Group on Cyobstract', settings.SMTP_USER, request.data['emails']
-			# text_content = 'This is an important message.'
-			# html_content = f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
-			# 	<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
-			# 	<strong>Reply-to:</strong><span>{settings.REPLY}com</span><br/>
-			# 	<strong>Title:</strong><span>You've been invited to join the {groupname} Intel Group on Cyobstract</span><br/>
-			# 	<p>Hello!</p>
-			# 	<p>{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
-			# 	<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
-			# 	<p>To confirm or reject this invitation, click the link below.</p>
-			# 	<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
-			# 	<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
-			# 	<p>Sherlock and the Cyobstract Team</p>'''
-			# msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-			# msg.attach_alternative(html_content, "text/html")
-			# msg.send()
-			subject, from_email, to = f'You’ve been invited to join the {groupname} Intel Group on Cyobstract', settings.SMTP_USER, request.data['emails']
-			text_content = 'This is an important message.'
-			html_content = '<p>This is an <strong>important</strong> message.</p>'
-			msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-			msg.attach_alternative(html_content, "text/html")
-			msg.send()
+			send_mail(
+				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+				f'''From: {settings.FROM}
+				Name: Sherlock at Cyobstract
+				Reply-to: {settings.REPLY}.com
+				Title: You've been invited to join the {groupname} Intel Group on Cyobstract
+				Hello!
+				{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
+				By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
+				To confirm or reject this invitation, click the link below.
+				<a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a>
+				If you have any questions, simply reply to this email to get in contact with a real person on the team.
+				Sherlock and the Cyobstract Team''',
+				settings.SMTP_USER,
+				request.data['emails'],
+				fail_silently=False
+			)
 		except:
 			print('email sending error!')
 		users = [];

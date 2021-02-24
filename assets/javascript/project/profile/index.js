@@ -163,7 +163,12 @@ const Intelgroups = (props) => {
 
     const leaveGroup = (index) => {
         const params = {id: intelgroups[index].id};
-        if(confirm('Are you sure to leave this group?'))
+        let message = '';
+        if(intelgroups[index].role == 4)
+            message = 'Are you sure to cancel invite request?'
+        else
+            message = 'Are you sure to leave this group?'
+        if(confirm(message))
             fetch('/api/leavegroup', {
                 method: 'delete',
                 headers: {

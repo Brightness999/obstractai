@@ -2244,8 +2244,7 @@ def invite(request):
 		try:
 			send_mail(
 				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-				f'''
-				From: {settings.FROM}
+				f'''From: {settings.FROM}
 				Name: Sherlock at Cyobstract
 				Reply-to: {settings.REPLY}.com
 				Title: You've been invited to join the {groupname} Intel Group on Cyobstract
@@ -2255,8 +2254,7 @@ def invite(request):
 				To confirm or reject this invitation, click the link below.
 				{settings.SITE_ROOT_URL}
 				If you have any questions, simply reply to this email to get in contact with a real person on the team.
-				Sherlock and the Cyobstract Team
-				''',
+				Sherlock and the Cyobstract Team''',
 				settings.SMTP_USER,
 				request.data['emails'],
 				fail_silently=False

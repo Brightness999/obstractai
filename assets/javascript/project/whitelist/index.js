@@ -88,7 +88,7 @@ const WhiteList = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onExit={()=>{
+				onExit={(index)=>{
                     setStepsEnabled(false);
                     if(index==1)
 						window.location.href='/home/intelgroups';

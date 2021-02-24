@@ -121,7 +121,6 @@ const User = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				console.log(res);
 				setAllUsers(res.allusers);
 				setUsers(res.users);
 				setMyId(res.myId);

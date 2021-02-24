@@ -2278,8 +2278,25 @@ def invite(request):
 				<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
 				<p>Sherlock and the Cyobstract Team</p>''',
 				settings.SMTP_USER,
-				request.data['emails']
+				request.data['emails'],
+				fail_silently=False
 			)
+			subject, from_email, to = f'You’ve been invited to join the {groupname} Intel Group on Cyobstract', settings.SMTP_USER, request.data['emails']
+			text_content = 'This is an important message.'
+			html_content = f'''<strong>From:</strong><span>{settings.FROM}</span><br/>
+				<strong>Name:</strong><span>Sherlock at Cyobstract</span><br/>
+				<strong>Reply-to:</strong><span>{settings.REPLY}com</span><br/>
+				<strong>Title:</strong><span>You've been invited to join the {groupname} Intel Group on Cyobstract</span><br/>
+				<p>Hello!</p>
+				<p>{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.</p>
+				<p>By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.</p>
+				<p>To confirm or reject this invitation, click the link below.</p>
+				<p><a href={settings.SITE_ROOT_URL}>{settings.SITE_DOMAIN}</a></p>
+				<p>If you have any questions, simply reply to this email to get in contact with a real person on the team.</p>
+				<p>Sherlock and the Cyobstract Team</p>'''
+			msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+			msg.attach_alternative(html_content, "text/html")
+			msg.send()
 		except:
 			print('email sending error!')
 		users = [];

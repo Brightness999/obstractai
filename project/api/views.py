@@ -1394,7 +1394,7 @@ def pullfeed(request):
 	isUrlExist = False
 	for feed in Feeds.objects.all():
 		if(request.data['url'] in feed.url):
-			if len(GroupFeeds.objects.filter(feed_id=feed.id).all()) > 0:
+			if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=request.data['groupid']).all()) > 0:
 				isUrlExist = True
 				return Response({'isUrlExist':isUrlExist})
 	if not isUrlExist:
@@ -1435,7 +1435,7 @@ def feeds(request):
 		isUrlExist = False
 		for feed in Feeds.objects.all():
 			if(data['url'] in feed.url):
-				if len(GroupFeeds.objects.filter(feed_id=feed.id).all()) > 0:
+				if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).all()) > 0:
 					isUrlExist = True
 				else:
 					if data['tags'] == '':

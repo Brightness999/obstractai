@@ -56,9 +56,9 @@ const ReportList = (props) => {
 				steps={steps}
 				initialStep={0}
 				onExit={(index)=>{
-				setStepsEnabled(false);
-				if(index==0)
-					window.location.href=`/home/intelreports/${props.reports[0].uniqueid}`;
+					setStepsEnabled(false);
+					if(index==0)
+						window.location.href=`/home/intelreports/${props.reports[0].uniqueid}`;
 				}}
 				options={{
 				doneLabel: 'Next'

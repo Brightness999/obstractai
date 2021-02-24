@@ -2245,16 +2245,16 @@ def invite(request):
 			send_mail(
 				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 				f'''From: {settings.FROM}
-				Name: Sherlock at Cyobstract
-				Reply-to: {settings.REPLY}.com
-				Title: You've been invited to join the {groupname} Intel Group on Cyobstract
-				Hello!
-				{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
-				By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.
-				To confirm or reject this invitation, click the link below.
-				{settings.SITE_ROOT_URL}
-				If you have any questions, simply reply to this email to get in contact with a real person on the team.
-				Sherlock and the Cyobstract Team'''.strip(),
+			Name: Sherlock at Cyobstract
+			Reply-to: {settings.REPLY}.com
+			Title: You've been invited to join the {groupname} Intel Group on Cyobstract
+			Hello!
+			{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
+			By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.
+			To confirm or reject this invitation, click the link below.
+			{settings.SITE_ROOT_URL}
+			If you have any questions, simply reply to this email to get in contact with a real person on the team.
+			Sherlock and the Cyobstract Team''',
 				settings.SMTP_USER,
 				request.data['emails'],
 				fail_silently=False

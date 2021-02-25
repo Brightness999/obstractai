@@ -143,7 +143,7 @@ const User = (props) => {
 
 	const deleteUser = function (index) {
 		const params = {id: users[index].id};
-		if(confirm('Are you sure to revoke invite?'))
+		if(confirm('Are you sure to perform this action?'))
 			fetch('/api/role', {
 				method: 'delete',
 				headers: {
@@ -162,26 +162,29 @@ const User = (props) => {
 	const adminUser = function (role,ugr_id) {
 		if(role == 2) role = 1;
 		else if(role == 1) role = 2;
+		else if(role == 4) role = 1;
 		let params = {
 			id: ugr_id,
 			role: role,
 			groupid: props.currentgroup
 		}
-		fetch('/api/role',{
-			method: 'put',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': props.client.transports[0].auth.csrfToken
-			},
-			credentials: 'same-origin',
-			body: JSON.stringify(params)
-		}).then(res=>{return res.json()})
-		.then(res=>{
-			setUsers(res.users);
-			setMyId(res.myId);
-			setGroupRole(res.grouprole);
-			setIsLoading(false);
-		})
+		if(confirm('Are you sure to perform this action?')){
+			fetch('/api/role',{
+				method: 'put',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				setUsers(res.users);
+				setMyId(res.myId);
+				setGroupRole(res.grouprole);
+				setIsLoading(false);
+			});
+		}
 	};
 
 	const getDefaultView = function() {
@@ -191,23 +194,32 @@ const User = (props) => {
 		if (users.length === 0) {
 			return <EmptyUserList/>;
 		} else {
-			if(groupRole.role ==0)
+			if(groupRole.role ==0){
 				return (
 					<div className='app-card has-text-centered'>
 						<div className="lds-ripple"><div></div><div></div></div>
 						<p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{groupRole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
 					</div>
                 )
-            if(groupRole.role == 1)
+			}
+            if(groupRole.role == 1){
 				return(
 					<div className='section has-text-centered'>
 						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{groupRole.intelgroup.name}</span>.</p>
 					</div>
 				)
+			}
 			if(groupRole.role ==2){
 				// if(props.isPlan)
 					return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
 				// else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
+			}
+			if(groupRole.role == 4){
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">Your request for <span className="title is-3 has-text-primary">{groupRole.intelgroup.name}</span> Intel Group has not been accepted yet.</p>
+					</div>
+				)
 			}
 			// return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} />
 		}

@@ -7,7 +7,7 @@ const UserTable = function (props) {
 		case 0: role = 'Invite Pending'; group = 'Revoke invite'; break;
 		case 1: role = 'Member'; admin = 'Make admin'; group = 'Delete from group'; break; 
 		case 2: role = 'Admin'; admin ='Remove admin'; group = 'Delete from group'; break;
-		case 4: role = 'Request Invite'; group ='Revoke request'; break;
+		case 4: role = 'Request Invite'; admin ='Accept request'; group ='Revoke request'; break;
 	}
 	if(props.myId == props.user_id){
 		you = '(you)';
@@ -27,7 +27,7 @@ const UserTable = function (props) {
 								props.adminUser(props.role, props.id,);
 							}}>
 								<span>{admin}</span>
-							</a>{ props.role == 0 || props.role == 4 || props.user_id == props.myId ? '': ' / ' }
+							</a>{ props.role == 0 || props.user_id == props.myId ? '': ' / ' }
 							<a onClick={() => props.delete(props.index)}>
 								<span>{group}</span>
 							</a>

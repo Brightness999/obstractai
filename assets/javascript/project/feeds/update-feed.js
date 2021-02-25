@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import {
 	Container,TextField,Button,Tooltip, Dialog, DialogContent, DialogTitle, Slider, Typography, Grid
@@ -18,6 +18,7 @@ const Loading = () => {
 }
 
 const UpdateFeed = (props) => {
+	console.log(props);
 	const [url, setUrl] = useState(props.url || '');
 	const [name, setName] = useState(props.name || '');
 	const [description, setDescription] = useState(props.description || '');
@@ -66,6 +67,11 @@ const UpdateFeed = (props) => {
 		element: '#confidence',
 		intro: 'Confidence of Intel Group Feed'
 	},]
+
+	useEffect(() => {
+		if(props.currentrole.role != 2 || props.currentrole.intelgroup.uniqueid != props.uniqueid)
+			history.push('/feeds');
+	}, [props.currentgroup]);
 
 	const saveFeed = () => {
 		let str = tags.trim();

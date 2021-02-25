@@ -12,6 +12,11 @@ const ViewReport = (props) => {
 	}]
 	const history = useHistory();
 
+	useEffect(()=>{
+		if(props.intelgroup.id != props.currentgroup)
+			history.push('/intelreports');
+	},[props.currentgroup])
+
 	let tags = [];
 	if(props.groupfeed.tags){
 		if(props.groupfeed.tags.indexOf(",") > -1)
@@ -30,9 +35,6 @@ const ViewReport = (props) => {
 			indicators.push(indicator)
 		}
 	});
-	console.log(indicators);
-	console.log(classifications);
-	console.log(props.globalattributes);
 	let ip=[], system=[], infrastructure=[], analysis=[], hash=[];
 	indicators.forEach(indicator => {
 		if(indicator.globalindicator.type == 'IP'){

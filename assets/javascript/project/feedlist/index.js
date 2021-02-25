@@ -243,6 +243,13 @@ const FeedLists = (props) => {
 					</div>
 				)
             }
+			else if(props.currentrole.role == 4){
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">Your request for <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> Intel Group has not been accepted yet.</p>
+					</div>
+				)
+			}
             else{
 				if(props.isPlan)
 					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} channels={channels} collections={collections}

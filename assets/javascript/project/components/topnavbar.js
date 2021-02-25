@@ -67,7 +67,7 @@ const TopNavBar = (props) => {
 							))}
 							<option value="add" className="has-text-primary">Create New Group</option>
 						</TextField>}
-						{props.mygroups.length>0&&
+						{props.mygroups.length>0?
 						<div className="navbar-item has-dropdown is-hoverable">
 							<a className="navbar-link">
 								<span className="is-show-desktop">My Account</span>
@@ -83,7 +83,10 @@ const TopNavBar = (props) => {
 								<span>Sign out</span>
 								</a>
 							</div>
-						</div>}
+						</div>:
+						<a className="navbar-item" href="/accounts/logout" >
+						<span>Sign out</span>
+						</a>}
 					</div>
 				</div>
 			</div>

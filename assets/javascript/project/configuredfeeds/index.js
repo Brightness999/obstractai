@@ -209,17 +209,25 @@ const ConfiguredFeeds = (props) => {
 					</div>
 				)
 			}
-			if(props.currentrole.role == 1)
+			if(props.currentrole.role == 1){
 				return(
 					<div className='section has-text-centered'>
 						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
 					</div>
 				)
+			}
 			if(props.currentrole.role ==2){
 				if(props.isPlan)
 					return <FeedList client={props.client} saveFeed={saveFeed} configuredfeeds={configuredfeeds} categories={categories} tags={tags}
 							Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
+			}
+			if(props.currentrole.role == 4){
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">Your request for <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> Intel Group has not been accepted yet.</p>
+					</div>
+				)
 			}
 			// else{
 			// 	if(props.isPlan){

@@ -74,20 +74,22 @@ const IntelGroup = function(props) {
         return <Loading/>
     }
     else{
-        if(props.currentrole.role ==0)
+        if(props.currentrole.role ==0){
             return (
                 <div className='app-card has-text-centered'>
                     <div className="lds-ripple"><div></div><div></div></div>
                     <p className="subtitle is-3">! You have an invitation to <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-3" to="/account" >Click here to accept.</Link></p>
                 </div>
             )
-        if(props.currentrole.role == 1)
+        }
+        if(props.currentrole.role == 1){
             return(
                 <div className='section has-text-centered'>
                     <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
                 </div>
             )
-        if(props.currentrole.role == 2)
+        }
+        if(props.currentrole.role == 2){
             return (
                 <Container>
                     <section className="section app-card">
@@ -171,6 +173,14 @@ const IntelGroup = function(props) {
                     </section>
                 </Container>
             );
+        }
+        if(props.currentrole.role == 4){
+            return(
+                <div className='section has-text-centered'>
+                    <p className="subtitle is-3">Your request for <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> Intel Group has not been accepted yet.</p>
+                </div>
+            )
+        }
     }
 };
 

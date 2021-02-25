@@ -324,6 +324,13 @@ const IntelReports = (props) => {
 					</div>
 				);
 			}
+			else if(props.currentrole.role == 4){
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">Your request for <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> Intel Group has not been accepted yet.</p>
+					</div>
+				)
+			}
 			else{
 				if(props.isPlan)
 					return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} 
@@ -351,7 +358,7 @@ const IntelReports = (props) => {
 			const report_id = data.match.params.id;
 			const report = getFeedById(report_id);
 			return(
-				<ViewReport client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
+				<ViewReport currentgroup={props.currentgroup} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
 			)
 		}
 	}

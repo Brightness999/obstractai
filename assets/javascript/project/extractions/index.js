@@ -364,6 +364,13 @@ const Extractions = (props) => {
 								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
+			if(props.currentrole.role == 4){
+				return(
+					<div className='section has-text-centered'>
+						<p className="subtitle is-3">Your request for <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> Intel Group has not been accepted yet.</p>
+					</div>
+				)
+			}
 		}
 	}
 

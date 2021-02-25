@@ -2553,13 +2553,16 @@ Sherlock and the Cyobstract Team''',
 		return Response('Success')
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def users(request):
 	if request.method == 'POST':
 		allusers = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True)
 		user_role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['id'], user_id=request.user.id).last())
 		users = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
 		return Response({'myId':request.user.id, 'users':users.data, 'allusers':allusers.data, 'grouprole':user_role.data})
+	elif request.method == 'GET':
+		allusers = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True).data
+		return Response(allusers)
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])

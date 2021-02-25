@@ -30,6 +30,93 @@ const ViewReport = (props) => {
 			indicators.push(indicator)
 		}
 	});
+	console.log(indicators);
+	console.log(classifications);
+	console.log(props.globalattributes);
+	let ip=[], system=[], infrastructure=[], analysis=[], hash=[];
+	indicators.forEach(indicator => {
+		if(indicator.globalindicator.type == 'IP'){
+			let obj = {};
+			obj[indicator.globalindicator.value]=indicator.value
+			ip.push(obj);
+		}
+		else if(indicator.globalindicator.type == 'System'){
+			let obj = {};
+			obj[indicator.globalindicator.value]=indicator.value;
+			system.push(obj);
+		}
+		else if(indicator.globalindicator.type == 'Infrastructure'){
+			let obj = {};
+			obj[indicator.globalindicator.value]=indicator.value
+			infrastructure.push(obj);
+		}
+		else if(indicator.globalindicator.type == 'Analysis'){
+			let obj = {};
+			obj[indicator.globalindicator.value]=indicator.value
+			analysis.push(obj);
+		}
+		else if(indicator.globalindicator.type == 'Hash'){
+			let obj = {};
+			obj[indicator.globalindicator.value]=indicator.value
+			hash.push(obj);
+		}
+	});
+	let gthreattype=[], gthreatactor=[], gcountry=[], gproduct=[], gsector=[];
+	props.globalattributes.forEach(globalattribute => {
+		if(globalattribute.globalattribute.attribute == 'Threat type'){
+			let obj = {};
+			obj[globalattribute.globalattribute.value]=globalattribute.globalattribute.words_matched
+			gthreattype.push(obj);
+		}
+		else if(globalattribute.globalattribute.attribute == 'Threat actor'){
+			let obj = {};
+			obj[globalattribute.globalattribute.value]=globalattribute.globalattribute.words_matched
+			gthreatactor.push(obj);
+		}
+		else if(globalattribute.globalattribute.attribute == 'Country'){
+			let obj = {};
+			obj[globalattribute.globalattribute.value]=globalattribute.globalattribute.words_matched
+			gcountry.push(obj);
+		}
+		else if(globalattribute.globalattribute.attribute == 'Product'){
+			let obj = {};
+			obj[globalattribute.globalattribute.value]=globalattribute.globalattribute.words_matched
+			gproduct.push(obj);
+		}
+		else if(globalattribute.globalattribute.attribute == 'Sector'){
+			let obj = {};
+			obj[globalattribute.globalattribute.value]=globalattribute.globalattribute.words_matched
+			gsector.push(obj);
+		}
+	});
+	let cthreattype=[], cthreatactor=[], ccountry=[], cproduct=[], csector=[];
+	classifications.forEach(classification => {
+		if(classification.attribute == 'Threat type'){
+			let obj = {};
+			obj[classification.value]=classification.words_matched
+			gthreattype.push(obj);
+		}
+		else if(classification.attribute == 'Threat actor'){
+			let obj = {};
+			obj[classification.value]=classification.words_matched
+			gthreatactor.push(obj);
+		}
+		else if(classification.attribute == 'Country'){
+			let obj = {};
+			obj[classification.value]=classification.words_matched
+			gcountry.push(obj);
+		}
+		else if(classification.attribute == 'Product'){
+			let obj = {};
+			obj[classification.value]=classification.words_matched
+			gproduct.push(obj);
+		}
+		else if(classification.attribute == 'Sector'){
+			let obj = {};
+			obj[classification.value]=classification.words_matched
+			gsector.push(obj);
+		}
+	});
 	const data = {
 		UUID: props.uniqueid,
 		Intel_Group_UUID: props.intelgroup.id,
@@ -47,8 +134,29 @@ const ViewReport = (props) => {
 			pubDate:props.feeditem.pubdate,
 			Source:props.feeditem.source,
 		},
-		Indicators: indicators,
-		Attributes: classifications
+		Indicators: {
+			IP:ip,
+			System:system,
+			Infrastructure:infrastructure,
+			Analysis:analysis,
+			Hash:hash
+		},
+		Attributes: {
+			Global:{
+				Threat_type:gthreattype,
+				Threat_actor:gthreatactor,
+				Product:gproduct,
+				Country:gcountry,
+				Sector:gsector
+			},
+			Intel_Group:{
+				Threat_type:cthreattype,
+				Threat_actor:cthreatactor,
+				Product:cproduct,
+				Country:ccountry,
+				Sector:csector
+			},
+		}
 	}
 	
 	useEffect(()=>{

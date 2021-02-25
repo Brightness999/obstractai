@@ -19,10 +19,7 @@ def home(request):
         return render(request, 'web/landing_page.html')
 
 def grouplist(request):
-    mygroupids = []
-    for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all():
-        mygroupids.append(role.intelgroup_id)
-    groups = IntelGroups.objects.exclude(id__in=mygroupids).filter(ispublic=True).order_by('id').all()
+    groups = IntelGroups.objects.filter(ispublic=True).order_by('id').all()
     return render(request, 'project/grouplist.html', {'groups':groups})
 
 

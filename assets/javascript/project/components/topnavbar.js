@@ -67,15 +67,15 @@ const TopNavBar = (props) => {
 							))}
 							<option value="add" className="has-text-primary">Create New Group</option>
 						</TextField>}
+						{props.mygroups.length>0&&
 						<div className="navbar-item has-dropdown is-hoverable">
 							<a className="navbar-link">
 								<span className="is-show-desktop">My Account</span>
 							</a>
 							<div className="navbar-dropdown is-right">
-								{props.mygroups.length>0&&
 								<a className="navbar-item" href="/home/account" >
 								<span>Profile</span>
-								</a>}
+								</a>
 								<a className="navbar-item" href="/accounts/password/change">
 								<span>Change Password</span>
 								</a>
@@ -83,7 +83,7 @@ const TopNavBar = (props) => {
 								<span>Sign out</span>
 								</a>
 							</div>
-						</div>
+						</div>}
 					</div>
 				</div>
 			</div>

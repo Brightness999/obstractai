@@ -14,6 +14,7 @@ const Loading = function() {
 }
 
 const GroupList = (props) => {
+    console.log(props);
 	const [isLoading, setIsLoading] = useState(true);
 	const [groups, setGroups] = useState([]);
     const [request, setRequest] = useState(false);
@@ -74,6 +75,11 @@ const GroupList = (props) => {
                 <section className="section app-card">
                     <div className="section">
                         <label className="title is-3">Intel Group List</label>
+                        <Link to={'/account'}>
+                        <button className="button is-info mx-4" >
+                            <span>Manage</span>
+                        </button>
+                        </Link>
                         <button className="button is-outlined is-pulled-right mx-4" onClick={()=>history.goBack()}>
                             <span>Back</span>
                         </button>
@@ -87,6 +93,19 @@ const GroupList = (props) => {
                             </Tr>
                         </Thead>
                         <Tbody>
+                        {
+                            props.mygroups.map((group, index) => {
+                                return <Tr index={index} key={group.id}>
+                                    <Td>{ group.intelgroup.name }</Td>
+                                    <Td>{ group.intelgroup.description }</Td>
+                                    <Td>
+                                        <div className="button is-static">
+                                            <span>{group.role == 2 ? "Admin" : "Member"}</span>
+                                        </div>
+                                    </Td>
+                                </Tr>
+                            })
+                        }
                         {
                             groups.map((group, index) => {
                                 return <Tr index={index} key={group.id}>

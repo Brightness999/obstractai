@@ -14,7 +14,7 @@
     feeds = strToObj(feeds);
     console.log(feeds);
     if(feeds == null)
-        document.getElementById("feeds").textContent = "{{feeds}}"
+        document.getElementById("feeds").innerHTML = JSON.stringify("{{feeds}}", null, 2);
     else
         document.getElementById("feeds").textContent = JSON.stringify(feeds, null, 2)
 </script>

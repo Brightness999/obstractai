@@ -91,34 +91,46 @@ const ViewReport = (props) => {
 			gsector.push(obj);
 		}
 	});
+	let global = {};
+	if(gthreattype.length > 0) global['Threat_type'] = gthreattype;
+	if(gthreatactor.length > 0) global['Threat_actor'] = gthreatactor;
+	if(gproduct.length > 0) global['Product'] = gproduct;
+	if(gcountry.length > 0) global['Country'] = gcountry;
+	if(gsector.length > 0) global['Sector'] = gsector;
 	let cthreattype=[], cthreatactor=[], ccountry=[], cproduct=[], csector=[];
 	classifications.forEach(classification => {
 		if(classification.attribute == 'Threat type'){
 			let obj = {};
 			obj[classification.value]=classification.words_matched
-			gthreattype.push(obj);
+			cthreattype.push(obj);
 		}
 		else if(classification.attribute == 'Threat actor'){
 			let obj = {};
 			obj[classification.value]=classification.words_matched
-			gthreatactor.push(obj);
+			cthreatactor.push(obj);
 		}
 		else if(classification.attribute == 'Country'){
 			let obj = {};
 			obj[classification.value]=classification.words_matched
-			gcountry.push(obj);
+			ccountry.push(obj);
 		}
 		else if(classification.attribute == 'Product'){
 			let obj = {};
 			obj[classification.value]=classification.words_matched
-			gproduct.push(obj);
+			cproduct.push(obj);
 		}
 		else if(classification.attribute == 'Sector'){
 			let obj = {};
 			obj[classification.value]=classification.words_matched
-			gsector.push(obj);
+			csector.push(obj);
 		}
 	});
+	let intel = {};
+	if(cthreattype.length > 0) intel['Threat_type'] = cthreattype;
+	if(cthreatactor.length > 0) intel['Threat_actor'] = cthreatactor;
+	if(cproduct.length > 0) intel['Product'] = cproduct;
+	if(ccountry.length > 0) intel['Country'] = ccountry;
+	if(csector.length > 0) intel['Sector'] = csector;
 	const data = {
 		UUID: props.uniqueid,
 		Intel_Group_UUID: props.intelgroup.id,
@@ -144,20 +156,8 @@ const ViewReport = (props) => {
 			Hash:hash
 		},
 		Attributes: {
-			Global:{
-				Threat_type:gthreattype,
-				Threat_actor:gthreatactor,
-				Product:gproduct,
-				Country:gcountry,
-				Sector:gsector
-			},
-			Intel_Group:{
-				Threat_type:cthreattype,
-				Threat_actor:cthreatactor,
-				Product:cproduct,
-				Country:ccountry,
-				Sector:csector
-			},
+			Global:global,
+			Intel_Group:intel,
 		}
 	}
 	

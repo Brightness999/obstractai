@@ -44,11 +44,6 @@ const AddIntelgroup = (props) => {
 		intro: 'Users to invite'
 	  }]
 
-	const userOptions = props.users.map((user)=>({
-		id: user.id,
-		name: user.email
-	}));
-
 	const reacttag= React.createRef();
 	const onDelete= (i)=> {
 		var temp = tags.slice(0)
@@ -57,7 +52,7 @@ const AddIntelgroup = (props) => {
 	}
 	  
 	const onAddition = (tag)=> {
-		let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+		let mailformat = /^([A-Za-z0-9_\-\.\+])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
 		if(tag.name.match(mailformat)){
 			var temp = [].concat(tags, tag)
 			setTags(temp)
@@ -65,23 +60,16 @@ const AddIntelgroup = (props) => {
 	}
 
 	const saveIntelgroup = function() {
-		const userids = [];
 		const emails = [];
 		tags.forEach(tag => {
-			if(Boolean(tag.id)) {
-				userids.push(tag.id)
-			}
-			else {
-				emails.push(tag.name)
-			}
+			emails.push(tag.name)
 		});
 		let params = {
 		  name: name,
 		  description: description,
-		  userids: userids,
 		  emails: emails
 		};
-		if((name != '' && description != '' && (userids != [] || emails != [])) || isRefuse){
+		if((name != '' && description != '' && emails.length > 0) || isRefuse){
 			fetch('/api/intelgroups', {
 				method: 'post',
 				headers: {

@@ -11,7 +11,6 @@ import Categories from '../categories';
 import Extractions from '../extractions';
 import IntelReports from '../intelreports';
 import WhiteLists from '../whitelist';
-import { useScrollTrigger } from '@material-ui/core';
 import Account from '../profile';
 import User from '../users';
 import IntelGroups from '../intelgroups';

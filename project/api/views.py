@@ -2330,9 +2330,9 @@ def categories(request):
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def home(request):
-	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').filter(user_id=request.user.id).all(), many=True)
-	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True)
-	return Response({'mygroups':groups.data, 'users':users.data, 're':'result'})
+	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
+	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True).data
+	return Response({'mygroups':groups, 'users':users})
 
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={200: RoleGroupSerializer})
 @api_view(['DELETE'])

@@ -579,7 +579,6 @@ def apireports(request):
 							if report['groupfeed']['isenable']:
 								reports.append(report)
 					else:
-						print('ddd')
 						for report in ItemFeedGroupReportSerializer(IntelReports.objects.filter(intelgroup_id__in=groupids, updated_at__date__gte=body['updated_at'], created_at__date__gte=body['created_at']).order_by('id').all(), many=True).data:
 							if report['groupfeed']['isenable']:
 								reports.append(report)
@@ -761,6 +760,7 @@ def apireports(request):
 		return render(request, 'project/reports.html', {'reports':result})
 
 @csrf_exempt
+@api_view(['GET'])
 def apigroups(request):
 	groupids = []
 	tempids = []
@@ -2240,6 +2240,13 @@ def indicators(request):
 @swagger_auto_schema(methods=['post'], request_body=InviteSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def invite(request):
+	emails = []
+	userids = []
+	for email in request.data['emails']:
+		if len(CustomUser.objects.filter(email=email).all()) == 0:
+			emails.append(email)
+		else:
+			userids.append(CustomUser.objects.filter(email=email).last().id)
 	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
 	subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
 	flag = False
@@ -2270,13 +2277,13 @@ To confirm or reject this invitation, click the link below.
 If you have any questions, simply reply to this email to get in contact with a real person on the team.
 Sherlock and the Cyobstract Team''',
 				settings.SMTP_USER,
-				request.data['emails'],
+				emails,
 				fail_silently=False
 			)
 		except:
 			print('email sending error!')
 		users = [];
-		for userid in request.data['userids']:
+		for userid in userids:
 			existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()
 			if len(existing_user) == 0:
 				UserIntelGroupRoles.objects.create(intelgroup_id=request.data['group_id'], user_id=userid, role=0)
@@ -2375,15 +2382,23 @@ def intelgroups(request):
 		return Response({'intelgroups':groups.data, 'users':users.data})
 	if request.method == 'POST':
 		if 'name' in request.data:
+			emails = []
+			userids = []
+			for email in request.data['emails']:
+				if len(CustomUser.objects.filter(email=email).all()) == 0:
+					emails.append(email)
+				else:
+					userids.append(CustomUser.objects.filter(email=email).last().id)
 			name = ''
 			if(request.data['name'] == ''):
 				letters = string.digits
 				name = 'Intel Group' + ''. join(random.choice(letters) for i in range(10))
 			else:
 				name = request.data['name']
-			send_mail(
-				f'You’ve been invited to join the {name} Intel Group on Cyobstract',
-				f'''From: {settings.FROM}
+			try:
+				send_mail(
+					f'You’ve been invited to join the {name} Intel Group on Cyobstract',
+					f'''From: {settings.FROM}
 Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}
 Title: You've been invited to join the {name} Intel Group on Cyobstract
@@ -2394,20 +2409,16 @@ To confirm or reject this invitation, click the link below.
 {settings.SITE_ROOT_URL}
 If you have any questions, simply reply to this email to get in contact with a real person on the team.
 Sherlock and the Cyobstract Team''',
-				settings.SMTP_USER,
-				request.data['emails'],
-				fail_silently=False
-			)
-			try:
-				sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-				response = sg.send(message)
-				print(response.status_code)
+					settings.SMTP_USER,
+					emails,
+					fail_silently=False
+				)
 			except Exception as e:
 				print(str(e))
 			IntelGroups.objects.create(name=name, description=request.data['description'])
 			new_group = IntelGroups.objects.last()
 			UserIntelGroupRoles.objects.create(intelgroup_id=new_group.id, user_id=request.user.id, role=2)
-			for invite_id in request.data['userids']:
+			for invite_id in userids:
 				if invite_id != request.user.id:
 					UserIntelGroupRoles.objects.create(intelgroup_id=new_group.id, user_id=invite_id, role=0)
 			new_role = UserIntelGroupRoles.objects.filter(intelgroup_id=new_group.id, user_id=request.user.id).all()
@@ -2553,17 +2564,14 @@ Sherlock and the Cyobstract Team''',
 		return Response('Success')
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 def users(request):
 	if request.method == 'POST':
 		allusers = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True)
 		user_role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['id'], user_id=request.user.id).last())
 		users = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
 		return Response({'myId':request.user.id, 'users':users.data, 'allusers':allusers.data, 'grouprole':user_role.data})
-	elif request.method == 'GET':
-		allusers = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True).data
-		return Response(allusers)
-
+	
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def changegroup(request, subscription_holder=None):
@@ -2595,19 +2603,3 @@ def changegroup(request, subscription_holder=None):
 				isAutoDown = True
 		
 	return Response({'isPlan':isPlan, 'planname':planname, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole.data})
-
-def send_mail_with_html(subject, html_message, to_email, reply_to, from_email=None):
-    if isinstance(to_email, str):
-        to = [to_email]
-    else:
-        to = to_email
-    if isinstance(reply_to, str):
-        reply_to = [reply_to]
-    msg = EmailMultiAlternatives(
-        subject=subject,
-        from_email=from_email,
-        to=to, 
-        reply_to=reply_to
-    )
-    msg.attach_alternative(html_message, 'text/html')
-    print(msg.send())

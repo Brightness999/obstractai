@@ -6,7 +6,6 @@ import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container, Dialog} from "@material-ui/core";
 
 const UpdateUser = function(props) {
-  const [allusers, setAllUsers] = useState(props.allusers);
   const [tags, setTags] = useState([]);
   const [isAlert, setIsAlert] = useState(false);
   const history = useHistory();
@@ -15,10 +14,6 @@ const UpdateUser = function(props) {
 		element: '.users',
 		intro: 'Comma separated list of emails for users to invite'
 	}]
-  const userOptions = allusers.map((user)=>({
-    id: user.id,
-    name: user.email
-  }));
   const reacttag= React.createRef();
   const onDelete= (i)=> {
       var temp = tags.slice(0)
@@ -26,7 +21,7 @@ const UpdateUser = function(props) {
       setTags(temp)
   }
   const onAddition = (tag)=> {
-    let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+    let mailformat = /^([A-Za-z0-9_\-\.\+])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
     if(tag.name.match(mailformat)){
       var temp = [].concat(tags, tag)
       setTags(temp)
@@ -34,22 +29,15 @@ const UpdateUser = function(props) {
   }
   
   const inviteUser = function() {
-    const userids = [];
     const emails = [];
     tags.forEach(tag => {
-      if(Boolean(tag.id)) {
-        userids.push(tag.id)
-      }
-      else {
-        emails.push(tag.name)
-      }
+      emails.push(tag.name);
     });
     let params = {
       group_id: props.group_id,
-      userids: userids,
       emails: emails
     };
-    if(userids.length > 0 || emails.length>0){
+    if(emails.length > 0){
       fetch('/api/invite', {
         method: 'post',
         headers: {
@@ -109,7 +97,6 @@ const UpdateUser = function(props) {
           <ReactTags
             ref={reacttag}
             tags={tags}
-            suggestions={userOptions}
             onDelete={onDelete}
             onAddition={onAddition}
             allowNew={true}

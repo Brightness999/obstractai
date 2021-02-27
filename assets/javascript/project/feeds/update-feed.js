@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import {
 	Container,TextField,Button,Tooltip, Dialog, DialogContent, DialogTitle, Slider, Typography, Grid
@@ -6,7 +6,6 @@ import {
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
 import { yellow } from '@material-ui/core/colors';
-import { Steps } from 'intro.js-react';
 
 const Loading = () => {
 	return (
@@ -18,7 +17,6 @@ const Loading = () => {
 }
 
 const UpdateFeed = (props) => {
-	console.log(props);
 	const [url, setUrl] = useState(props.url || '');
 	const [name, setName] = useState(props.name || '');
 	const [description, setDescription] = useState(props.description || '');
@@ -44,34 +42,6 @@ const UpdateFeed = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [webhook, setWebhhook] = useState(false);
 	const value = props.confidence ? props.confidence : 0;
-	const [stepsEnabled, setStepsEnabled] = useState(true);
-	const steps = [{
-		element: '#type',
-		intro: 'Type of Intel Group Feed'
-	},{
-		element: '#url',
-		intro: 'Url of Intel Group Feed'
-	},{
-		element: '#name',
-		intro: 'Name to be displayed in U'
-	},{
-		element: '#description',
-		intro: 'Description to be displayed in UI'
-	},{
-		element: '#category',
-		intro: 'User can select from fixed list set by admin'
-	},{
-		element: '#tags',
-		intro: 'User can assign 0 or more tags (manual entry, auto identify existing tags, letters, numbers and - only)'
-	},{
-		element: '#confidence',
-		intro: 'Confidence of Intel Group Feed'
-	},]
-
-	useEffect(() => {
-		if(props.currentrole.role != 2 || props.currentrole.intelgroup.uniqueid != props.uniqueid)
-			history.push('/feeds');
-	}, [props.currentgroup]);
 
 	const saveFeed = () => {
 		let str = tags.trim();
@@ -212,20 +182,6 @@ const UpdateFeed = (props) => {
 	else{
 		return (
 			<Container>
-				{props.mygroups.length == 0 &&
-				<Steps
-					enabled={stepsEnabled}
-					steps={steps}
-					initialStep={0}
-					onExit={(index)=>{
-					setStepsEnabled(false);
-					if(index==6)
-						window.location.href="/home/intelreports";
-					}}
-					options={{
-					doneLabel: 'Next'
-					}}
-				/>}
 				<h1 className="title is-3 pt-1" >Add Custom Feed</h1>
 				<Dialog
 					maxWidth="md"
@@ -544,7 +500,7 @@ const UpdateFeed = (props) => {
 											}
 										}
 									});
-									return <div className="section app-card" key={index}>
+									return <div className="section app-card" key={index} id={index==0?"item":""}>
 										<section className="section">
 											<Grid container>
 												<Grid item xs={12} md={6}>
@@ -704,7 +660,7 @@ const UpdateFeed = (props) => {
 												}
 											}
 										});
-										return <div className="section app-card">
+										return <div className="section app-card" id="item">
 											<section className="section">
 												<Grid container>
 													<Grid item xs={12} md={6}>
@@ -745,9 +701,9 @@ const UpdateFeed = (props) => {
 							</DialogContent>
 						</Dialog>
 					</div>
-					<Button variant="contained" className="button is-primary" onClick={() => updateFeed()}>
+					<button className="button is-primary" onClick={() => updateFeed()}>
 						Preview
-					</Button>
+					</button>
 					<Link to="/feeds">
 						<button className="button is-text">
 							<span>Cancel</span>

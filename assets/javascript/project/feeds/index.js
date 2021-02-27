@@ -42,7 +42,10 @@ const FeedList = (props) => {
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
 		element: '#card',
-		intro: 'Intel Group Feed'
+		intro: 'Global Feed'
+	},{
+		element: '#button',
+		intro: 'Click to add new feed for Intel Group'
 	}]
 	const search = () =>{
 		let tag_value = "";
@@ -59,19 +62,33 @@ const FeedList = (props) => {
 	
 	return (
 		<Container>
-			{props.mygroups.length == 0 &&
+			{props.onboarding &&
 			<Steps
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onExit={(index)=>{
-				setStepsEnabled(false);
-				if(index==0)
-					window.location.href="/home/feeds/new";
+				onBeforeExit={(index)=>{
+					if(index==1){
+						document.querySelector('#button').addEventListener('click', function(){
+							setStepsEnabled(false);
+							window.location.href="/home/intelreports";
+							return true;
+						})
+						return false;
+					}
+					else{
+						return false;
+					}
 				}}
-				options={{
-					doneLabel: 'Next'
+				onBeforeChange={(nextindex)=>{
+					if(nextindex == 0 || nextindex == 1){
+						return true;
+					}
+					else{
+						return false;
+					}
 				}}
+				onExit={()=>{}}
 			/>}
 			<Dialog
 				maxWidth="md"
@@ -121,25 +138,6 @@ const FeedList = (props) => {
 									</option>
 								))}
 							</TextField>
-							{/* <button className="button is-large" onClick={()=>{
-								document.getElementById('confidence').style.display='block';
-							}}>
-								<span className="subtitle is-6">Confidence</span>
-							</button>
-							<Slider
-								className="mt-6 column is-four-fifths"
-								defaultValue={0}
-								id="confidence"
-								orientation="vertical"
-								style={{display:'none'}}
-								onChange={(e,value)=>setConfidence(value)}
-								aria-labelledby="discrete-slider-always"
-								step={1}
-								min={0}
-								max={100}
-								marks={[{value:0, label:0},{value:100, label:100}]}
-								valueLabelDisplay="on"
-							/> */}
 							<TextField
 								id="outlined-select-currency-native"
 								select
@@ -202,7 +200,7 @@ const FeedList = (props) => {
 			}
 			{
 				props.feedlist.map((feed, index) => {
-					return <FeedCard  index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data)=>saveFeed(data)} client={props.client} />;
+					return <FeedCard  index={index} key={feed.id} feed={feed} currentgroup={props.currentgroup} currentrole={props.currentrole} saveFeed={(data)=>saveFeed(data)} client={props.client} />;
 				})
 			}
 			
@@ -226,7 +224,7 @@ const Feeds = (props) => {
 	}
 
 	useEffect(()=>{
-		if(props.currentgroup == '' && props.mygroups.length != 0){
+		if(props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding){
 			history.push('/');
 		}
 		else{
@@ -294,10 +292,10 @@ const Feeds = (props) => {
 					</div>
 				)
 			}
-			if(props.currentrole.role ==2 || props.mygroups.length == 0){
+			if(props.currentrole.role ==2 || props.onboarding){
 				if(props.isPlan)
-					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} groupfeeds={groupfeeds} mygroups={props.mygroups}
-							Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} groupfeeds={groupfeeds} onboarding={props.onboarding}
+							Search={Search} confidences={confidences} currentgroup={props.currentgroup} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			if(props.currentrole.role == 4){
@@ -340,14 +338,14 @@ const Feeds = (props) => {
 			const feed_id = data.match.params.id;
 			if(feed_id == 'new'){
 				return (
-					<UpdateFeed client={props.client} categories={categories} mygroups={props.mygroups} currentrole={props.currentrole}
+					<UpdateFeed client={props.client} categories={categories} currentrole={props.currentrole}
 						alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 				);
 			}
 			else{
 				const feed = getFeedById(feed_id);			
 				return(
-					<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole} mygroups={props.mygroups}
+					<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole}
 						alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
 				) ;
 			}

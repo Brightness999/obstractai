@@ -897,7 +897,7 @@ def webhooks(request):
 @api_view(['POST'])
 def reports(request):
 	if request.data['id'] == '':
-		groupid = IntelGroups.objects.order_by('id').first().id
+		groupid = UserIntelGroupRoles.objects.filter(id=request.user.id).order_by('intelgroup_id').last().intelgroup_id
 	else:
 		groupid = request.data['id']
 	itemids = []
@@ -1391,10 +1391,14 @@ def searchreports(request):
 
 @api_view(['POST'])
 def pullfeed(request):
+	if request.data['groupid'] == '':
+		groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').last().intelgroup_id
+	else:
+		groupid = request.data['groupid']
 	isUrlExist = False
 	for feed in Feeds.objects.all():
 		if(request.data['url'] in feed.url):
-			if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=request.data['groupid']).all()) > 0:
+			if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).all()) > 0:
 				isUrlExist = True
 				return Response({'isUrlExist':isUrlExist})
 	if not isUrlExist:
@@ -1420,8 +1424,8 @@ def pullfeed(request):
 					data.append({'indicator':indicator, 'value':extract.extract_observables(json.dumps(item))[indicator]})
 			if not data == []:
 				results.append(data)
-		extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all(), many=True).data
-		globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=request.data['groupid'], isenable=True), many=True).data
+		extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all(), many=True).data
+		globalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid, isenable=True), many=True).data
 		return Response({'fulltext':xmltodict.parse(contents), 'indicators':results, 'attributes':extractions, 'globalattributes':globalattributes, 'isUrlExist':isUrlExist})
 
 @swagger_auto_schema(methods=['post'], request_body=FeedCreateSerializer, responses={201: FeedCategorySerializer})
@@ -2106,18 +2110,22 @@ def searchfeeds(request):
 @swagger_auto_schema(methods=['put'], request_body=GroupIDSerializer, responses={200: FeedCategorySerializer})
 @api_view(['PUT'])
 def feedenable(request):
+	if request.data['groupid'] == '':
+		groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').last().intelgroup_id
+	else:
+		groupid = request.data['groupid']
 	feed = Feeds.objects.filter(id=request.data['id']).last()
-	GroupFeeds.objects.create(feed_id=request.data['id'], intelgroup_id=request.data['groupid'], name=feed.name, description=feed.description, tags=feed.tags, confidence=feed.confidence, category_id=feed.category_id, isenable=True )
+	GroupFeeds.objects.create(feed_id=request.data['id'], intelgroup_id=groupid, name=feed.name, description=feed.description, tags=feed.tags, confidence=feed.confidence, category_id=feed.category_id, isenable=True )
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
-		IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=request.data['groupid'])
+		IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id, intelgroup_id=groupid)
 	flag = True
 	is_exist = True
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
 		while flag:
-			if len(WebHooks.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all()) > 0:
-				for webhook in WebHooks.objects.filter(intelgroup_id=request.data['groupid'], isenable=True).order_by('id').all():
+			if len(WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all()) > 0:
+				for webhook in WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all():
 					channelunique = FeedChannels.objects.filter(feed_id=request.data['id']).last().uniqueid
-					groupunique = IntelGroups.objects.filter(id=request.data['groupid']).last().uniqueid
+					groupunique = IntelGroups.objects.filter(id=groupid).last().uniqueid
 					data = {
 						'uuid': webhook.uniqueid,
 						'channel': channelunique,
@@ -2143,7 +2151,7 @@ def feedenable(request):
 		webhook_fail = True
 	groupfeeds = []
 	groupfeedids = []
-	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['groupid']).order_by('id').all():
+	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all():
 		serializer = GroupCategoryFeedSerializer(groupfeed)
 		if serializer.data['feed']['isglobal']:
 			groupfeeds.append(serializer.data)
@@ -2240,12 +2248,9 @@ def indicators(request):
 @swagger_auto_schema(methods=['post'], request_body=InviteSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def invite(request):
-	emails = []
 	userids = []
 	for email in request.data['emails']:
-		if len(CustomUser.objects.filter(email=email).all()) == 0:
-			emails.append(email)
-		else:
+		if len(CustomUser.objects.filter(email=email).all()) != 0:
 			userids.append(CustomUser.objects.filter(email=email).last().id)
 	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
 	subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
@@ -2270,14 +2275,14 @@ Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}.com
 Title: You've been invited to join the {groupname} Intel Group on Cyobstract
 Hello!
-{settings.USER_EMAIL} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
+{settings.SMTP_USER} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
 By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.
 To confirm or reject this invitation, click the link below.
 {settings.SITE_ROOT_URL}
 If you have any questions, simply reply to this email to get in contact with a real person on the team.
 Sherlock and the Cyobstract Team''',
 				settings.SMTP_USER,
-				emails,
+				request.data['emails'],
 				fail_silently=False
 			)
 		except:
@@ -2331,8 +2336,8 @@ def categories(request):
 @api_view(['GET'])
 def home(request):
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
-	users = CustomUserSerializer(CustomUser.objects.order_by('id').all(), many=True).data
-	return Response({'mygroups':groups, 'users':users})
+	onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
+	return Response({'mygroups':groups, 'onboarding':onboarding})
 
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={200: RoleGroupSerializer})
 @api_view(['DELETE'])
@@ -2382,12 +2387,9 @@ def intelgroups(request):
 		return Response({'intelgroups':groups.data, 'users':users.data})
 	if request.method == 'POST':
 		if 'name' in request.data:
-			emails = []
 			userids = []
 			for email in request.data['emails']:
-				if len(CustomUser.objects.filter(email=email).all()) == 0:
-					emails.append(email)
-				else:
+				if len(CustomUser.objects.filter(email=email).all()) != 0:
 					userids.append(CustomUser.objects.filter(email=email).last().id)
 			name = ''
 			if(request.data['name'] == ''):
@@ -2403,20 +2405,22 @@ Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}
 Title: You've been invited to join the {name} Intel Group on Cyobstract
 Hello!
-{settings.USER_EMAIL} has invited to join the {name} Intel Group on Cyobstract as a Member.
+{settings.SMTP_USER} has invited to join the {name} Intel Group on Cyobstract as a Member.
 By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.
 To confirm or reject this invitation, click the link below.
 {settings.SITE_ROOT_URL}
 If you have any questions, simply reply to this email to get in contact with a real person on the team.
 Sherlock and the Cyobstract Team''',
 					settings.SMTP_USER,
-					emails,
+					request.data['emails'],
 					fail_silently=False
 				)
 			except Exception as e:
 				print(str(e))
 			IntelGroups.objects.create(name=name, description=request.data['description'])
 			new_group = IntelGroups.objects.last()
+			for globalattribute in GlobalAttributes.objects.all():
+				GroupGlobalAttributes.objects.create(intelgroup_id=new_group.id, globalattribute_id=globalattribute.id, isenable=True)
 			UserIntelGroupRoles.objects.create(intelgroup_id=new_group.id, user_id=request.user.id, role=2)
 			for invite_id in userids:
 				if invite_id != request.user.id:

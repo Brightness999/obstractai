@@ -13,7 +13,7 @@ const ViewReport = (props) => {
 	const history = useHistory();
 
 	useEffect(()=>{
-		if(props.intelgroup.id != props.currentgroup)
+		if((props.intelgroup.id != props.currentgroup) && !props.onboarding)
 			history.push('/intelreports');
 	},[props.currentgroup])
 
@@ -291,7 +291,7 @@ const ViewReport = (props) => {
 	},[]);
 	return (
 		<Container>
-			{props.mygroups.length == 0 &&
+			{props.onboarding &&
 			<Steps
 				enabled={stepsEnabled}
 				steps={steps}

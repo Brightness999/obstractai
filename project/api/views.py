@@ -2256,7 +2256,7 @@ def invite(request):
 	subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
 	flag = False
 	if subid == None:
-		if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=30):
+		if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=1):
 			flag =True			
 	else:
 		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
@@ -2590,9 +2590,9 @@ def changegroup(request, subscription_holder=None):
 	currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last())
 	if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
 		if subid == None:
-			if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=30):
+			if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=1):
 				isInit = True
-				date = str(created_at.replace(tzinfo=None)+timedelta(days=30)).split(' ')[0]
+				date = str(created_at.replace(tzinfo=None)+timedelta(days=1)).split(' ')[0]
 				message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
 			else:
 				isPlan = False

@@ -36,7 +36,7 @@ const App = () => {
 	const client = new coreapi.Client({auth: auth});
 	const [isLoading, setIsLoading] = useState(true);
   const [mygroups, setMyGroups] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [onboarding, setOnBoarding] = useState(false);
   const [currentgroup, setCurrentGroup] = useState('');
   const [isPlan, setIsPlan] = useState(true);
   const [planname, setPlanName] = useState('');
@@ -44,7 +44,6 @@ const App = () => {
   const [isAutoDown, setIsAutoDown] = useState(false);
   const [message, setMessage] = useState('');
   const [currentrole, setCurrentRole] = useState({});
-  const [re, setRe] = useState({});
 
 	useEffect(() => {
     fetch('/api/home', {
@@ -57,8 +56,7 @@ const App = () => {
     .then(res=>{
       console.log(res);
       setMyGroups(res.mygroups);
-      setUsers(res.users);
-      setRe(res.re);
+      setOnBoarding(res.onboarding);
       setIsLoading(false);
     })
   },[]);
@@ -114,7 +112,7 @@ const App = () => {
           <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} />
           <Switch>
             <Route exact path="/">
-              <HomePage re={re} currentrole={currentrole} mygroups={mygroups} client={client} users={users} intelgroupSave={(data)=>intelgroupSave(data)} />
+              <HomePage onboarding={onboarding} currentrole={currentrole} mygroups={mygroups} client={client} intelgroupSave={(data)=>intelgroupSave(data)} />
             </Route>
             <Route path="/newgroup" >
               <IntelGroups currentgroup={currentgroup} currentrole={currentrole} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
@@ -126,10 +124,10 @@ const App = () => {
               <GroupList client={client} mygroups={mygroups} />
             </Route>
             <Route path="/users" >
-              <User mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />
+              <User onboarding={onboarding} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />
             </Route>
             <Route path="/feeds">
-              <Feeds mygroups={mygroups} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Feeds onboarding={onboarding} mygroups={mygroups} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/configuredfeeds">
               <ConfiguredFeeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
@@ -141,13 +139,13 @@ const App = () => {
               <Categories client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/extractions">
-              <Extractions mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Extractions onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/intelreports" >
-              <IntelReports mygroups={mygroups} client={client} currentgroup={currentgroup} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <IntelReports onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/whitelist" >
-              <WhiteLists mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <WhiteLists onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/account" >
               <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>

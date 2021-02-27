@@ -46,22 +46,31 @@ const ReportList = (props) => {
 	const steps = [{
 		element: '#card',
 		intro: 'Intel Report'
+	},{
+		element: '#button',
+		intro: 'Click to view intelreport.'
 	}]
 	
 	return (
 		<Container>
-			{props.mygroups.length == 0 &&
+			{props.onboarding &&
 			<Steps
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onExit={(index)=>{
-					setStepsEnabled(false);
-					if(index==0)
-						window.location.href=`/home/intelreports/${props.reports[0].uniqueid}`;
+				onBeforeExit={(index)=>{
+					if(index==1){
+						document.querySelector('#button').addEventListener('click', function(){
+							setStepsEnabled(false);
+							window.location.href=`/home/intelreports/${props.reports[0].uniqueid}`;
+							return true;	
+						})
+						return false;
+					}
+					return false;
 				}}
-				options={{
-				doneLabel: 'Next'
+				onExit={()=>{
+					setStepsEnabled(false);
 				}}
 			/>}
 			<section className="section">
@@ -255,7 +264,9 @@ const IntelReports = (props) => {
 	}
 
 	useEffect(()=>{
-		if(props.currentgroup == '' && props.mygroups.length != 0) history.push('/')
+		if(props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding){
+			history.push('/');
+		}
 		else{
 			setIsLoading(true);
 			let params = {id:props.currentgroup}
@@ -336,7 +347,7 @@ const IntelReports = (props) => {
 					return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} 
 						mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
 						indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} 
-						reports={reports} isInit={props.isInit} message={props.message}/>
+						reports={reports} isInit={props.isInit} message={props.message} onboarding={props.onboarding}/>
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			
@@ -358,7 +369,7 @@ const IntelReports = (props) => {
 			const report_id = data.match.params.id;
 			const report = getFeedById(report_id);
 			return(
-				<ViewReport currentgroup={props.currentgroup} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
+				<ViewReport currentgroup={props.currentgroup} onboarding={props.onboarding} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
 			)
 		}
 	}

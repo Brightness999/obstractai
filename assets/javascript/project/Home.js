@@ -16,7 +16,6 @@ const Welcome = (props) => {
 						<p className="subtitle is-4">! You have an invitation to <span className="title is-3 has-text-primary">{mygroup.intelgroup.name}</span> pending. <Link className="muted-link subtitle is-4 has-text-danger" to="/account" >Click here to accept.</Link></p>
 					</div> 
 			})}
-			{/* <div><pre>{JSON.stringify(props.re, null, 2) }</pre></div> */}
 		</div>
 	);
 }
@@ -34,14 +33,17 @@ const AddIntelgroup = (props) => {
 		title: 'Welcome',
 		intro: 'Hello World! 👋'
 	  },{
-		element: '.name',
+		element: '#name',
 		intro: 'Intel Group Name'
 	  },{
-		element: '.description',
+		element: '#description',
 		intro: 'Intel Group Description'
 	  },{
-		element: '.users',
+		element: '#users',
 		intro: 'Users to invite'
+	  },{
+		element: '#button',
+		intro: 'Click to create Intel Group'
 	  }]
 
 	const reacttag= React.createRef();
@@ -93,20 +95,47 @@ const AddIntelgroup = (props) => {
 					enabled={stepsEnabled}
 					steps={steps}
 					initialStep={initialStep}
-					onExit={(index)=>{
-						setStepsEnabled(false);
-						if(index==3)
-							window.location.href="/home/users/new";
+					onBeforeExit={(index)=>{
+						if(index == 4) {
+							console.log('dddddddd')
+							document.querySelector('#button').addEventListener('click', function(){
+								console.log('ccccc')
+								setStepsEnabled(false);
+								window.location.href="/home/users/new";
+								return true;
+							})
+							return false;
+						}
+						else{
+							return false;
+						}
 					}}
-					options={{
-						doneLabel: 'Next'
+					onBeforeChange={(nextindex)=>{
+						if(nextindex == 0 || nextindex == 1){
+							return true;
+						}
+						else if(nextindex == 2 && name != ''){
+							return true;
+						}
+						else if(nextindex == 3 && description != ''){
+							return true;
+						}
+						else if(nextindex == 4 && tags.length > 0){
+							return true;
+						}
+						else{
+							return false;
+						}
+					}}
+					onExit={()=>{
+						setStepsEnabled(false);
 					}}
 				/>
 				<h2 className="subtitle">Create New Intel Group</h2>
-				<label className="label">Name</label>
+				<div id="name"><label className="label">Name</label>
 				<TextField
 					placeholder="Name of intel group"
-					className="column is-three-quarters name"
+					className="column is-three-quarters"
 					margin="normal"
 					InputLabelProps={{
 						shrink: true,
@@ -114,11 +143,11 @@ const AddIntelgroup = (props) => {
 					variant="outlined"
 					value={name}
 					onChange={(event) => setName(event.target.value)}
-				/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-				<label className="label">Description</label>
+				/><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></div>
+				<div id="description"><label className="label">Description</label>
 				<TextField
 					placeholder="Description of intel group"
-					className="column is-three-quarters description"
+					className="column is-three-quarters"
 					margin="normal"
 					InputLabelProps={{
 						shrink: true,
@@ -126,16 +155,15 @@ const AddIntelgroup = (props) => {
 					variant="outlined"
 					value={description}
 					onChange={(event) => setDescription(event.target.value)}
-				/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-				<div className="mb-4 users" id="users" style={{zIndex:1}}>
+				/><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></div>
+				<div className="mb-4" id="users" style={{zIndex:1}}>
 					<label className="label mb-5">Invite Users</label>
 					<Grid container>
-					<Grid item xs={9}>
+					<Grid item xs={9} >
 						<ReactTags
 							ref={reacttag}
 							placeholderText="Comma separated list of emails for users to invite"
 							tags={tags}
-							suggestions={userOptions}
 							onDelete={onDelete}
 							onAddition={onAddition}
 							allowNew={true}
@@ -149,7 +177,7 @@ const AddIntelgroup = (props) => {
 				</div>
 				<div className="field is-grouped">
 					<div className="control">
-					<button type='button' className="button is-primary" onClick={() => saveIntelgroup()}>
+					<button type='button' className="button is-primary" id="button" onClick={() => saveIntelgroup()}>
 						<span>Create intel group</span>
 					</button>
 					</div>
@@ -165,11 +193,11 @@ const AddIntelgroup = (props) => {
 }
 
 const HomePage = (props) =>{
-	if(props.mygroups.length == 0){
+	if(props.mygroups.length == 0 || props.onboarding){
 		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />
 
 	}
 	else
-		return <Welcome mygroups={props.mygroups} re={props.re} />
+		return <Welcome mygroups={props.mygroups} />
 }
 export default HomePage;

@@ -14,6 +14,8 @@ class CustomUser(SubscriptionModelMixin, AbstractUser):
 
     subscription = models.ForeignKey('djstripe.Subscription', null=True, blank=True, on_delete=models.SET_NULL,
                                      help_text=_("The user's Stripe Subscription object, if it exists"))
+    
+    onboarding = models.BooleanField(default=True)
 
     def __str__(self):
         return self.email

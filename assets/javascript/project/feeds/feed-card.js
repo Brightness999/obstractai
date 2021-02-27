@@ -33,7 +33,7 @@ const FeedCard = function (props) {
     setIsLoading(true);
     let params = {
       id: props.feed.id,
-      groupid: props.currentrole.intelgroup_id
+      groupid: props.currentgroup
     };
     fetch('/api/feedenable', {
       method: 'put',
@@ -91,10 +91,10 @@ const FeedCard = function (props) {
             <Grid item xs={12} md={2} className="has-text-centered" >
               <Link to="/feeds" >
                 {Boolean(props.feed.feed)?
-                <button className="button is-fullwidth is-static">
+                <button className="button is-fullwidth is-static" id={props.index==0?"button":""}>
                   <span className="is-size-4">Enabled</span>
                 </button>:
-                <button className="button is-fullwidth is-success" onClick={enableFeed}>
+                <button className="button is-fullwidth is-success" id={props.index==0?"button":""} onClick={enableFeed}>
                   <span className="is-size-4">Enable</span>
                 </button>}
               </Link>

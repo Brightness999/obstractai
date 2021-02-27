@@ -103,7 +103,7 @@ const User = (props) => {
 	
 	useEffect(() => {
 		if(props.currentgroup == ''){
-			if(props.mygroups.length != 0)
+			if(!props.onboarding && props.mygroups.length != 0)
 				history.push('/');
 		}
 		else{
@@ -207,7 +207,7 @@ const User = (props) => {
 					</div>
 				)
 			}
-			if(groupRole.role ==2){
+			if(groupRole.role ==2 || props.onboarding){
 				// if(props.isPlan)
 					return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
 				// else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
@@ -226,7 +226,7 @@ const User = (props) => {
 	return (
 	  <Switch>
 		<Route path="/users/new">
-		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} mygroups={props.mygroups} />
+		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} onboarding={props.onboarding} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}

@@ -11,8 +11,11 @@ const UpdateUser = function(props) {
   const history = useHistory();
   const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
-		element: '.users',
+		element: '#users',
 		intro: 'Comma separated list of emails for users to invite'
+	},{
+		element: '#button',
+		intro: 'Click button to invite users.'
 	}]
   const reacttag= React.createRef();
   const onDelete= (i)=> {
@@ -76,23 +79,39 @@ const UpdateUser = function(props) {
 				<span className="subtitle is-5">! You must upgrade your Intel Group plan to perform that action.</span>
 				</Alert>
 			</Dialog>
-      {props.mygroups.length == 0 &&
+      {props.onboarding &&
       <Steps
         enabled={stepsEnabled}
         steps={steps}
         initialStep={0}
-        onExit={(index)=>{
-          setStepsEnabled(false);
-          if(index==0)
-            window.location.href="/home/feeds/";
+        onBeforeExit={(index)=>{
+          if(index==1){
+            document.querySelector('#button').addEventListener('click', function(){
+              setStepsEnabled(false);
+              window.location.href="/home/feeds";    
+              return true;
+            })
+            return false;
+          }
+          else{
+            return false;
+          }
         }}
-        options={{
-          doneLabel: 'Next'
+        onBeforeChange={(nextindex)=>{
+          if((nextindex==0 || nextindex==1) && tags.length > 0){
+            return true;
+          }
+          else{
+            return false;
+          }
+        }}
+        onExit={()=>{
+          setStepsEnabled(false);
         }}
       />}
       <section className="section app-card">
         <h2 className="subtitle">User Details</h2>
-        <div className="field users">
+        <div className="field" id="users">
           <label className="label">Email</label>
           <ReactTags
             ref={reacttag}
@@ -107,8 +126,7 @@ const UpdateUser = function(props) {
         
         <div className="field is-grouped">
           <div className="control">
-            <button type='button' className="button is-primary"
-                    onClick={() => inviteUser()}>
+            <button type='button' className="button is-primary" id="button" onClick={() => inviteUser()}>
               <span>Invite</span>
             </button>
           </div>

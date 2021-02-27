@@ -65,7 +65,7 @@ const ReportCard = function (props) {
 							</div>
 							<div>
 								<Link to={`/intelreports/${props.report.uniqueid}`}>
-									<button className="button is-danger is-medium is-rounded mx-2 my-4">
+									<button className="button is-danger is-medium is-rounded mx-2 my-4" id={props.index==0?"button":""}>
 										<span>View intel</span>
 									</button>
 								</Link>

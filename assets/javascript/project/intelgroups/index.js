@@ -109,6 +109,7 @@ const IntelGroups = function(props) {
                   onDelete={onDelete}
                   placeholderText="Comma separated list of emails for users to invite"
                   onAddition={onAddition}
+                  addOnBlur={true}
                   allowNew={true}
                   delimiters={['Enter', 'Tab', ',', ' ']}
                 />

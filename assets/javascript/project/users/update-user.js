@@ -119,8 +119,9 @@ const UpdateUser = function(props) {
             onDelete={onDelete}
             onAddition={onAddition}
             allowNew={true}
+            addOnBlur={true}
             placeholderText="Comma separated list of emails for users to invite"
-            delimiters={['Enter', 'Tab', ',', ' ']}
+            delimiters={['Tab', ',', ' ']}
           />
         </div>
         

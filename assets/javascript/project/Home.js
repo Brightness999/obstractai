@@ -166,6 +166,7 @@ const AddIntelgroup = (props) => {
 							tags={tags}
 							onDelete={onDelete}
 							onAddition={onAddition}
+							addOnBlur={true}
 							allowNew={true}
 							delimiters={['Enter', 'Tab', ',', ' ']}
 						/>

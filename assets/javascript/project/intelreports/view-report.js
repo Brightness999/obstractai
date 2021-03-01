@@ -384,11 +384,11 @@ const ViewReport = (props) => {
 							<p>API Call</p>
 							<div>
 								<span>Feed: </span>
-								<span>https://sherlock-staging.obstractai.com/api/v1/feeds?UUID={props.groupfeed.uniqueid}</span>
+								<span>https://sherlock-staging.obstractai.com/home/feeds/{props.groupfeed.uniqueid}</span>
 							</div>
 							<div>
 								<span>Report: </span>
-								<span>https://sherlock-staging.obstractai.com/api/v1/reports?UUID={props.uniqueid}</span>
+								<span>https://sherlock-staging.obstractai.com/home/intelreports/{props.uniqueid}</span>
 							</div>
 							<a href="/api/docs" className="muted-link">API docs</a>
 						</section>

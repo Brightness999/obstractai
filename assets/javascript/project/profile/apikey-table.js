@@ -3,7 +3,6 @@ import { Tr, Td } from 'react-super-responsive-table';
 
 
 const APIKeyTable = (props) => {
-    console.log(props);
     return (
         <Tr>
             <Td>{props.apikey.value}</Td>

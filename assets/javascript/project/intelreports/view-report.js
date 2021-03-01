@@ -277,10 +277,13 @@ const ViewReport = (props) => {
 				}
 				for(let j=0;j<astart.length-1;j++){
 					if(ids[i] >= astart[j] && ids[i] <= alast[j+1]){
-						let target = `<span style="background:#00e7ff;">${word.trim()}</span>`;
-						str = str.substring(0, ids[i]) + target + str.substr(ids[i]+word.trim().length);
-						for(let k=i+1;k<ids.length;k++){
-							ids[k] = ids[k] + target.length - word.trim().length;
+						console.log(str.substr(ids[i]-1, 1).charCodeAt(0))
+						if(str.substr(ids[i]-1, 1).charCodeAt(0) < 64 || str.substr(ids[i]-1, 1).charCodeAt(0) >122){
+							let target = `<span style="background:#00e7ff;">${word.trim()}</span>`;
+							str = str.substring(0, ids[i]) + target + str.substr(ids[i]+word.trim().length);
+							for(let k=i+1;k<ids.length;k++){
+								ids[k] = ids[k] + target.length - word.trim().length;
+							}
 						}
 					}
 				}

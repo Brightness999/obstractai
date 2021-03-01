@@ -36,22 +36,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = '__all__'
 
-class CommentSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100)
-    description = serializers.CharField(max_length=100)
-    userids = serializers.ListField(
-        child = serializers.IntegerField()
-    )
-    emails = serializers.ListField(
-        child = serializers.CharField()
-    )
-
-class UsersInvitationSerializer(serializers.Serializer):
-    group_id = serializers.IntegerField()
-    userids = serializers.ListField(
-        child = serializers.IntegerField()
-    )
-
 class TagSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -80,7 +64,6 @@ class WebHookSerializer(serializers.ModelSerializer):
     class Meta:
         model = WebHooks
         fields = ('id', 'endpoint', 'description', 'user_id', 'intelgroup_id' )
-
 
 
 class IntelReportSerializer(serializers.ModelSerializer):
@@ -342,3 +325,46 @@ class WhitelistCreateSerializer(serializers.Serializer):
 class APIKeyCreateSerializer(serializers.Serializer):
     intelgroup_id = serializers.IntegerField()
     name = serializers.CharField(max_length=100)
+
+class APIGroupSerializer(serializers.Serializer):
+    UUID = serializers.CharField(max_length=100)
+    Name = serializers.CharField(max_length=100)
+    Description = serializers.CharField(max_length=1000)
+    Role = serializers.IntegerField()
+
+class APIFeedSerializer(serializers.Serializer):
+    UUID = serializers.CharField(max_length=100)
+    Type = serializers.CharField(max_length=100)
+    Feed_name = serializers.CharField(max_length=100)
+    Feed_description = serializers.CharField(max_length=1000)
+    Feed_URL = serializers.CharField(max_length=1000)
+    Intel_Group_UUID = serializers.CharField(max_length=100)
+    Confidence = serializers.IntegerField()
+    Category = serializers.CharField(max_length=100)
+    Tags = serializers.CharField(max_length=100)
+    Datetime_created = serializers.DateTimeField()
+    Datetime_last_polled = serializers.DateTimeField()
+    Dateteim_last_data = serializers.DateTimeField()
+    RSS = serializers.DictField()
+
+class APIReportSerializer(serializers.Serializer):
+    UUID = serializers.UUIDField()
+    Channel_UUID = serializers.UUIDField()
+    Intel_Group_UUID = serializers.UUIDField()
+    Report_URL = serializers.CharField(max_length=1000)
+    Datetime_added = serializers.DateTimeField()
+    RSS_data = serializers.DictField(
+        child=serializers.CharField()
+    )
+    Indicators = serializers.DictField(
+        child=serializers.DictField(
+            child=serializers.CharField(max_length=100)
+        ),
+    )
+    Attributes = serializers.DictField(
+        child=serializers.ListField(
+            child=serializers.DictField(
+                child=serializers.CharField(max_length=100)
+            )
+        )
+    )

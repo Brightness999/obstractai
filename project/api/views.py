@@ -51,7 +51,7 @@ from ..serializers import (AccepInviteSerializer, APIKeyCreateSerializer,
                            APIkeySerializer, AttributeCreateSerializer,
                            AttributeUpdateSerializer, CategoryCreateSerializer,
                            CategorySerializer, CategoryUpdateSerializer,
-                           ChangeEmailSerializer, CommentSerializer,
+                           ChangeEmailSerializer,
                            CustomUserSerializer, EnabledSerializer,
                            FeedCategorySerializer, FeedChannelSerializer,
                            FeedCreateSerializer, FeedItemSerializer,
@@ -70,14 +70,22 @@ from ..serializers import (AccepInviteSerializer, APIKeyCreateSerializer,
                            SearchReportSerializer, TagSerializer,
                            UserGlobalIndicatorSerializer,
                            UserGroupAttributeSerializer,
-                           UserGroupRoleSerializer,
-                           UserIndicatorWhitelistSerializer,
+                           UserGroupRoleSerializer,APIFeedSerializer,
+                           UserIndicatorWhitelistSerializer,APIReportSerializer,
                            UserIntelGroupRolesSerializer, UserSerializer,
                            WebhookCreateSerializer, WebhookUpdateSerializer,
-                           WhitelistCreateSerializer)
+                           WhitelistCreateSerializer, APIGroupSerializer)
 
-
+uuid = openapi.Parameter('UUID', openapi.IN_QUERY, description="feed UUID", type=openapi.TYPE_STRING)
+groupids = openapi.Parameter('groupids', openapi.IN_QUERY, description="Intel Group UUIDs", type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
+confidence = openapi.Parameter('confidence', openapi.IN_QUERY, description="Feed confidence", type=openapi.TYPE_NUMBER)
+category = openapi.Parameter('category', openapi.IN_QUERY, description="Feed category", type=openapi.TYPE_NUMBER)
+tags = openapi.Parameter('tags', openapi.IN_QUERY, description="Feed tags", type=openapi.TYPE_STRING)
+created_at = openapi.Parameter('created_at', openapi.IN_QUERY, description="Feed created_at(eg:2020-02-03)", type=openapi.TYPE_STRING)
+updated_at = openapi.Parameter('updated_at', openapi.IN_QUERY, description="Feed updated_at(eg:2020-02-03)", type=openapi.TYPE_STRING)
 @csrf_exempt
+@swagger_auto_schema(methods=['get'], manual_parameters=[uuid, groupids, confidence, category, tags, created_at, updated_at], responses={200: APIFeedSerializer(many=True)})
+@api_view(['GET'])
 def apifeeds(request):
 	if request.method == 'POST':
 		body_unicode = request.body.decode('utf-8')
@@ -424,24 +432,38 @@ def apifeeds(request):
 	result = []
 	for feed in feeds:
 		data = {
-			'uuid': feed.uniqueid,
-			'type': feed.feed.type,
-			'name': feed.name,
-			'description': feed.description,
-			'url': feed.feed.url,
-			'groupid': feed.intelgroup.uniqueid,
-			'confidence': feed.confidence,
-			'category': feed.category.name,
-			'tags': feed.tags,
-			'created_at': feed.created_at,
-			'polled_at': feed.updated_at,
-			'data_at': feed.updated_at,
-			'channel': FeedChannels.objects.filter(feed_id=feed.feed.id).last()
+			'UUID': feed.uniqueid,
+			'Type': feed.feed.type,
+			'Feed_name': feed.name,
+			'Feed_description': feed.description,
+			'Feed_URL': feed.feed.url,
+			'Intel_Group_UUID': feed.intelgroup.uniqueid,
+			'Confidence': feed.confidence,
+			'Category': feed.category.name,
+			'Tags': feed.tags,
+			'Datetime_created': feed.created_at,
+			'Datetime_last_polled': feed.updated_at,
+			'Dateteim_last_data': feed.updated_at,
+			'RSS': FeedChannelSerializer(FeedChannels.objects.filter(feed_id=feed.feed.id).last()).data
 		}
 		result.append(data)
 	return render(request, 'project/feeds.html', {'feeds':result})
 
+
+uuid = openapi.Parameter('UUID', openapi.IN_QUERY, description="Intel Report UUID", type=openapi.TYPE_STRING)
+groupids = openapi.Parameter('groupids', openapi.IN_QUERY, description="Intel Group UUIDs", type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
+channelids = openapi.Parameter('channelids', openapi.IN_QUERY, description="Feed Channel UUIDs", type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
+indicators = openapi.Parameter('indicators', openapi.IN_QUERY, description="Global Indicators", type=openapi.TYPE_STRING)
+threattype = openapi.Parameter('threat_type', openapi.IN_QUERY, description="Attributes", type=openapi.TYPE_STRING)
+threatactor = openapi.Parameter('threat_actor', openapi.IN_QUERY, description="Attributes", type=openapi.TYPE_STRING)
+product = openapi.Parameter('product', openapi.IN_QUERY, description="Attributes", type=openapi.TYPE_STRING)
+country = openapi.Parameter('country', openapi.IN_QUERY, description="Attributes", type=openapi.TYPE_STRING)
+sector = openapi.Parameter('sector', openapi.IN_QUERY, description="Attributes", type=openapi.TYPE_STRING)
+created_at = openapi.Parameter('created_at', openapi.IN_QUERY, description="Feed created_at(eg:2020-02-03)", type=openapi.TYPE_STRING)
+updated_at = openapi.Parameter('updated_at', openapi.IN_QUERY, description="Feed updated_at(eg:2020-02-03)", type=openapi.TYPE_STRING)
 @csrf_exempt
+@swagger_auto_schema(methods=['get'], manual_parameters=[uuid, groupids, channelids, indicators, threattype, threatactor, product, country, sector, created_at, updated_at], responses={200: APIReportSerializer(many=True)})
+@api_view(['GET'])
 def apireports(request):
 	if request.method == 'POST':
 		body_unicode = request.body.decode('utf-8')
@@ -948,6 +970,7 @@ def apireports(request):
 	return render(request, 'project/reports.html', {'reports':result})
 
 @csrf_exempt
+@swagger_auto_schema(methods=['get'], responses={200: APIGroupSerializer(many=True)})
 @api_view(['GET'])
 def apigroups(request):
 	groupids = []
@@ -971,10 +994,10 @@ def apigroups(request):
 	result = []
 	for groupid in groupids:	
 		data = {
-			'uuid': IntelGroups.objects.filter(id=groupid).last().uniqueid,
-			'name': IntelGroups.objects.filter(id=groupid).last().name,
-			'description': IntelGroups.objects.filter(id=groupid).last().description,
-			'role': UserIntelGroupRoles.objects.filter(intelgroup_id=groupid, user_id=userid).last().role
+			'UUID': IntelGroups.objects.filter(id=groupid).last().uniqueid,
+			'Name': IntelGroups.objects.filter(id=groupid).last().name,
+			'Description': IntelGroups.objects.filter(id=groupid).last().description,
+			'Role': UserIntelGroupRoles.objects.filter(intelgroup_id=groupid, user_id=userid).last().role
 		}
 		result.append(data)
 	return render(request, 'project/intel_groups.html', {'groups':result})
@@ -1032,53 +1055,39 @@ def emailchange(request):
 	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
-@swagger_auto_schema(methods=['post'], request_body=APIKeyCreateSerializer, responses={201: APIkeySerializer})
-@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: APIkeySerializer})
+@swagger_auto_schema(methods=['post'], request_body=APIKeyCreateSerializer, responses={201: APIkeySerializer(many=True)})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: APIkeySerializer(many=True)})
 @api_view(['POST', 'DELETE'])
 def apikeys(request):
 	if request.method == 'POST':
-		apikeys = []
 		key = secrets.token_urlsafe(16)
 		groupids = []
 		for role in UserIntelGroupRoles.objects.filter(user_id=request.user.id).exclude(role=0).all():
 			groupids.append(role.intelgroup_id)
 		APIKeys.objects.create(name=request.data['name'], groupids=','.join(str(groupid) for groupid in groupids), value=key, user_id=request.user.id)
-		for apikey in APIKeys.objects.filter(user_id=request.user.id).all():
-			serializer = APIkeySerializer(apikey)
-			apikeys.append(serializer.data)
-			
+		apikeys = APIkeySerializer(APIKeys.objects.filter(user_id=request.user.id).all(), many=True).data
 		return Response(apikeys)
-	if request.method == 'DELETE':
+	elif request.method == 'DELETE':
 		APIKeys.objects.filter(id=request.data['id']).delete()
-		apikeys = APIKeys.objects.filter(user_id=request.user.id).all()
-		apikey_serializer = APIkeySerializer(apikeys, many=True)
-		return Response(apikey_serializer.data)
+		apikeys = APIkeySerializer(APIKeys.objects.filter(user_id=request.user.id).all(), many=True).data
+		return Response(apikeys)
 
-@swagger_auto_schema(methods=['post'], request_body=WebhookCreateSerializer, responses={201: GroupWebHookSerializer})
-@swagger_auto_schema(methods=['put'], request_body=WebhookUpdateSerializer, responses={200: GroupWebHookSerializer})
-@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupWebHookSerializer})
+@swagger_auto_schema(methods=['post'], request_body=WebhookCreateSerializer, responses={201: GroupWebHookSerializer(many=True)})
+@swagger_auto_schema(methods=['put'], request_body=WebhookUpdateSerializer, responses={200: GroupWebHookSerializer(many=True)})
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupWebHookSerializer(many=True)})
 @api_view(['POST', 'PUT', 'DELETE'])
 def webhooks(request):
 	if request.method == 'POST':
 		WebHooks.objects.create(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], user_id=request.user.id, words=request.data['words'])
-		webhooks = []
-		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
-			serializer = GroupWebHookSerializer(webhook)
-			webhooks.append(serializer.data)
+		webhooks = GroupWebHookSerializer(webhook in WebHooks.objects.filter(user_id=request.user.id).all(), many=True).data
 		return Response(webhooks)
 	elif request.method == 'PUT':
 		WebHooks.objects.filter(id=request.data['id']).update(endpoint=request.data['endpoint'], description=request.data['description'], intelgroup_id=request.data['intelgroup_id'], words=request.data['words'], user_id=request.user.id, isenable=request.data['isenable'])
-		webhooks = []
-		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
-			serializer = GroupWebHookSerializer(webhook)
-			webhooks.append(serializer.data)
+		webhooks = GroupWebHookSerializer(WebHooks.objects.filter(user_id=request.user.id).all(), many=True).data
 		return Response(webhooks)
 	elif request.method == 'DELETE':
 		WebHooks.objects.filter(id=request.data['id']).delete()
-		webhooks = []
-		for webhook in WebHooks.objects.filter(user_id=request.user.id).all():
-			serializer = GroupWebHookSerializer(webhook)
-			webhooks.append(serializer.data)
+		webhooks = GroupWebHookSerializer(WebHooks.objects.filter(user_id=request.user.id).all(), many=True).data
 		return Response(webhooks)
 
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: ItemFeedGroupReportSerializer})

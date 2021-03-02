@@ -84,30 +84,24 @@ const UpdateUser = function(props) {
         enabled={stepsEnabled}
         steps={steps}
         initialStep={0}
-        onBeforeExit={(index)=>{
-          if(index==1){
-            document.querySelector('#button').addEventListener('click', function(){
-              setStepsEnabled(false);
-              window.location.href="/home/feeds";    
-              return true;
-            })
-            return false;
-          }
-          else{
-            return false;
-          }
-        }}
-        onBeforeChange={(nextindex)=>{
-          if((nextindex==0 || nextindex==1) && tags.length > 0){
+        onBeforeExit={()=>{return false;}}
+        onBeforeChange={(nextIndex)=>{
+          if((nextIndex==0 || nextIndex==1) && tags.length > 0){
             return true;
           }
           else{
             return false;
           }
         }}
-        onExit={()=>{
-          setStepsEnabled(false);
+        onAfterChange={(nextIndex, newElement)=>{
+          if(nextIndex == 1){
+            newElement.addEventListener('click', function(){
+              setStepsEnabled(false);
+              window.location.href="/home/feeds";    
+            })
+          }
         }}
+        onExit={()=>{}}
       />}
       <section className="section app-card">
         <h2 className="subtitle">User Details</h2>

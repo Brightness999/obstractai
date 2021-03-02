@@ -52,8 +52,17 @@ const ExtractionList = (props) => {
 		element: '#attribute',
 		intro: 'Custom attributes  by matching text in each Intel Report'
 	},{
-		element: '#globalattribute',
-		intro: 'Global attributes  by matching text in each Intel Report'
+		element: '#attribute_button',
+		intro: 'Click to create new attribute'
+	},{
+		element: '#ttt',
+		intro: 'Type of new attribute'
+	},{
+		element: document.getElementById("value"),
+		intro: 'Value of new attribute'
+	},{
+		element: '#words',
+		intro: 'Words matched on new attribute'
 	}]
 	
 	const saveExtraction = () => {
@@ -184,22 +193,27 @@ const ExtractionList = (props) => {
 
 	return (
 		<Container>
-			{props.mygroups.length == 0 &&
+			{props.onboarding &&
 			<Steps
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onStart={()=>setIsAdd(true)}
-				onExit={(index)=>{
-					setStepsEnabled(false);
-					if(index==1)
-						window.location.href="/home/whitelist";
+				onAfterChange={(nextIndex, newElement)=>{
+					if(nextIndex == 1){
+						newElement.addEventListener('click', function(){
+							console.log('aaaaa');
+							setIsAdd(true);
+						})
+					}
+					// else if(nextIndex == 2){
+					// 	newElement.className += ' introjs-showElement';
+					// }
+
 				}}
-				options={{
-					doneLabel: 'Next'
-				}}
+				onBeforeExit={()=>{return false;}}
+				onExit={()=>{}}
 			/>}
-			<section className="section" id="attribute">
+			<section className="section" >
 				{props.isInit&&
 				<Alert severity="info" className="my-5">
 					<AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
@@ -208,12 +222,12 @@ const ExtractionList = (props) => {
 				{bannerCustom && <Alert severity="error" className="title is-size-4" onClose={()=>setBannerCustom(false)}>Sorry, your plan does not currently cover custom attribute abstractions. You can upgrade now to enable this feature here.</Alert>}
 				{bannerAdd && <Alert severity="error" className="title is-size-4" onClose={()=>setBannerAdd(false)}>The attribute already exists! Please find out it and edit.</Alert>}
 				<h1 className="title is-3">Manage Observable extractions</h1>
-				<Grid container>
+				<Grid container id="attribute">
 					<Grid item xs={9}>
 						<label className="title is-5">Custom extractions</label>
 					</Grid>
 					<Grid item xs={3}>
-						<button className="button is-link is-rounded is-medium has-pulled-right" onClick={()=>setIsAdd(true)} >
+						<button className="button is-link is-rounded is-medium has-pulled-right" onClick={()=>setIsAdd(true)} id="attribute_button">
 							Add extraction
 						</button>
 					</Grid>
@@ -229,11 +243,11 @@ const ExtractionList = (props) => {
 							<Th>Actions</Th>
 						</Tr>
 					</Thead>
-					<Tbody>
+					<Tbody id="ttt">
 						{isAdd && <Tr>
-								<Td><TextField placeholder="Type" onChange={(event)=>setType(event.target.value)}/></Td>
-								<Td><TextField placeholder="Value" onChange={(event)=>setValue(event.target.value)}/></Td>
-								<Td><TextField placeholder="Words to match on" onChange={(event)=>setWords(event.target.value)}/></Td>
+								<Td ><TextField  placeholder="Type" onChange={(event)=>setType(event.target.value)}/></Td>
+								<Td id="value"><TextField placeholder="Value" onChange={(event)=>setValue(event.target.value)}/></Td>
+								<Td id="words"><TextField placeholder="Words to match on" onChange={(event)=>setWords(event.target.value)}/></Td>
 								<Td><button className="button is-outlined mx-2" onClick={saveExtraction}>Save</button>
 									<button className="button is-outlined" onClick={cancelExtraction}>Cancel</button>
 								</Td>
@@ -282,7 +296,7 @@ const Extractions = (props) => {
 	const history = useHistory();
 
 	useEffect(() => {
-		if(props.currentgroup == '' && props.mygroups.length != 0) history.push('/');
+		if(props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding) history.push('/');
 		else{
 			let params = {currentgroup:props.currentgroup};
 			fetch('/api/attributes', {
@@ -358,10 +372,10 @@ const Extractions = (props) => {
 						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
 					</div>
 				)
-			if(props.currentrole.role ==2 || props.mygroups.length == 0){
+			if(props.currentrole.role ==2 || props.onboarding){
 				if(props.isPlan)
 					return <ExtractionList client={props.client} extractionlist={extractionlist} saveExtraction={saveExtraction} customobservable={customobservable} saveGlobal={saveGlobal} mygroups={props.mygroups}
-								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
+								currentgroup={props.currentgroup} globalattributes={globalattributes} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} onboarding={props.onboarding} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			if(props.currentrole.role == 4){

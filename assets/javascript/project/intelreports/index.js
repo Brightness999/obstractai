@@ -58,20 +58,16 @@ const ReportList = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onBeforeExit={(index)=>{
-					if(index==1){
-						document.querySelector('#button').addEventListener('click', function(){
+				onBeforeExit={()=>{return false;}}
+				onAfterChange={(nextIndex, newElement)=>{
+					if(nextIndex == 1){
+						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
 							window.location.href=`/home/intelreports/${props.reports[0].uniqueid}`;
-							return true;	
 						})
-						return false;
 					}
-					return false;
 				}}
-				onExit={()=>{
-					setStepsEnabled(false);
-				}}
+				onExit={()=>{}}
 			/>}
 			<section className="section">
 				{props.isInit&&

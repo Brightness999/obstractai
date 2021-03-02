@@ -2533,6 +2533,8 @@ def categories(request):
 @api_view(['GET'])
 def home(request):
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
+	# if len(groups) > 0:
+	# 	CustomUser.objects.filter(id=request.user.id).update(onboarding=False)
 	onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
 	return Response({'mygroups':groups, 'onboarding':onboarding})
 

@@ -95,42 +95,34 @@ const AddIntelgroup = (props) => {
 					enabled={stepsEnabled}
 					steps={steps}
 					initialStep={initialStep}
-					onBeforeExit={(index)=>{
-						if(index == 4) {
-							console.log('dddddddd')
-							document.querySelector('#button').addEventListener('click', function(){
-								console.log('ccccc')
+					onBeforeExit={()=>{return false;}}
+					onBeforeChange={(nextIndex)=>{
+						if(nextIndex == 0 || nextIndex == 1){
+							return true;
+						}
+						else if(nextIndex == 2 && name != ''){
+							return true;
+						}
+						else if(nextIndex == 3 && description != ''){
+							return true;
+						}
+						else if(nextIndex == 4 && tags.length > 0){
+							return true;
+						}
+						else{
+							return false;
+						}
+					}}
+					onAfterChange={(nextIndex, newElement)=>{
+						if(nextIndex == 4){
+							newElement.addEventListener('click', function(){
 								setStepsEnabled(false);
 								window.location.href="/home/users/new";
-								return true;
 							})
-							return false;
-						}
-						else{
-							return false;
 						}
 					}}
-					onBeforeChange={(nextindex)=>{
-						if(nextindex == 0 || nextindex == 1){
-							return true;
-						}
-						else if(nextindex == 2 && name != ''){
-							return true;
-						}
-						else if(nextindex == 3 && description != ''){
-							return true;
-						}
-						else if(nextindex == 4 && tags.length > 0){
-							return true;
-						}
-						else{
-							return false;
-						}
-					}}
-					onExit={()=>{
-						setStepsEnabled(false);
-					}}
-				/>
+					onExit={()=>{}}
+					/>
 				<h2 className="subtitle">Create New Intel Group</h2>
 				<div id="name"><label className="label">Name</label>
 				<TextField
@@ -178,7 +170,7 @@ const AddIntelgroup = (props) => {
 				</div>
 				<div className="field is-grouped">
 					<div className="control">
-					<button type='button' className="button is-primary" id="button" onClick={() => saveIntelgroup()}>
+					<button className="button is-primary" id="button" onClick={() => saveIntelgroup()}>
 						<span>Create intel group</span>
 					</button>
 					</div>

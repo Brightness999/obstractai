@@ -7,7 +7,7 @@ const ViewReport = (props) => {
 	console.log(props);
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
-		element: '#card',
+		element: '#title',
 		intro: 'Intel Report Details'
 	}]
 	const history = useHistory();
@@ -299,18 +299,26 @@ const ViewReport = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onExit={(index)=>{
-					setStepsEnabled(false);
-				if(index==0)
-					window.location.href='/home/extractions';
-				}}
 				options={{
 					doneLabel: 'Next'
 				}}
+				// onAfterChange={(nextIndex, newElement)=>{
+				// 	if(nextIndex == 1){
+				// 		newElement.addEventListener('click', function(){
+				// 			setStepsEnabled(false);
+				// 			window.location.href='/home/extractions';
+				// 		})
+				// 	}
+				// }}
+				// onBeforeExit={()=>{return false;}}
+				onExit={()=>{
+					setStepsEnabled(false);
+					window.location.href='/home/extractions';
+				}}
 			/>}
-			<section className="section">
+			<section className="section" id="title">
 				<Grid container>
-					<Grid item xs={12} md={6}>
+					<Grid item xs={12} md={6} >
 						<h1 className="title is-2">{props.feeditem.title}</h1>
 					</Grid>
 					<Grid item xs={12} md={6}>
@@ -336,68 +344,62 @@ const ViewReport = (props) => {
 			<section className="section">
 				<button className="button is-info is-pulled-left" onClick={()=>history.goBack()}>Back</button>
 			</section>
-			<section>
-				<Grid container id="card">
-					<Grid item xs={12} id="extraction">
-						
+			<section id="extraction">
+			</section>
+			<section className="section">
+				<Grid container >
+					<Grid item xs={3} className="pt-4">
+						<span>Confidence:</span>
 					</Grid>
-					<Grid item xs={12} className="section">
-						<section className="section app-card">
-							<Grid container>
-								<Grid item xs={3} className="pt-4">
-									<span>Confidence:</span>
-								</Grid>
-								<Grid item xs={9} className="py-2">
-									<button className="button is-primary is-rounded" >
-										<span>{props.groupfeed.confidence}</span>
-									</button>
-								</Grid>
-							</Grid>
-							<Grid container>
-								<Grid item xs={3} className="pt-4">
-									<span>Observables:</span>
-								</Grid>
-								<Grid item xs={9}>
-									{props.globalattributes.map((classification, index)=>{
-										return <button key={index} className="button is-warning is-rounded mx-1 my-1">
-											<span>{classification.globalattribute.words_matched}</span>
-										</button>
-									})}
-									{classifications.map((classification, index)=>{
-										return <button key={index} className="button is-warning is-rounded mx-1 my-1" >
-											<span>{classification.words_matched}</span>
-										</button>
-									})}
-								</Grid>
-							</Grid>
-							<Grid container>
-								<Grid item xs={3} className="pt-4">
-									<span>Indicators:</span>
-								</Grid>
-								<Grid item xs={9} className="py-2">
-									{indicators.map((indicator, index)=>{
-										return <button key={index} className="button is-success is-rounded mx-1	my-1" >
-											<span>{indicator.globalindicator.value}</span>
-										</button>
-									})}
-								</Grid>
-							</Grid>
-							<p>JSON object: </p>
-							<pre>{JSON.stringify(data, null, 2)}</pre>
-							<p>API Call</p>
-							<div>
-								<span>Feed: </span>
-								<span>https://sherlock-staging.obstractai.com/home/feeds/{props.groupfeed.uniqueid}</span>
-							</div>
-							<div>
-								<span>Report: </span>
-								<span>https://sherlock-staging.obstractai.com/home/intelreports/{props.uniqueid}</span>
-							</div>
-							<a href="/api/docs" className="muted-link">API docs</a>
-						</section>
+					<Grid item xs={9} className="py-2">
+						<button className="button is-primary is-rounded" >
+							<span>{props.groupfeed.confidence}</span>
+						</button>
 					</Grid>
 				</Grid>
+				<Grid container>
+					<Grid item xs={3} className="pt-4">
+						<span>Observables:</span>
+					</Grid>
+					<Grid item xs={9}>
+						{props.globalattributes.map((classification, index)=>{
+							return <button key={index} className="button is-warning is-rounded mx-1 my-1">
+								<span>{classification.globalattribute.words_matched}</span>
+							</button>
+						})}
+						{classifications.map((classification, index)=>{
+							return <button key={index} className="button is-warning is-rounded mx-1 my-1" >
+								<span>{classification.words_matched}</span>
+							</button>
+						})}
+					</Grid>
+				</Grid>
+				<Grid container>
+					<Grid item xs={3} className="pt-4">
+						<span>Indicators:</span>
+					</Grid>
+					<Grid item xs={9} className="py-2">
+						{indicators.map((indicator, index)=>{
+							return <button key={index} className="button is-success is-rounded mx-1	my-1" >
+								<span>{indicator.globalindicator.value}</span>
+							</button>
+						})}
+					</Grid>
+				</Grid>
+				<p>JSON object: </p>
+				<pre>{JSON.stringify(data, null, 2)}</pre>
+				<p>API Call</p>
+				<div>
+					<span>Feed: </span>
+					<span>https://sherlock-staging.obstractai.com/home/feeds/{props.groupfeed.uniqueid}</span>
+				</div>
+				<div>
+					<span>Report: </span>
+					<span>https://sherlock-staging.obstractai.com/home/intelreports/{props.uniqueid}</span>
+				</div>
+				<a href="/api/docs" className="muted-link">API docs</a>
 			</section>
+
 		</Container>
 	);
 }

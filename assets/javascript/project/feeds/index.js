@@ -67,25 +67,21 @@ const FeedList = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onBeforeExit={(index)=>{
-					if(index==1){
-						document.querySelector('#button').addEventListener('click', function(){
-							setStepsEnabled(false);
-							window.location.href="/home/intelreports";
-							return true;
-						})
-						return false;
+				onBeforeExit={()=>{return false;}}
+				onBeforeChange={(nextIndex)=>{
+					if(nextIndex == 0 || nextIndex == 1){
+						return true;
 					}
 					else{
 						return false;
 					}
 				}}
-				onBeforeChange={(nextindex)=>{
-					if(nextindex == 0 || nextindex == 1){
-						return true;
-					}
-					else{
-						return false;
+				onAfterChange={(nextIndex, newElement)=>{
+					if(nextIndex == 1){
+						newElement.addEventListener('click', function(){
+							setStepsEnabled(false);
+							window.location.href="/home/intelreports";
+						})
 					}
 				}}
 				onExit={()=>{}}

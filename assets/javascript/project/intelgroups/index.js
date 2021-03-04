@@ -29,22 +29,24 @@ const IntelGroups = function(props) {
 
   const saveIntelgroup = function() {
     const emails = [];
-    if(tag.name.search('\\+') > -1){
-      let pluspos = tag.name.search('\\+');
-      let lastpos = tag.name.search('@');
-      let flag = true;
-      emails.forEach(email => {
-        if(email == tag.name.substring(0,pluspos) + tag.name.substr(lastpos)){
-        flag = false;
+    tags.forEach(tag => {
+      if(tag.name.search('\\+') > -1){
+        let pluspos = tag.name.search('\\+');
+        let lastpos = tag.name.search('@');
+        let flag = true;
+        emails.forEach(email => {
+          if(email == tag.name.substring(0,pluspos) + tag.name.substr(lastpos)){
+          flag = false;
+          }
+        });
+        if(flag){
+          emails.push(tag.name.substring(0,pluspos) + tag.name.substr(lastpos))
         }
-      });
-      if(flag){
-        emails.push(tag.name.substring(0,pluspos) + tag.name.substr(lastpos))
       }
-    }
-    else{
-      emails.push(tag.name)
-    }
+      else{
+        emails.push(tag.name)
+      }
+    });
     let params = {
       name: name,
       description: description,

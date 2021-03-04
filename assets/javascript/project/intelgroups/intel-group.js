@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import { Link, useHistory } from "react-router-dom";
-import { Tooltip, TextField, Dialog, DialogTitle, DialogContent, DialogContentText, Container } from "@material-ui/core";
+import { Tooltip, TextField, Dialog, Container } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
@@ -141,7 +141,7 @@ const IntelGroup = function(props) {
                                 <option value={false}>False</option>
                                 <option value={true}>True</option>
                             </TextField>
-                            <Tooltip title="Boolean to make public or private Intel Group." arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
+                            <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
                         </div>
                         <div className="field is-grouped">
                             <div className="control">

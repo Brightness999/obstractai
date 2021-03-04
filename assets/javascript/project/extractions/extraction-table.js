@@ -21,7 +21,7 @@ const ExtractionTable = (props) => {
     }
 
     return (
-        <Tr>
+        <Tr id={props.index==0?"type":""}>
             <Td>{props.extraction.attribute+'('+props.extraction.api_attribute+')'}</Td>
             <Td>{props.extraction.value+'('+props.extraction.api_value+')'}</Td>
             <Td>{props.extraction.words_matched}</Td>

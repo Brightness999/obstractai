@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
-import { Steps } from 'intro.js-react';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Container, Dialog} from "@material-ui/core";
 
@@ -9,14 +8,6 @@ const UpdateUser = function(props) {
   const [tags, setTags] = useState([]);
   const [isAlert, setIsAlert] = useState(false);
   const history = useHistory();
-  const [stepsEnabled, setStepsEnabled] = useState(true);
-	const steps = [{
-		element: '#users',
-		intro: 'Comma separated list of emails for users to invite'
-	},{
-		element: '#button',
-		intro: 'Click button to invite users.'
-	}]
   const reacttag= React.createRef();
   const onDelete= (i)=> {
       var temp = tags.slice(0)
@@ -34,7 +25,22 @@ const UpdateUser = function(props) {
   const inviteUser = function() {
     const emails = [];
     tags.forEach(tag => {
-      emails.push(tag.name);
+      if(tag.name.search('\\+') > -1){
+				let pluspos = tag.name.search('\\+');
+				let lastpos = tag.name.search('@');
+        let flag = true;
+        emails.forEach(email => {
+          if(email == tag.name.substring(0,pluspos) + tag.name.substr(lastpos)){
+            flag = false;
+          }
+        });
+        if(flag){
+          emails.push(tag.name.substring(0,pluspos) + tag.name.substr(lastpos))
+        }
+			}
+			else{
+				emails.push(tag.name)
+			}
     });
     let params = {
       group_id: props.group_id,
@@ -79,30 +85,6 @@ const UpdateUser = function(props) {
 				<span className="subtitle is-5">! You must upgrade your Intel Group plan to perform that action.</span>
 				</Alert>
 			</Dialog>
-      {props.onboarding &&
-      <Steps
-        enabled={stepsEnabled}
-        steps={steps}
-        initialStep={0}
-        onBeforeExit={()=>{return false;}}
-        onBeforeChange={(nextIndex)=>{
-          if((nextIndex==0 || nextIndex==1) && tags.length > 0){
-            return true;
-          }
-          else{
-            return false;
-          }
-        }}
-        onAfterChange={(nextIndex, newElement)=>{
-          if(nextIndex == 1){
-            newElement.addEventListener('click', function(){
-              setStepsEnabled(false);
-              window.location.href="/home/feeds";    
-            })
-          }
-        }}
-        onExit={()=>{}}
-      />}
       <section className="section app-card">
         <h2 className="subtitle">User Details</h2>
         <div className="field" id="users">
@@ -115,7 +97,7 @@ const UpdateUser = function(props) {
             allowNew={true}
             addOnBlur={true}
             placeholderText="Comma separated list of emails for users to invite"
-            delimiters={['Tab', ',', ' ']}
+            delimiters={['Enter', 'Tab', ',', ' ']}
           />
         </div>
         

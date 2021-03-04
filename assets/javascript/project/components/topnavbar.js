@@ -73,7 +73,7 @@ const TopNavBar = (props) => {
 								<span className="is-show-desktop">My Account</span>
 							</a>
 							<div className="navbar-dropdown is-right">
-								<a className="navbar-item" href="/home/account" >
+								<a className="navbar-item" href="/app/account" >
 								<span>Profile</span>
 								</a>
 								<a className="navbar-item" href="/accounts/password/change">

@@ -80,7 +80,7 @@ const FeedList = (props) => {
 					if(nextIndex == 1){
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
-							window.location.href="/home/intelreports";
+							window.location.href="/app/intelreports";
 						})
 					}
 				}}

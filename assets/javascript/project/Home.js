@@ -39,9 +39,6 @@ const AddIntelgroup = (props) => {
 		element: '#description',
 		intro: 'Intel Group Description'
 	  },{
-		element: '#users',
-		intro: 'Users to invite'
-	  },{
 		element: '#button',
 		intro: 'Click to create Intel Group'
 	  }]
@@ -64,14 +61,29 @@ const AddIntelgroup = (props) => {
 	const saveIntelgroup = function() {
 		const emails = [];
 		tags.forEach(tag => {
-			emails.push(tag.name)
+			if(tag.name.search('\\+') > -1){
+				let pluspos = tag.name.search('\\+');
+				let lastpos = tag.name.search('@');
+				let flag = true;
+				emails.forEach(email => {
+					if(email == tag.name.substring(0,pluspos) + tag.name.substr(lastpos)){
+					flag = false;
+					}
+				});
+				if(flag){
+					emails.push(tag.name.substring(0,pluspos) + tag.name.substr(lastpos))
+				}
+			}
+			else{
+				emails.push(tag.name)
+			}
 		});
 		let params = {
 		  name: name,
 		  description: description,
 		  emails: emails
 		};
-		if((name != '' && description != '' && emails.length > 0) || isRefuse){
+		if((name != '' && description != '') || isRefuse){
 			fetch('/api/intelgroups', {
 				method: 'post',
 				headers: {
@@ -106,18 +118,15 @@ const AddIntelgroup = (props) => {
 						else if(nextIndex == 3 && description != ''){
 							return true;
 						}
-						else if(nextIndex == 4 && tags.length > 0){
-							return true;
-						}
 						else{
 							return false;
 						}
 					}}
 					onAfterChange={(nextIndex, newElement)=>{
-						if(nextIndex == 4){
+						if(nextIndex == 3){
 							newElement.addEventListener('click', function(){
 								setStepsEnabled(false);
-								window.location.href="/home/users/new";
+								window.location.href="/app/feeds";
 							})
 						}
 					}}

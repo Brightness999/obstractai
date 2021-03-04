@@ -38,5 +38,6 @@ urlpatterns = [
     path(r'changegroup', views.changegroup, name='changegroup'),
     path(r'pullfeed', views.pullfeed, name='pullfeed'),
     path(r'webhook/', views.webhook, name='webhook'),
+    path(r'onboarding/', views.onboarding, name='onboarding'),
    
 ]

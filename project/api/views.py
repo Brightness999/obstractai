@@ -586,7 +586,7 @@ def apireports(request):
 						'UUID':report['feeditem']['uniqueid'],
 						'Channel_UUID':FeedChannelSerializer(FeedChannels.objects.filter(feed_id=report['feeditem']['feed']['id']).last()).data['uniqueid'],
 						'Intel_Group_UUID':report['intelgroup']['uniqueid'],
-						'Report_URL':f'{settings.SITE_ROOT_URL}/home/intelreports/'+str(report['id']),
+						'Report_URL':f'{settings.SITE_ROOT_URL}/app/intelreports/'+str(report['id']),
 						'Datetime_added':report['created_at'],
 						'RSS_data':{
 							'Title':report['feeditem']['title'],
@@ -940,7 +940,7 @@ def apireports(request):
 			'UUID':report['feeditem']['uniqueid'],
 			'Channel_UUID':FeedChannels.objects.filter(feed_id=report['feeditem']['feed']['id']).last().uniqueid,
 			'Intel_Group_UUID':report['intelgroup']['uniqueid'],
-			'Report_URL':f'{settings.SITE_ROOT_URL}/home/intelreports/'+str(report['id']),
+			'Report_URL':f'{settings.SITE_ROOT_URL}/app/intelreports/'+str(report['id']),
 			'Datetime_added':report['created_at'],
 			'RSS_data':{
 				'Title':report['feeditem']['title'],
@@ -2006,7 +2006,7 @@ def feeds(request):
 							'uuid': webhook.uniqueid,
 							'channel': channelunique,
 							'intelgroup': groupunique,
-							'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
+							'reporturl': f"{settings.SITE_ROOT_URL}/app/report/"+str(IntelReports.objects.last().id),
 							'addedtime': IntelReports.objects.last().created_at,
 							'data': {
 								'title': item.title,
@@ -2074,7 +2074,7 @@ def feeds(request):
 							'uuid': webhook.uniqueid,
 							'channel': channelunique,
 							'intelgroup': groupunique,
-							'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.last().id),
+							'reporturl': f"{settings.SITE_ROOT_URL}/app/report/"+str(IntelReports.objects.last().id),
 							'addedtime': IntelReports.objects.last().created_at,
 							'data': {
 								'title': item.title,
@@ -2327,7 +2327,7 @@ def feedenable(request):
 						'uuid': webhook.uniqueid,
 						'channel': channelunique,
 						'intelgroup': groupunique,
-						'reporturl': f"{settings.SITE_ROOT_URL}/home/report/"+str(IntelReports.objects.filter(feeditem_id=item.id).last().id),
+						'reporturl': f"{settings.SITE_ROOT_URL}/app/report/"+str(IntelReports.objects.filter(feeditem_id=item.id).last().id),
 						'addedtime': IntelReports.objects.filter(feeditem_id=item.id).last().created_at,
 						'data': {
 							'title': item.title,
@@ -2446,9 +2446,14 @@ def indicators(request):
 @api_view(['POST'])
 def invite(request):
 	userids = []
+	users = []
+	emails = []
 	for email in request.data['emails']:
 		if len(CustomUser.objects.filter(email=email).all()) != 0:
 			userids.append(CustomUser.objects.filter(email=email).last().id)
+			users.append(CustomUser.objects.filter(email=email).last().email)
+		else:
+			emails.append(email)
 	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
 	subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
 	flag = False
@@ -2472,14 +2477,31 @@ Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}.com
 Title: You've been invited to join the {groupname} Intel Group on Cyobstract
 Hello!
-{settings.SMTP_USER} has invited to join the {groupname} Intel Group on Cyobstract as a Member.
-By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {groupname} Intel Group.
-To confirm or reject this invitation, click the link below.
-{settings.SITE_ROOT_URL}
-If you have any questions, simply reply to this email to get in contact with a real person on the team.
-Sherlock and the Cyobstract Team''',
+You have been invited to join the {groupname} Intel Group on Obstract AI as a USER_ROLE.
+By accepting this invitation, you’ll have access to all threat intelligence curated by the {groupname} Intel Group.
+To confirm or reject this invitation, log into your profile, and select confirm invite:
+{settings.SITE_ROOT_URL}/app/account
+We look forward to welcoming you onboard.
+		The Obstract AI team''',
 				settings.SMTP_USER,
-				request.data['emails'],
+				users,
+				fail_silently=False
+			)
+			send_mail(
+				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+				f'''From: {settings.FROM}
+Name: Sherlock at Cyobstract
+Reply-to: {settings.REPLY}.com
+Title: You've been invited to join the {groupname} Intel Group on Cyobstract
+Hello!
+You have been invited to join the {groupname} Intel Group on Obstract AI as a USER_ROLE.
+By accepting this invitation, you’ll have access to all threat intelligence curated by the {groupname} Intel Group.
+To accept this invitation, you must first create an Obstract AI account.
+{settings.SITE_ROOT_URL}/accounts/signup
+We look forward to welcoming you onboard.
+		The Obstract AI team''',
+				settings.SMTP_USER,
+				emails,
 				fail_silently=False
 			)
 		except:
@@ -2587,9 +2609,14 @@ def intelgroups(request):
 	if request.method == 'POST':
 		if 'name' in request.data:
 			userids = []
+			users = []
+			emails = []
 			for email in request.data['emails']:
 				if len(CustomUser.objects.filter(email=email).all()) != 0:
 					userids.append(CustomUser.objects.filter(email=email).last().id)
+					users.append(CustomUser.objects.filter(email=email).last().email)
+				else:
+					emails.append(email)
 			name = ''
 			if(request.data['name'] == ''):
 				letters = string.digits
@@ -2604,19 +2631,37 @@ Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}
 Title: You've been invited to join the {name} Intel Group on Cyobstract
 Hello!
-{settings.SMTP_USER} has invited to join the {name} Intel Group on Cyobstract as a Member.
-By accepting this invitation, you’ll have access to all intelligence curated by the other members of the {name} Intel Group.
-To confirm or reject this invitation, click the link below.
-{settings.SITE_ROOT_URL}
-If you have any questions, simply reply to this email to get in contact with a real person on the team.
-Sherlock and the Cyobstract Team''',
+You have been invited to join the {name} Intel Group on Obstract AI as a USER_ROLE.
+By accepting this invitation, you’ll have access to all threat intelligence curated by the {name} Intel Group.
+To confirm or reject this invitation, log into your profile, and select confirm invite:
+{settings.SITE_ROOT_URL}/app/account
+We look forward to welcoming you onboard.
+		The Obstract AI team''',
 					settings.SMTP_USER,
-					request.data['emails'],
+					users,
+					fail_silently=False
+				)
+				send_mail(
+					f'You’ve been invited to join the {name} Intel Group on Cyobstract',
+					f'''From: {settings.FROM}
+Name: Sherlock at Cyobstract
+Reply-to: {settings.REPLY}
+Title: You've been invited to join the {name} Intel Group on Cyobstract
+Hello!
+You have been invited to join the {name} Intel Group on Obstract AI as a USER_ROLE.
+By accepting this invitation, you’ll have access to all threat intelligence curated by the {name} Intel Group.
+To accept this invitation, you must first create an Obstract AI account.
+{settings.SITE_ROOT_URL}/accounts/signup
+We look forward to welcoming you onboard.
+		The Obstract AI team''',
+					settings.SMTP_USER,
+					emails,
 					fail_silently=False
 				)
 			except Exception as e:
 				print(str(e))
-			IntelGroups.objects.create(name=name, description=request.data['description'])
+			
+			IntelGroups.objects.create(name=name, description=request.data['description'], ispublic=request.data['ispublic'])
 			new_group = IntelGroups.objects.last()
 			for globalattribute in GlobalAttributes.objects.all():
 				GroupGlobalAttributes.objects.create(intelgroup_id=new_group.id, globalattribute_id=globalattribute.id, isenable=True)
@@ -2778,7 +2823,6 @@ def users(request):
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])
 def changegroup(request, subscription_holder=None):
-    
 	isPlan = True
 	isInit = False
 	isAutoDown = False
@@ -2801,8 +2845,16 @@ def changegroup(request, subscription_holder=None):
 			planname = Product.objects.filter(djstripe_id=productid).last().name
 			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
 			if datetime.now() > current_period_end.replace(tzinfo=None):
-				starterid = Plan.objects.filter(interval='month', amount=0).last().djstripe_id
-				Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+				# starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
+				# Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+				IntelGroups.objects.filter(id=request.data['id']).update(plan_id=None)
 				isAutoDown = True
 		
 	return Response({'isPlan':isPlan, 'planname':planname, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole.data})
+
+@api_view(['GET'])
+def onboarding(request):
+	CustomUser.objects.filter(id=request.user.id).update(onboarding=False)
+	print(CustomUser.objects.filter(id=request.user.id).update(onboarding=False))
+	onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
+	return Response({'onboarding': onboarding})

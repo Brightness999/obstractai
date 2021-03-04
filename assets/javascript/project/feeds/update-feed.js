@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import {
-	Container,TextField,Button,Tooltip, Dialog, DialogContent, DialogTitle, Slider, Typography, Grid
-} from "@material-ui/core";
+import { Container,TextField,Tooltip, Dialog, DialogContent, DialogTitle, Slider, Typography, Grid } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/HelpOutline';
 import { yellow } from '@material-ui/core/colors';
@@ -182,7 +180,7 @@ const UpdateFeed = (props) => {
 	else{
 		return (
 			<Container>
-				<h1 className="title is-3 pt-1" >Add Custom Feed</h1>
+				<h1 className="title is-3 pt-1" >Add Feed</h1>
 				<Dialog
 					maxWidth="md"
 					fullWidth

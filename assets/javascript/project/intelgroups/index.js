@@ -9,6 +9,7 @@ const IntelGroups = function(props) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
+  const [isPublic, setIsPublic] = useState(false);
   const history = useHistory();  
   
   const reacttag= React.createRef();
@@ -28,13 +29,27 @@ const IntelGroups = function(props) {
 
   const saveIntelgroup = function() {
     const emails = [];
-    tags.forEach(tag => {
-      emails.push(tag.name);
-    });
+    if(tag.name.search('\\+') > -1){
+      let pluspos = tag.name.search('\\+');
+      let lastpos = tag.name.search('@');
+      let flag = true;
+      emails.forEach(email => {
+        if(email == tag.name.substring(0,pluspos) + tag.name.substr(lastpos)){
+        flag = false;
+        }
+      });
+      if(flag){
+        emails.push(tag.name.substring(0,pluspos) + tag.name.substr(lastpos))
+      }
+    }
+    else{
+      emails.push(tag.name)
+    }
     let params = {
       name: name,
       description: description,
-      emails: emails
+      emails: emails,
+      ispublic: isPublic?true:false,
     };
     if(name != '' && description != '' && emails.length > 0){
       fetch('/api/intelgroups', {
@@ -119,6 +134,22 @@ const IntelGroups = function(props) {
               </Grid>
             </Grid>
           </div>
+          <label className="label">Public</label>
+          <TextField
+          className="column is-three-quarters"
+          select
+          margin="normal"
+          SelectProps={{
+              native: true
+          }}
+          variant="outlined"
+          value={isPublic}
+          onChange={(event) => setIsPublic(event.target.value)}
+          >
+            <option value={false}>False</option>
+            <option value={true}>True</option>
+          </TextField>
+          <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
         </div>
         <div className="field is-grouped">
           <div className="control">

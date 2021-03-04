@@ -3,7 +3,7 @@ import { Tr, Td } from 'react-super-responsive-table';
 
 const IndicatorTable = (props) => {
 	return (
-        <Tr>
+        <Tr id={props.index == 0 ? "indicator" : ""}>
             <Td>{`${props.indicator.globalindicator.type}(${props.indicator.globalindicator.type_api})`}</Td>
             <Td>{`${props.indicator.globalindicator.value}(${props.indicator.globalindicator.value_api})`}</Td>
             <Td>

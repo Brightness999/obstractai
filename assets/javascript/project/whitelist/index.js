@@ -39,12 +39,13 @@ const Plan = (props) => {
 
 const WhiteList = (props) => {
     const [stepsEnabled, setStepsEnabled] = useState(true);
+    const [isSuccess, setIsSuccess] = useState(true);
 	const steps = [{
 		element: '#indicator',
-		intro: 'Indicators extracted from text'
+		intro: 'Indicators extracted from fulltext'
 	},{
-		element: '#whitelist',
-		intro: 'Whitelist Indicators'
+		title: '',
+		intro: 'Congratulation!!! 👋'
 	}]
 
     const ListEnable = (index) =>{
@@ -81,18 +82,42 @@ const WhiteList = (props) => {
         })
     }
 
+    const setOnboarding = () => {
+        console.log('ddd')
+        fetch('/api/onboarding', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+            },
+            credentials: 'same-origin',
+        }).then(res=>{return res.json();})
+        .then(res=>{
+            console.log(res);
+            setIsSuccess(res.onboarding);
+        })
+    }
+
     return (
 		<Container>
-            {props.mygroups.length == 0 &&
+            {props.onboarding &&
 			<Steps
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onExit={(index)=>{
-                    setStepsEnabled(false);
-                    if(index==1)
-						window.location.href='/home/intelgroups';
+                onBeforeExit={(index)=>{
+                    if(index ==1 && !isSuccess){
+                        setStepsEnabled(false);
+                        window.location.href='/home';
+                    }
+                    return false;
                 }}
+                onAfterChange={(nextIndex)=>{
+                    if(nextIndex == 0){
+                        setOnboarding();
+                    }
+                }}
+				onExit={()=>{}}
 				options={{doneLabel: 'Done'}}
 			/>}
 			<section className="section">
@@ -103,7 +128,7 @@ const WhiteList = (props) => {
 				</Alert>}
                 <h1 className="title is-3">Manage Indicator visibility</h1>
                 <h1 className="title is-5">Manage by type</h1>
-                <Table id="indicator" className="table is-striped is-fullwidth has-vcentered-cells">
+                <Table className="table is-striped is-fullwidth has-vcentered-cells">
                     <Thead>
                         <Tr>
                             <Th>Type</Th>
@@ -118,7 +143,7 @@ const WhiteList = (props) => {
                     </Tbody>
                 </Table>
             </section>
-            <section className="section" id="whitelist">
+            <section className="section">
                 <span className="title is-5">Manage by whitelist</span>
                 <Link to="/whitelist/new">
                     <button className={props.isAutoDown ? "button is-static is-pulled-right" : "button is-info is-pulled-right"}  >
@@ -157,7 +182,7 @@ const WhiteLists = (props) => {
     const history = useHistory();
 
     useEffect(() => {
-        if(props.currentgroup == '' && props.mygroups.length != 0) history.push('/');
+        if(props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding) history.push('/');
         else{
             let params = {
                 currentgroup: props.currentgroup
@@ -172,6 +197,7 @@ const WhiteLists = (props) => {
                 body: JSON.stringify(params)
             }).then(res=>{return res.json()})
             .then(res=>{
+                console.log(res);
                 setWhitelist(res.whitelist);
                 setIndicators(res.indicators);
                 setGlobalIndicators(res.globalindicators);
@@ -227,9 +253,9 @@ const WhiteLists = (props) => {
 						<p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
 					</div>
 				)
-			if(props.currentrole.role ==2 || props.mygroups.length == 0){
+			if(props.currentrole.role ==2 || props.onboarding){
 				if(props.isPlan)
-					return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator}
+					return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} onboarding={props.onboarding}
                         indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} mygroups={props.mygroups} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}

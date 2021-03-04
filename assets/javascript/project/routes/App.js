@@ -73,6 +73,7 @@ const App = () => {
       body: JSON.stringify(params)
     }).then(res=>{return res.json()})
     .then(res=>{
+      console.log(res);
       setCurrentRole(res.currentrole);
       setCurrentGroup(intelgroup);
       setIsPlan(res.isPlan);
@@ -107,7 +108,7 @@ const App = () => {
   else
     return (
       <Provider store={store}>
-        <BrowserRouter basename='/home/'>
+        <BrowserRouter basename='/app/'>
           <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
           <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} />
           <Switch>

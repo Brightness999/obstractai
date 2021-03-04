@@ -63,7 +63,7 @@ const ReportList = (props) => {
 					if(nextIndex == 1){
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
-							window.location.href=`/home/intelreports/${props.reports[0].uniqueid}`;
+							window.location.href=`/app/intelreports/${props.reports[0].uniqueid}`;
 						})
 					}
 				}}

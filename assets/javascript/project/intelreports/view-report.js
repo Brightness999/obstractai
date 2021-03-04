@@ -7,8 +7,13 @@ const ViewReport = (props) => {
 	console.log(props);
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
-		element: '#title',
-		intro: 'Intel Report Details'
+		element: '#detail',
+		intro: 'Intel Report Details',
+		position: 'top'
+	},{
+		element: '#detail',
+		intro: 'Intel Report Details',
+		position: 'top'
 	}]
 	const history = useHistory();
 
@@ -299,21 +304,39 @@ const ViewReport = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
+				onStart={()=>{
+					document.querySelector('.introjs-helperLayer').style.height = window.innerHeight*0.1;
+				}}
+				onBeforeChange={(nextIndex)=>{
+					if(nextIndex == 0 || nextIndex == 1){
+						document.querySelector('.introjs-helperLayer').style.height = window.innerHeight*0.1;
+						return true;
+					}
+					return false;
+				}}
 				options={{
 					doneLabel: 'Next'
 				}}
-				// onAfterChange={(nextIndex, newElement)=>{
-				// 	if(nextIndex == 1){
-				// 		newElement.addEventListener('click', function(){
-				// 			setStepsEnabled(false);
-				// 			window.location.href='/home/extractions';
-				// 		})
-				// 	}
-				// }}
-				// onBeforeExit={()=>{return false;}}
-				onExit={()=>{
-					setStepsEnabled(false);
-					window.location.href='/home/extractions';
+				onAfterChange={(nextIndex, newElement)=>{
+					// if(nextIndex == 1){
+					// 	newElement.addEventListener('click', function(){
+					// 		setStepsEnabled(false);
+					// 		window.location.href='/app/extractions';
+					// 	})
+					// }
+					if(nextIndex == 0 || nextIndex ==1){
+						document.querySelector('.introjs-helperLayer').style.height = window.innerHeight*0.1;
+						document.querySelector(".introjs-tooltip").style.bottom="18px";
+						console.log('aaaaaa')
+					}
+				}}
+				onBeforeExit={()=>{return false;}}
+				onExit={(index)=>{
+					if(index ==1){
+						setStepsEnabled(false);
+						window.location.href='/app/extractions';
+
+					}
 				}}
 			/>}
 			<section className="section" id="title">
@@ -346,7 +369,7 @@ const ViewReport = (props) => {
 			</section>
 			<section id="extraction">
 			</section>
-			<section className="section">
+			<section className="section" id="detail">
 				<Grid container >
 					<Grid item xs={3} className="pt-4">
 						<span>Confidence:</span>
@@ -391,11 +414,11 @@ const ViewReport = (props) => {
 				<p>API Call</p>
 				<div>
 					<span>Feed: </span>
-					<span>https://sherlock-staging.obstractai.com/home/feeds/{props.groupfeed.uniqueid}</span>
+					<span>https://sherlock-staging.obstractai.com/api/v1/feeds/{props.groupfeed.uniqueid}</span>
 				</div>
 				<div>
 					<span>Report: </span>
-					<span>https://sherlock-staging.obstractai.com/home/intelreports/{props.uniqueid}</span>
+					<span>https://sherlock-staging.obstractai.com/api/v1/reports/{props.uniqueid}</span>
 				</div>
 				<a href="/api/docs" className="muted-link">API docs</a>
 			</section>

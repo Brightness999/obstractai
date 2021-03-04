@@ -42,64 +42,66 @@
   }
   .semisection {
     padding: 1rem 1.5rem; }
-    .react-tags {
-      position: relative;
-      padding: 6px 0 0 6px;
-      border: 1px solid #D1D1D1;
-      border-radius: 1px;
-      z-index: 1;
-    
-      /* shared font styles */
-      font-size: 1em;
-      line-height: 1.2;
-    
-      /* clicking anywhere will focus the input */
-      cursor: text;
-    }
-    
-    .react-tags.is-focused {
-      border-color: #B1B1B1;
-    }
-    
-    .react-tags__selected {
-      display: inline;
-    }
-    
-    .react-tags__selected-tag {
-      display: inline-block;
-      box-sizing: border-box;
-      margin: 0 6px 6px 0;
-      padding: 6px 8px;
-      border: 1px solid #D1D1D1;
-      border-radius: 2px;
-      background: #F1F1F1;
-    
-      /* match the font styles */
-      font-size: inherit;
-      line-height: inherit;
-    }
-    
-    .react-tags__selected-tag:after {
-      content: '\2715';
-      color: #AAA;
-      margin-left: 8px;
-    }
-    
-    .react-tags__selected-tag:hover,
-    .react-tags__selected-tag:focus {
-      border-color: #B1B1B1;
-    }
-    
-    .react-tags__search {
-      display: inline-block;
-    
-      /* match tag layout */
-      padding: 7px 2px;
-      margin-bottom: 6px;
-    
-      /* prevent autoresize overflowing the container */
-      max-width: 100%;
-    }
+  
+  
+  .react-tags {
+    position: relative;
+    padding: 6px 0 0 6px;
+    border: 1px solid #D1D1D1;
+    border-radius: 1px;
+    z-index: 1;
+  
+    /* shared font styles */
+    font-size: 1em;
+    line-height: 1.2;
+  
+    /* clicking anywhere will focus the input */
+    cursor: text;
+  }
+  
+  .react-tags.is-focused {
+    border-color: #B1B1B1;
+  }
+  
+  .react-tags__selected {
+    display: inline;
+  }
+  
+  .react-tags__selected-tag {
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 0 6px 6px 0;
+    padding: 6px 8px;
+    border: 1px solid #D1D1D1;
+    border-radius: 2px;
+    background: #F1F1F1;
+  
+    /* match the font styles */
+    font-size: inherit;
+    line-height: inherit;
+  }
+  
+  .react-tags__selected-tag:after {
+    content: '\2715';
+    color: #AAA;
+    margin-left: 8px;
+  }
+  
+  .react-tags__selected-tag:hover,
+  .react-tags__selected-tag:focus {
+    border-color: #B1B1B1;
+  }
+  
+  .react-tags__search {
+    display: inline-block;
+  
+    /* match tag layout */
+    padding: 7px 2px;
+    margin-bottom: 6px;
+  
+    /* prevent autoresize overflowing the container */
+    max-width: 100%;
+  }
     
     @media screen and (min-width: 30em) {
     

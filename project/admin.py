@@ -437,3 +437,8 @@ class GroupPlanAdmin(admin.ModelAdmin):
 				interval_count=1
 			)
 		return True
+
+@admin.register(IntelReports)
+class IntelReportsAdmin(admin.ModelAdmin):
+	def has_add_permission(self, request, obj=None):
+		return False

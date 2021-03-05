@@ -11,8 +11,6 @@ from .groupfeeds import GroupFeeds
 class IntelReports(BaseModel):
     uniqueid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     feeditem = models.ForeignKey(FeedItems, on_delete=models.CASCADE, null=True)
-    intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
-    groupfeed = models.ForeignKey(GroupFeeds, on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name_plural = "IntelReports"

@@ -4,13 +4,13 @@ import { Grid } from "@material-ui/core";
 
 const ReportCard = function (props) {
 	let tags = [];
-	if(props.report.groupfeed){
-		if(props.report.groupfeed.tags != ''){
-			if(props.report.groupfeed.tags.indexOf(",") > -1)
-				tags = props.report.groupfeed.tags.split(',');
+	if(props.feeds[0]){
+		if(props.feeds[0].tags != ''){
+			if(props.feeds[0].tags.indexOf(",") > -1)
+				tags = props.feeds[0].tags.split(',');
 			else{
-				if(props.report.groupfeed.tags != '')
-					tags.push(props.report.groupfeed.tags);
+				if(props.feeds[0].tags != '')
+					tags.push(props.feeds[0].tags);
 			}
 		}
 	}
@@ -49,7 +49,7 @@ const ReportCard = function (props) {
 							<div>
 								<span>
 									<button className="button is-info is-rounded mx-2" >
-									<span>{props.report.groupfeed.category ? props.report.groupfeed.category.name : ""}</span>
+									<span>{props.feeds[0] ? props.feeds[0].category.name : ""}</span>
 									</button>
 									{tags!=[] && tags.map((tag, index) => {
 										return (
@@ -59,7 +59,7 @@ const ReportCard = function (props) {
 										);
 									})}
 									<button className="button is-link is-rounded mx-2">
-										<span>{props.report.groupfeed ? props.report.groupfeed.name : ""}</span>
+										<span>{props.feeds[0] ? props.feeds[0].name : ""}</span>
 									</button>
 								</span>
 							</div>
@@ -78,7 +78,7 @@ const ReportCard = function (props) {
 								</Grid>
 								<Grid item xs={9} className="py-2">
 									<button className="button is-primary is-rounded">
-										<span>{props.report.groupfeed.confidence}</span>
+										<span>{props.feeds[0].confidence}</span>
 									</button>
 								</Grid>
 							</Grid>

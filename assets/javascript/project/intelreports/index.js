@@ -362,6 +362,13 @@ const IntelReports = (props) => {
 		};
 	}
 
+	const getFeedByReport = (report) => {
+		for(const feed of feeds){
+			if(feed.feed.id == report.feeditem.feed.id)
+				return feed;
+		};
+	}
+
 	const renderViewReport = (data) => {
 		if(isLoading){
 			return <Loading/>;
@@ -369,24 +376,17 @@ const IntelReports = (props) => {
 		else {
 			const report_id = data.match.params.id;
 			const report = getReportById(report_id);
-			const feed = []
-			feed.forEach(f => {
-				console.log(report);
-				console.log(f.feed.id);
-				if(f.feed.id == report.feeditem.feed.id){
-					feed.push(f)
-				}
-			});
+			const feed = getFeedByReport(report)
 			return(
-				<ViewReport currentgroup={props.currentgroup} feeds={feeds} onboarding={props.onboarding} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
+				<ViewReport currentgroup={props.currentgroup} feed={feed} onboarding={props.onboarding} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
 			)
 		}
 	}
 
 	return (
 		<Switch>
-			<Route path="/intelreports/:id" render={(props) => renderViewReport(props)} >
-			</Route>
+			<Route path="/intelreports/:id" render={(props) => renderViewReport(props)} ></Route>
+			<Route path="/intelreports/:id/:groupid" render={(props) => renderViewReport(props)} ></Route>
 			<Route path="/intelreports">
 				{ReportListView()}
 			</Route> 

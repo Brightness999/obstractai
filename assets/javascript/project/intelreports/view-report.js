@@ -4,7 +4,6 @@ import { Container, Grid } from "@material-ui/core";
 import { Steps } from 'intro.js-react';
 
 const ViewReport = (props) => {
-	console.log(props);
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
 		element: '#detail',
@@ -18,19 +17,19 @@ const ViewReport = (props) => {
 	const history = useHistory();
 
 	useEffect(()=>{
-		if((props.intelgroup.id != props.currentgroup) && !props.onboarding)
+		if(props.currentgroup != props.feeds[0].intelgroup.id && !props.onboarding)
 			history.push('/intelreports');
 	},[props.currentgroup])
 
 	let tags = [];
-	if(props.groupfeed.tags){
-		if(props.groupfeed.tags.indexOf(",") > -1)
-		tags = props.groupfeed.tags.split(',');
-		else tags.push(props.groupfeed.tags);
+	if(props.feeds[0]){
+		if(props.feeds[0].tags.indexOf(",") > -1)
+		tags = props.feeds[0].tags.split(',');
+		else tags.push(props.feeds[0].tags);
 	}
 	const classifications = [];
 	props.classifications.forEach(classification => {
-		if(classification.intelgroup.id == props.intelgroup.id){
+		if(classification.intelgroup.id == props.currentgroup){
 			classifications.push(classification);
 		}
 	});
@@ -138,7 +137,7 @@ const ViewReport = (props) => {
 	if(csector.length > 0) intel['Sector'] = csector;
 	const data = {
 		UUID: props.uniqueid,
-		Intel_Group_UUID: props.intelgroup.id,
+		Intel_Group_UUID: props.currentgroup,
 		Report_URL: `https://sherlock-staging.obstractai.com/api/v1/reports?UUID=${props.uniqueid}`,
 		Datetime_added: props.created_at,
 		RSS_data: {
@@ -347,7 +346,7 @@ const ViewReport = (props) => {
 					<Grid item xs={12} md={6}>
 						<span>
 							<button className="button is-info is-rounded mx-2">
-								<span>{props.groupfeed.category.name}</span>
+								<span>{props.feeds[0] && props.feeds[0].category.name}</span>
 							</button>
 							{tags.map((tag, index)=>{
 								return <button key={index} className="button is-warning is-rounded mx-2" >
@@ -355,10 +354,10 @@ const ViewReport = (props) => {
 								</button>
 							})}
 							<button className="button is-danger is-rounded mx-2" >
-								<span>{props.groupfeed.name}</span>
+								<span>{props.feeds[0] && props.feeds[0].name}</span>
 							</button>
 							<button className="button is-primary is-rounded mx-2" >
-								<span>{props.groupfeed.confidence}</span>
+								<span>{props.feeds[0] && props.feeds[0].confidence}</span>
 							</button>
 						</span>
 					</Grid>
@@ -376,7 +375,7 @@ const ViewReport = (props) => {
 					</Grid>
 					<Grid item xs={9} className="py-2">
 						<button className="button is-primary is-rounded" >
-							<span>{props.groupfeed.confidence}</span>
+							<span>{props.feeds[0] && props.feeds[0].confidence}</span>
 						</button>
 					</Grid>
 				</Grid>
@@ -414,11 +413,11 @@ const ViewReport = (props) => {
 				<p>API Call</p>
 				<div>
 					<span>Feed: </span>
-					<span>https://sherlock-staging.obstractai.com/api/v1/feeds/{props.groupfeed.uniqueid}</span>
+					<span>https://sherlock-staging.obstractai.com/app/feeds/{props.feeds[0].uniqueid}</span>
 				</div>
 				<div>
 					<span>Report: </span>
-					<span>https://sherlock-staging.obstractai.com/api/v1/reports/{props.uniqueid}</span>
+					<span>https://sherlock-staging.obstractai.com/app/intelreports/{props.uniqueid}</span>
 				</div>
 				<a href="/api/docs" className="muted-link">API docs</a>
 			</section>

@@ -28,7 +28,7 @@ const Plan = (props) => {
 			<h1 className="title is-size-3 has-text-centered py-6">No plan! You must select a plan to perform that action. <a className="tag title is-3" onClick={ManagePlan}>Click here to manage your plan</a></h1>
 			{isAlert&& <Grid container direction="row" justify="center" alignItems="center">
 				<Grid item xs={6}>
-					<Alert className="has-text-centered title is-size-4" severity="error" onClose={()=>setIsAlert(false)}>! Please contact the feed group administrator to manage intel group plan payment to reinstate access.</Alert>
+					<Alert className="has-text-centered title is-size-4" severity="error" onClose={()=>setIsAlert(false)}>! Please contact the Intel Group administrator to manage intel group plan payment to reinstate access.</Alert>
 				</Grid>
 			</Grid>}
 		</div>
@@ -226,14 +226,19 @@ const ReportList = (props) => {
 							indicators.push(indicator)
 						}
 					});
-					
 					const classifications = [];
 					props.classifications.forEach(classification => {
-						if(classification.intelgroup.id == report.intelgroup.id){
+						if(classification.intelgroup.id == props.currentgroup){
 							classifications.push(classification);
 						}
 					});
-					return <ReportCard index={index} key={report.id} report={report} indicators={indicators} classifications={classifications} globalattributes={props.globalattributes}/>;
+					const feeds = []
+					props.feeds.forEach(feed => {
+						if(feed.feed.id == report.feeditem.feed.id){
+							feeds.push(feed)
+						}
+					});
+					return <ReportCard index={index} key={report.id} report={report} feeds={feeds} indicators={indicators} classifications={classifications} globalattributes={props.globalattributes}/>;
 				})
 			}
 			
@@ -343,14 +348,14 @@ const IntelReports = (props) => {
 					return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} 
 						mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
 						indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} 
-						reports={reports} isInit={props.isInit} message={props.message} onboarding={props.onboarding}/>
+						reports={reports} isInit={props.isInit} message={props.message} onboarding={props.onboarding} currentgroup={props.currentgroup} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			
 		}
 	}
 
-	const getFeedById = (id) => {
+	const getReportById = (id) => {
 		for(const report of reports){
 			if(report.uniqueid == id)
 				return report;
@@ -363,9 +368,17 @@ const IntelReports = (props) => {
 		} 
 		else {
 			const report_id = data.match.params.id;
-			const report = getFeedById(report_id);
+			const report = getReportById(report_id);
+			const feed = []
+			feed.forEach(f => {
+				console.log(report);
+				console.log(f.feed.id);
+				if(f.feed.id == report.feeditem.feed.id){
+					feed.push(f)
+				}
+			});
 			return(
-				<ViewReport currentgroup={props.currentgroup} onboarding={props.onboarding} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
+				<ViewReport currentgroup={props.currentgroup} feeds={feeds} onboarding={props.onboarding} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
 			)
 		}
 	}

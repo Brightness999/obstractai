@@ -170,7 +170,11 @@ const ViewReport = (props) => {
 		indicators.forEach(indicator => {
 			let items = indicator.value.split(',');
 			items.forEach(item => {
-				if(!(item*1>0 && item*1<10) && item.indexOf('?') == -1){
+				if(!(item*1>0 && item*1<10)){
+					console.log(item)
+					if(item.indexOf('?') > -1){
+						item = item.substring(0, item.indexOf('?'))
+					}
 					item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 					let reg = new RegExp(item, 'g'), result, ids = [];
 					while ( (result = reg.exec(str)) ) {

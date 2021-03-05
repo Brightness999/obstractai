@@ -195,10 +195,8 @@ class UserGroupAttributeSerializer(serializers.ModelSerializer):
         model = Attributes
         fields = ('__all__')
 
-class ItemFeedGroupReportSerializer(serializers.ModelSerializer):
+class ItemReportSerializer(serializers.ModelSerializer):
     feeditem = FeedItemSerializer(many=False, read_only=True)
-    groupfeed = GroupCategoryFeedSerializer(many=False, read_only=True)
-    intelgroup = IntelGroupSerializer(many=False, read_only=True)
     class Meta:
         model = IntelReports
         fields = ('__all__')

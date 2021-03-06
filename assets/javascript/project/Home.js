@@ -103,6 +103,7 @@ const AddIntelgroup = (props) => {
 	return (
 		<Container>
 			<section className="section app-card">
+				{props.onboarding &&
 				<Steps
 					enabled={stepsEnabled}
 					steps={steps}
@@ -131,7 +132,7 @@ const AddIntelgroup = (props) => {
 						}
 					}}
 					onExit={()=>{}}
-					/>
+				/>}
 				<h2 className="subtitle">Create New Intel Group</h2>
 				<div id="name"><label className="label">Name</label>
 				<TextField

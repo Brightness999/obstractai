@@ -257,6 +257,7 @@ const IntelReports = (props) => {
 	const [globalindicators, setGlobalIndicators] = useState([]);
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [reports, setReports] = useState([]);
+	const [banner, setBanner] = useState(false);
 	const history = useHistory();
 	const confidences = [];
 	for (let i=1;i<100;i++){
@@ -272,6 +273,7 @@ const IntelReports = (props) => {
 			let params = {};
 			if(location.pathname.split('/').length == 4){
 				params['uniqueid'] = location.pathname.split('/')[3].split(' ')[0];
+				params['reportid'] = location.pathname.split('/')[2];
 			}
 			else{
 				params['id'] = props.currentgroup;
@@ -288,15 +290,21 @@ const IntelReports = (props) => {
 				body: JSON.stringify(params)
 			}).then((res)=> { return res.json();})
 			.then((res)=>{
-				setFeeds(res.feeds);
-				setCategories(res.categories);
-				setClassifications(res.extractions);
-				setIndicators(res.indicators);
-				setGlobalIndicators(res.globalindicators);
-				setGlobalAttributes(res.globalattributes);
-				setReports(res.reports);
-				setTags(res.tags);
-				setIsLoading(false);
+				if(Boolean(res.banner)){
+					setBanner(res.banner);
+					setIsLoading(false);
+				}
+				else{
+					setFeeds(res.feeds);
+					setCategories(res.categories);
+					setClassifications(res.extractions);
+					setIndicators(res.indicators);
+					setGlobalIndicators(res.globalindicators);
+					setGlobalAttributes(res.globalattributes);
+					setReports(res.reports);
+					setTags(res.tags);
+					setIsLoading(false);
+				}
 			});
 		}
 	},[props.currentgroup]);
@@ -351,46 +359,54 @@ const IntelReports = (props) => {
 			}
 			else{
 				if(props.isPlan)
-					return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} 
-						mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
-						indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} 
-						reports={reports} isInit={props.isInit} message={props.message} onboarding={props.onboarding} currentgroup={props.currentgroup} />
+				return <ReportList categories={categories} tags={tags} client={props.client} isInit={props.isInit} message={props.message} 
+				mygroups={props.mygroups} classifications={classifications} feeds={feeds} globalattributes={globalattributes}
+				indicators={indicators} searchReport={searchReport} confidences={confidences} globalindicators={globalindicators} 
+				reports={reports} isInit={props.isInit} message={props.message} onboarding={props.onboarding} currentgroup={props.currentgroup} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			
 		}
 	}
-
+	
 	const getReportById = (id) => {
 		for(const report of reports){
 			if(report.uniqueid == id)
-				return report;
+			return report;
 		};
 	}
-
+	
 	const getFeedByReport = (report) => {
 		for(const feed of feeds){
 			if(feed.feed.id == report.feeditem.feed.id)
-				return feed;
+			return feed;
 		};
 	}
-
+	
 	const renderViewReport = (data) => {
 		if(isLoading){
 			return <Loading/>;
-		} 
+		}
+		else if(banner){
+			return(
+				<div className='app-card has-text-centered'>
+					<div className="lds-ripple"><div></div><div></div></div>
+					<p className="subtitle is-3">! You can't access this report.</p>
+				</div>
+			);
+		}
 		else {
 			const report_id = data.match.params.id;
 			const report = getReportById(report_id);
 			const feed = getFeedByReport(report)
 			return(
-				<ViewReport currentgroup={props.currentgroup} feed={feed} onboarding={props.onboarding} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
-			)
+				<ViewReport currentgroup={props.currentgroup} banner={banner} feed={feed} onboarding={props.onboarding} client={props.client} {...report} mygroups={props.mygroups} classifications={classifications} globalattributes={globalattributes} indicators={indicators} />
+				)
+			}
 		}
-	}
-
-	return (
-		<Switch>
+		
+		return (
+			<Switch>
 			<Route path="/intelreports/:id" render={(props) => renderViewReport(props)} ></Route>
 			<Route path="/intelreports/:id/:groupid" render={(props) => renderViewReport(props)} ></Route>
 			<Route path="/intelreports">

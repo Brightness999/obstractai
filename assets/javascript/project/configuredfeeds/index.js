@@ -145,6 +145,7 @@ const ConfiguredFeeds = (props) => {
 	const [configuredfeeds, setConfiguredFeeds] = useState([]);
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
+	const [banner, setBanner] = useState(false);
 	const history = useHistory();
 	const confidences = [];
 	for(let i=1;i<=100;i++){
@@ -172,10 +173,16 @@ const ConfiguredFeeds = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
-				setConfiguredFeeds(res.configuredfeeds);
-				setCategories(res.categories);
-				setTags(res.tags);
-				setIsLoading(false);
+				if(Boolean(res.banner)){
+					setBanner(res.banner);
+					setIsLoading(false);
+				}
+				else{
+					setConfiguredFeeds(res.configuredfeeds);
+					setCategories(res.categories);
+					setTags(res.tags);
+					setIsLoading(false);
+				}
 			});
 		}
 	},[props.currentgroup]);
@@ -262,8 +269,16 @@ const ConfiguredFeeds = (props) => {
 		if(isLoading){
 			return <Loading/>;
 		}
+		else if(banner){
+			return(
+				<div className='app-card has-text-centered'>
+					<div className="lds-ripple"><div></div><div></div></div>
+					<p className="subtitle is-3">! You can't access this feed.</p>
+				</div>
+			);
+		}
 		else {
-		const feed_id = data.match.params.id;
+			const feed_id = data.match.params.id;
 			const feed = getFeedById(feed_id);			
 			return(
 				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole}

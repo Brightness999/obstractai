@@ -47,6 +47,7 @@ const UpdateUser = function(props) {
       emails: emails
     };
     if(emails.length > 0){
+      document.querySelector('#button').classList.add('is-loading');
       fetch('/api/invite', {
         method: 'post',
         headers: {
@@ -61,9 +62,12 @@ const UpdateUser = function(props) {
           setIsAlert(true);
         }
         else{
-          if(!Boolean(res.role)){
-            props.userSaved(res);
-          } 
+          if(!Boolean(res.users.role)){
+            props.userSaved(res.users, res.emails);
+          }
+          else{
+            props.userSaved([], res.emails);
+          }
           history.push('/users');
         }
       })

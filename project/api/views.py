@@ -46,12 +46,12 @@ from ..models import (APIKeys, Attributes, Categories, FeedChannels, FeedItems,
                       Feeds, GlobalAttributes, GlobalIndicators, GroupFeeds,
                       GroupGlobalAttributes, Indicators, IntelGroups,
                       IntelReports, PlanHistory, Tags, UserIntelGroupRoles,
-                      WebHooks, Whitelists)
+                      WebHooks, Whitelists, InviteEmails)
 from ..serializers import (AccepInviteSerializer, APIKeyCreateSerializer,
                            APIkeySerializer, AttributeCreateSerializer,
                            AttributeUpdateSerializer, CategoryCreateSerializer,
                            CategorySerializer, CategoryUpdateSerializer,
-                           ChangeEmailSerializer,
+                           ChangeEmailSerializer, GroupInviteEmialSerializer,
                            CustomUserSerializer, EnabledSerializer,
                            FeedCategorySerializer, FeedChannelSerializer,
                            FeedCreateSerializer, FeedItemSerializer,
@@ -2444,37 +2444,39 @@ def indicators(request):
 	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
 	return Response(serializer.data)
 
+@swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupInviteEmialSerializer})
 @swagger_auto_schema(methods=['post'], request_body=InviteSerializer, responses={201: UserIntelGroupRolesSerializer})
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 def invite(request):
-	userids = []
-	users = []
-	emails = []
-	for email in request.data['emails']:
-		if len(CustomUser.objects.filter(email=email).all()) != 0:
-			userids.append(CustomUser.objects.filter(email=email).last().id)
-			users.append(CustomUser.objects.filter(email=email).last().email)
+	if request.method == 'POST':
+		userids = []
+		users = []
+		emails = []
+		for email in request.data['emails']:
+			if len(CustomUser.objects.filter(email=email).all()) != 0:
+				userids.append(CustomUser.objects.filter(email=email).last().id)
+				users.append(CustomUser.objects.filter(email=email).last().email)
+			else:
+				emails.append(email)
+		created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
+		subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
+		flag = False
+		if subid == None:
+			if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=1):
+				flag =True			
 		else:
-			emails.append(email)
-	created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
-	subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
-	flag = False
-	if subid == None:
-		if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=1):
-			flag =True			
-	else:
-		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-		max_users = Product.objects.filter(djstripe_id=productid).last().metadata['max_users']
-		users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id']).all()
-		if len(users) < int(max_users):
-			flag = True
-	if flag:
-		groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
-		try:
-			send_mail(
-				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-				f'''From: {settings.FROM}
+			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+			max_users = Product.objects.filter(djstripe_id=productid).last().metadata['max_users']
+			users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id']).all()
+			if len(users) < int(max_users):
+				flag = True
+		if flag:
+			groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
+			try:
+				send_mail(
+					f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+					f'''From: {settings.FROM}
 Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}.com
 Title: You've been invited to join the {groupname} Intel Group on Cyobstract
@@ -2485,13 +2487,13 @@ To confirm or reject this invitation, log into your profile, and select confirm 
 {settings.SITE_ROOT_URL}/app/account
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
-				settings.SMTP_USER,
-				users,
-				fail_silently=False
-			)
-			send_mail(
-				f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-				f'''From: {settings.FROM}
+					settings.SMTP_USER,
+					users,
+					fail_silently=False
+				)
+				send_mail(
+					f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+					f'''From: {settings.FROM}
 Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}.com
 Title: You've been invited to join the {groupname} Intel Group on Cyobstract
@@ -2502,32 +2504,38 @@ To accept this invitation, you must first create an Obstract AI account.
 {settings.SITE_ROOT_URL}/accounts/signup
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
-				settings.SMTP_USER,
-				emails,
-				fail_silently=False
-			)
-		except:
-			print('email sending error!')
-		users = [];
-		for userid in userids:
-			existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()
-			if len(existing_user) == 0:
-				UserIntelGroupRoles.objects.create(intelgroup_id=request.data['group_id'], user_id=userid, role=0)
-				user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid, role=0).all()
-				serializer = UserIntelGroupRolesSerializer(user[0])
-				users.append(serializer.data)
-		if(len(users) == 0):
-				users={'role': True}
-		return Response(users)
-	else:
-		return Response({'message':True})
+					settings.SMTP_USER,
+					emails,
+					fail_silently=False
+				)
+			except:
+				print('email sending error!')
+			users = [];
+			for userid in userids:
+				existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()
+				if len(existing_user) == 0:
+					UserIntelGroupRoles.objects.create(intelgroup_id=request.data['group_id'], user_id=userid, role=0)
+					user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid, role=0).all()
+					serializer = UserIntelGroupRolesSerializer(user[0])
+					users.append(serializer.data)
+			for email in emails:
+				InviteEmails.objects.create(email=email, intelgroup_id=request.data['group_id'])
+			emails = GroupInviteEmialSerializer(InviteEmails.objects.filter(intelgroup_id=request.data['group_id']).all(), many=True).data
+			if(len(users) == 0):
+					users={'role': True}
+			return Response({'users':users, 'emails':emails})
+		else:
+			return Response({'message':True})
+	elif request.method == 'DELETE':
+		InviteEmails.objects.filter(id=request.data['id']).delete()
+		return Response('Success')
 
-@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
-@api_view(['POST'])
-def currentrole(request):
-	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
-	serializer = UserGroupRoleSerializer(currentrole[0])
-	return Response({'currentrole':serializer.data})
+# @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
+# @api_view(['POST'])
+# def currentrole(request):
+# 	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
+# 	serializer = UserGroupRoleSerializer(currentrole[0])
+# 	return Response({'currentrole':serializer.data})
 
 @swagger_auto_schema(methods=['post'], request_body=CategoryCreateSerializer, responses={201: CategorySerializer})
 @swagger_auto_schema(methods=['put'], request_body=CategoryUpdateSerializer, responses={200: CategorySerializer})
@@ -2556,6 +2564,9 @@ def categories(request):
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
 @api_view(['GET'])
 def home(request):
+	for email in InviteEmails.objects.filter(email=request.user.email).all():
+		UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=email.intelgroup_id, role=0)
+	InviteEmails.objects.filter(email=request.user.email).delete()
 	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
 	# if len(groups) > 0:
 	# 	CustomUser.objects.filter(id=request.user.id).update(onboarding=False)
@@ -2605,9 +2616,9 @@ def deleteaccount(request):
 @api_view(['GET', 'POST', 'PUT'])
 def intelgroups(request):
 	if request.method == 'GET':
-		groups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all(), many=True)
-		users = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True)
-		return Response({'intelgroups':groups.data, 'users':users.data})
+		groups = RoleGroupSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('id').all(), many=True).data
+		users = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True).data
+		return Response({'intelgroups':groups, 'users':users})
 	if request.method == 'POST':
 		if 'name' in request.data:
 			userids = []
@@ -2789,7 +2800,6 @@ def role(request):
 		serializer = UserIntelGroupRolesSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid']).all(), many=True)
 		return Response({'myId':request.user.id, 'users':serializer.data, 'grouprole':user_role.data})
 	if request.method == 'DELETE':
-		
 		if UserIntelGroupRoles.objects.filter(id=request.data['id']).last().role == 4:
 			userid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().user_id
 			groupid = UserIntelGroupRoles.objects.filter(id=request.data['id']).last().intelgroup_id
@@ -2817,10 +2827,10 @@ Sherlock and the Cyobstract Team''',
 @api_view(['POST'])
 def users(request):
 	if request.method == 'POST':
-		allusers = CustomUserSerializer(CustomUser.objects.exclude(is_staff=True).order_by('id').all(), many=True)
-		user_role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['id'], user_id=request.user.id).last())
-		users = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all(), many=True)
-		return Response({'myId':request.user.id, 'users':users.data, 'allusers':allusers.data, 'grouprole':user_role.data})
+		user_role = UserGroupRoleSerializer(UserIntelGroupRoles.objects.all().filter(intelgroup_id=request.data['id'], user_id=request.user.id).last()).data
+		users = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).order_by('id').all(), many=True).data
+		emails = GroupInviteEmialSerializer(InviteEmails.objects.filter(intelgroup_id=request.data['id']).order_by('id').all(), many=True).data
+		return Response({'myId':request.user.id, 'users':users, 'grouprole':user_role, 'emails':emails})
 	
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserIntelGroupRolesSerializer})
 @api_view(['POST'])

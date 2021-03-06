@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import { Switch, Route, Link, useHistory } from "react-router-dom";
+import { Switch, Route, Link, useHistory, useLocation } from "react-router-dom";
 import { Container, TextField, Grid } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import { Steps } from 'intro.js-react';
@@ -246,7 +246,6 @@ const ReportList = (props) => {
 	);
 }
 
-
 const IntelReports = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [categories, setCategories] = useState([]);
@@ -263,10 +262,12 @@ const IntelReports = (props) => {
 	for (let i=1;i<100;i++){
 		confidences[confidences.length] = i;
 	}
+	const location = useLocation();
 
 	useEffect(()=>{
-		if(props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding){
+		if(props.currentgroup == '' && !props.onboarding){
 			history.push('/');
+			// console.log(location.pathname.split('/')[3].split(' ')[0]);
 		}
 		else{
 			setIsLoading(true);

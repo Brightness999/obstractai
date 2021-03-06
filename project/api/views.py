@@ -1085,10 +1085,13 @@ def webhooks(request):
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: ItemReportSerializer})
 @api_view(['POST'])
 def reports(request):
-	if request.data['id'] == '':
-		groupid = UserIntelGroupRoles.objects.filter(id=request.user.id).order_by('intelgroup_id').last().intelgroup_id
-	else:
-		groupid = request.data['id']
+	if 'id' in request.data:
+		if request.data['id'] == '':
+			groupid = UserIntelGroupRoles.objects.filter(id=request.user.id).order_by('intelgroup_id').last().intelgroup_id
+		else:
+			groupid = request.data['id']
+	elif 'uniqueid' in request.data:
+		groupid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id
 	itemids = []
 	groupfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid, isenable=True).all(), many=True).data
 	for feed in groupfeeds:
@@ -2129,10 +2132,14 @@ def feedlist(request):
 @api_view(['POST', 'PUT', 'DELETE', 'PATCH'])
 def configuredfeeds(request):
 	if request.method == 'POST':
-		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all(), many=True)
+		if 'id' in request.data:
+			groupid = request.data['id']
+		elif 'uniqueid' in request.data:
+			groupid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id
+		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True)
 		feedids = []
 		feeditemids = []
-		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all():
 			feedids.append(groupfeed.feed_id)
 		channels = FeedChannelSerializer(FeedChannels.objects.filter(feed_id__in=feedids).order_by('id').all(), many=True)
 		collections = []

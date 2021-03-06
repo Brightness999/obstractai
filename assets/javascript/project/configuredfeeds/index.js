@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import { Switch,Route,Link,useHistory} from "react-router-dom";
+import { Switch,Route,Link,useHistory, useLocation} from "react-router-dom";
 import { Container,TextField,Grid} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 
@@ -150,12 +150,17 @@ const ConfiguredFeeds = (props) => {
 	for(let i=1;i<=100;i++){
 		confidences.push(i);
 	}
+	const location = useLocation();
 
 	useEffect(()=>{
-		if(props.currentgroup == '') history.push('/');
+		if(props.currentgroup == '' && location.pathname.split('/').length < 4) history.push('/');
 		else{
-			let params = {
-				id: props.currentgroup
+			let params = {};
+			if(location.pathname.split('/').length == 4){
+				params['uniqueid'] = location.pathname.split('/')[3].split(' ')[0];
+			}
+			else{
+				params['id'] = props.currentgroup;
 			}
 			fetch('/api/configuredfeeds', {
 				method: 'post',

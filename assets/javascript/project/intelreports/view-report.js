@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { Container, Grid } from "@material-ui/core";
 import { Steps } from 'intro.js-react';
 
 const ViewReport = (props) => {
-	console.log(props);
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
 		element: '#detail',
@@ -16,9 +15,10 @@ const ViewReport = (props) => {
 		position: 'top'
 	}]
 	const history = useHistory();
+	const location = useLocation();
 
 	useEffect(()=>{
-		if(props.currentgroup != props.feed.intelgroup.id && !props.onboarding)
+		if(props.currentgroup != props.feed.intelgroup.id && !props.onboarding && location.pathname.split('/').length < 4)
 			history.push('/intelreports');
 	},[props.currentgroup])
 
@@ -172,21 +172,20 @@ const ViewReport = (props) => {
 			let items = indicator.value.split(',');
 			items.forEach(item => {
 				if(!(item*1>0 && item*1<10)){
-					console.log(item)
 					if(item.indexOf('?') > -1){
 						item = item.substring(0, item.indexOf('?'))
 					}
 					item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 					let reg = new RegExp(item, 'g'), result, ids = [];
-					while ( (result = reg.exec(str)) ) {
+					while ((result = reg.exec(str))) {
 						ids.push(result.index);
 					}
 					for(let i=0;i<ids.length;i++) {
 						let astartreg = />/gi, alastreg = /</gi, re, astart = [], alast = [];
-						while ( (re = astartreg.exec(str)) ) {
+						while ((re = astartreg.exec(str))) {
 							astart.push(re.index);
 						}
-						while ( (re = alastreg.exec(str)) ) {
+						while ((re = alastreg.exec(str))) {
 							alast.push(re.index);
 						}
 						for(let j=0;j<astart.length-1;j++){
@@ -418,7 +417,7 @@ const ViewReport = (props) => {
 				<p>API Call</p>
 				<div>
 					<span>Feed: </span>
-					<span>https://sherlock-staging.obstractai.com/app/feeds/{props.feed.uniqueid}/{props.feed.intelgroup.uniqueid}</span>
+					<span>https://sherlock-staging.obstractai.com/app/configuredfeeds/{props.feed.uniqueid}/{props.feed.intelgroup.uniqueid}</span>
 				</div>
 				<div>
 					<span>Report: </span>
@@ -426,7 +425,6 @@ const ViewReport = (props) => {
 				</div>
 				<a href="/api/docs" className="muted-link">API docs</a>
 			</section>
-
 		</Container>
 	);
 }

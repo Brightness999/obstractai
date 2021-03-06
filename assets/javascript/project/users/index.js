@@ -75,6 +75,14 @@ const UserList = function(props) {
 						/>;
 					})
 				}
+				{
+					props.emails.map((email, index) => {
+						return <UserTable key={email.id} index={index} myId={props.myId} group_role={props.group_role}
+							{...email} emaildelete={(index) => props.deleteEmail(index)} 
+							adminUser={(role, ugr_id) => props.adminUser(role, ugr_id)}
+						/>;
+					})
+				}
 				</Tbody>
 			</Table>
 		</section>
@@ -97,6 +105,7 @@ const Loading = function() {
 const User = (props) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [users, setUsers] = useState([]);
+	const [emails, setEmails] = useState([]);
 	const [myId, setMyId] = useState([]);
 	const [groupRole, setGroupRole] = useState({});
 	const history = useHistory();
@@ -121,6 +130,7 @@ const User = (props) => {
 			}).then(res=>{return res.json()})
 			.then(res=>{
 				setUsers(res.users);
+				setEmails(res.emails);
 				setMyId(res.myId);
 				setGroupRole(res.grouprole);
 				setIsLoading(false);
@@ -128,7 +138,8 @@ const User = (props) => {
 		}
 	}, [props.currentgroup]);
 
-	const handleUserSaved = function(invitedUsers) {
+	const handleUserSaved = function(invitedUsers, invitedEmails) {
+		console.log(invitedEmails);
 		const newUsers = [];
 		for (let existingUser of users) {
 			newUsers.push(existingUser);
@@ -136,8 +147,11 @@ const User = (props) => {
 		for (let user of invitedUsers) {
 			newUsers.push(user);
 		}
+		setEmails(invitedEmails);
 		setUsers(newUsers);
+		history.push('/users');
 	};
+
 
 	const deleteUser = function (index) {
 		const params = {id: users[index].id};
@@ -154,6 +168,24 @@ const User = (props) => {
 			.then(res=>{
 				const newUsers = users.slice(0, index).concat(users.slice(index + 1));
 				setUsers(newUsers);
+			})
+	};
+
+	const deleteEmail = function (index) {
+		const params = {id: emails[index].id};
+		if(confirm('Are you sure to perform this action?'))
+			fetch('/api/invite', {
+				method: 'delete',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': props.client.transports[0].auth.csrfToken
+				},
+				credentials: 'same-origin',
+				body: JSON.stringify(params)
+			}).then(res=>{return res.json()})
+			.then(res=>{
+				const newEmails = emails.slice(0, index).concat(emails.slice(index + 1));
+				setEmails(newEmails);
 			})
 	};
 
@@ -209,7 +241,7 @@ const User = (props) => {
 			}
 			if(groupRole.role ==2 ){
 				// if(props.isPlan)
-					return <UserList users={users} deleteUser={deleteUser} adminUser={adminUser} myId={myId} group_role={groupRole.role} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
+					return <UserList users={users} emails={emails} deleteUser={deleteUser} deleteEmail={deleteEmail} adminUser={adminUser} myId={myId} group_role={groupRole.role} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
 				// else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
 			if(groupRole.role == 4){
@@ -226,7 +258,7 @@ const User = (props) => {
 	return (
 	  <Switch>
 		<Route path="/users/new">
-		  <UpdateUser client={props.client} userSaved={handleUserSaved} group_id={props.currentgroup} />
+		  <UpdateUser client={props.client} userSaved={(user, emails)=>handleUserSaved(user, emails)} group_id={props.currentgroup} />
 		</Route>
 		<Route path="/">
 		  {getDefaultView()}

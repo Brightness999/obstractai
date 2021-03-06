@@ -17,3 +17,4 @@ from .intelreports import IntelReports
 from .groupplans import GroupPlan
 from .groupglobalattributes import GroupGlobalAttributes
 from .groupfeeds import GroupFeeds
+from .inviteemails import InviteEmails

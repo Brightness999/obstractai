@@ -8,6 +8,7 @@ const UserTable = function (props) {
 		case 1: role = 'Member'; admin = 'Make admin'; group = 'Delete from group'; break; 
 		case 2: role = 'Admin'; admin ='Remove admin'; group = 'Delete from group'; break;
 		case 4: role = 'Request Invite'; admin ='Accept request'; group ='Revoke request'; break;
+		default: role = 'Invite Pending'; group ='Revoke invite'; break;
 	}
 	if(props.myId == props.user_id){
 		you = '(you)';
@@ -17,9 +18,9 @@ const UserTable = function (props) {
 	if(props.group_role == 2){
 		return (
 			<Tr>
-				<Td>{ props.user.email + you }</Td>
+				<Td>{ props.user ? props.user.email + you : props.email  }</Td>
 				<Td>{ role }</Td>
-				<Td>{ Boolean(props.user.last_login) && new Date(props.user.last_login).toLocaleString() }</Td>
+				<Td>{ props.user && Boolean(props.user.last_login) && new Date(props.user.last_login).toLocaleString() }</Td>
 				<Td>
 						<div className="button is-text">
 						<span>
@@ -27,10 +28,13 @@ const UserTable = function (props) {
 								props.adminUser(props.role, props.id,);
 							}}>
 								<span>{admin}</span>
-							</a>{ props.role == 0 || props.user_id == props.myId ? '': ' / ' }
-							<a onClick={() => props.delete(props.index)}>
+							</a>{ props.role == 0 || props.user_id == props.myId || !Boolean(props.role) ? '': ' / ' }
+							{Boolean(props.user) ? <a onClick={() => props.delete(props.index)}>
 								<span>{group}</span>
-							</a>
+							</a>:
+							<a onClick={() => props.emaildelete(props.index)}>
+								<span>{group}</span>
+							</a>}
 						</span>
 					</div>
 						
@@ -38,14 +42,6 @@ const UserTable = function (props) {
 			</Tr>
 		);
 	}
-	else
-		return (
-			<Tr>
-				<Td>{ props.user.email + you}</Td>
-				<Td>{ role }</Td>
-				<Td>{ Boolean(props.user.last_login) && props.user.last_login.slice(0, 10) }</Td>
-			</Tr>
-		);
 	
 }
 

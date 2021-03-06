@@ -38,7 +38,7 @@ const Profile = (props) => {
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify(params)
-            }).then(res=>{return res.json()})
+            }).then(res=>{return res.json();})
             .then(res=>{
                 if(Boolean(res.isExist)){
                     setIsExist(true);
@@ -59,8 +59,9 @@ const Profile = (props) => {
                 'Content-Type': 'application/json'
             },
             credentials: 'same-origin',
-        }).then(res=>{res.json()})
+        }).then(res=>{return res.json();})
         .then(res=>{
+            console.log(res);
             if(Boolean(res.delete)){
                 window.location.href="/accounts/logout";
             }
@@ -130,6 +131,7 @@ const Intelgroups = (props) => {
     const [intelgroups, setIntelgroups] = useState(props.intelgroups);
     const [isAlert, setIsAlert] = useState(false);
     const [message, setMessage] = useState('');
+
     const acceptInvite = (index) => {
         const params = {id:intelgroups[index].id};
 		fetch('/api/acceptinvite', {
@@ -155,7 +157,11 @@ const Intelgroups = (props) => {
 			credentials: 'same-origin',
 			body: JSON.stringify(params)
 		}).then(res=>{return res.json()})
-		.then(res=>setIntelgroups(res))
+		.then(res=>{
+            setIntelgroups(res);
+            props.saveIntelgroups(res);
+            props.deleteIntelGroup(res);
+        })
     }
 
     const leaveGroup = (index) => {

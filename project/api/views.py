@@ -1092,6 +1092,22 @@ def reports(request):
 			groupid = request.data['id']
 	elif 'uniqueid' in request.data:
 		groupid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id
+		created_at = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().created_at
+		if len(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).all()) == 0:
+			return Response({'banner': True})
+		# else:
+		# 	if not GroupFeeds.objects.filter(uniqueid=request.data['reportid']).last().isenable:
+		# 		return Response({'banner': True})
+		subid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().plan_id
+		if subid == None:
+			if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=1):
+				return Response({'banner': True})
+		else:
+			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+			api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
+			if not api_access:
+				return Response({'banner': True})
 	itemids = []
 	groupfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid, isenable=True).all(), many=True).data
 	for feed in groupfeeds:
@@ -2094,32 +2110,18 @@ def feedlist(request):
 	customfeeds = True
 	groupfeeds = []
 	groupfeedids = []
-	if 'id' in request.data and request.data['id'] != '':
-		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
-		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
-		if subid != None:
-			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-			if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
-				customfeeds = False
-		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
-			serializer = GroupCategoryFeedSerializer(groupfeed)
-			if serializer.data['feed']['isglobal']:
-				groupfeeds.append(serializer.data)
-			groupfeedids.append(groupfeed.feed_id)
-	elif 'uniqueid' in request.data and request.data['uniqueid'] != '':
-		created_at = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().created_at
-		subid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().plan_id
-		if subid != None:
-			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-			if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
-				customfeeds = False
-		for groupfeed in GroupFeeds.objects.filter(intelgroup_id=IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id).order_by('id').all():
-			serializer = GroupCategoryFeedSerializer(groupfeed)
-			if serializer.data['feed']['isglobal']:
-				groupfeeds.append(serializer.data)
-			groupfeedids.append(groupfeed.feed_id)
+	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+	if subid != None:
+		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+		if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
+			customfeeds = False
+	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+		serializer = GroupCategoryFeedSerializer(groupfeed)
+		if serializer.data['feed']['isglobal']:
+			groupfeeds.append(serializer.data)
+		groupfeedids.append(groupfeed.feed_id)
 	feeds = FeedCategorySerializer(Feeds.objects.exclude(id__in=groupfeedids).filter(isglobal=True).order_by('id').all(), many=True)
 	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True)
 	tags = TagSerializer(Tags.objects.order_by('id').all(), many=True)
@@ -2136,6 +2138,22 @@ def configuredfeeds(request):
 			groupid = request.data['id']
 		elif 'uniqueid' in request.data:
 			groupid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id
+			if len(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).all()) == 0:
+				return Response({'banner':True})
+			else:
+				if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).last().role != 2:
+					return Response({'banner':True})
+			subid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().plan_id
+			created_at = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().created_at
+			if subid == None:
+				if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=1):
+					return Response({'banner':True})
+			else:
+				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+				api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
+				if not api_access:
+					return Response({'banner':True})
 		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True)
 		feedids = []
 		feeditemids = []

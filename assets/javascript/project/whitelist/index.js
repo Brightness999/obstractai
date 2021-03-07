@@ -83,7 +83,6 @@ const WhiteList = (props) => {
     }
 
     const setOnboarding = () => {
-        console.log('ddd')
         fetch('/api/onboarding', {
             method: 'get',
             headers: {
@@ -93,7 +92,6 @@ const WhiteList = (props) => {
             credentials: 'same-origin',
         }).then(res=>{return res.json();})
         .then(res=>{
-            console.log(res);
             setIsSuccess(res.onboarding);
         })
     }
@@ -108,7 +106,7 @@ const WhiteList = (props) => {
                 onBeforeExit={(index)=>{
                     if(index ==1 && !isSuccess){
                         setStepsEnabled(false);
-                        window.location.href='/home';
+                        window.location.href='/app';
                     }
                     return false;
                 }}

@@ -24,8 +24,10 @@ const AddIntelgroup = (props) => {
 
 	const [name, setName] = useState('');
   	const [description, setDescription] = useState('');
+	const [isPublic, setIsPublic] = useState(false);
 	const [isRefuse, setIsRefuse] = useState(false);
 	const [tags, setTags] = useState([]);
+	const [isSuccess, setIsSuccess] = useState(false);
 	const history = useHistory();
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const initialStep = 0;
@@ -38,6 +40,9 @@ const AddIntelgroup = (props) => {
 	  },{
 		element: '#description',
 		intro: 'Intel Group Description'
+	  },{
+		element: '#public',
+		intro: 'Options to make public or private Intel Group'
 	  },{
 		element: '#button',
 		intro: 'Click to create Intel Group'
@@ -81,7 +86,8 @@ const AddIntelgroup = (props) => {
 		let params = {
 		  name: name,
 		  description: description,
-		  emails: emails
+		  emails: emails,
+		  ispublic: isPublic?true:false,
 		};
 		if((name != '' && description != '') || isRefuse){
 			fetch('/api/intelgroups', {
@@ -95,7 +101,6 @@ const AddIntelgroup = (props) => {
 			}).then(res=>{return res.json()})
 			.then(res=>{
 				props.intelgroupSave(res);
-				history.push('/intelgroup')
 			})
 		}
 	};
@@ -118,12 +123,16 @@ const AddIntelgroup = (props) => {
 						else if(nextIndex == 3 && description != ''){
 							return true;
 						}
+						else if(nextIndex == 4){
+							setIsSuccess(true);
+							return true;
+						}
 						else{
 							return false;
 						}
 					}}
 					onAfterChange={(nextIndex, newElement)=>{
-						if(nextIndex == 3){
+						if(nextIndex == 4){
 							newElement.addEventListener('click', function(){
 								setStepsEnabled(false);
 								window.location.href="/app/feeds";
@@ -177,6 +186,22 @@ const AddIntelgroup = (props) => {
 					</Grid>
 					</Grid>
 				</div>
+				<div id="public"><label className="label">Public</label>
+				<TextField
+					className="column is-three-quarters"
+					select
+					margin="normal"
+					SelectProps={{
+						native: true
+					}}
+					variant="outlined"
+					value={isPublic}
+					onChange={(event) => setIsPublic(event.target.value)}
+				>
+					<option value={false}>False</option>
+					<option value={true}>True</option>
+				</TextField>
+				<Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></div>
 				<div className="field is-grouped">
 					<div className="control">
 					<button className="button is-primary" id="button" onClick={() => saveIntelgroup()}>

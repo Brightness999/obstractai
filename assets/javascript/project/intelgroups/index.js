@@ -138,15 +138,15 @@ const IntelGroups = function(props) {
           </div>
           <label className="label">Public</label>
           <TextField
-          className="column is-three-quarters"
-          select
-          margin="normal"
-          SelectProps={{
-              native: true
-          }}
-          variant="outlined"
-          value={isPublic}
-          onChange={(event) => setIsPublic(event.target.value)}
+            className="column is-three-quarters"
+            select
+            margin="normal"
+            SelectProps={{
+                native: true
+            }}
+            variant="outlined"
+            value={isPublic}
+            onChange={(event) => setIsPublic(event.target.value)}
           >
             <option value={false}>False</option>
             <option value={true}>True</option>

@@ -43,6 +43,8 @@ const ReportList = (props) => {
 	const [classification, setClassification] = useState('0');
 	const [intelligence, setIntelligence] = useState('');
 	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const [isSuccess, setIsSuccess] = useState(true);
+	const history = useHistory();
 	const steps = [{
 		element: '#card',
 		intro: 'Intel Report'
@@ -51,6 +53,22 @@ const ReportList = (props) => {
 		intro: 'Click to view intelreport.'
 	}]
 	
+	const setOnboarding = () => {
+        fetch('/api/onboarding', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+            },
+            credentials: 'same-origin',
+        }).then(res=>{return res.json();})
+        .then(res=>{
+            setIsSuccess(res.onboarding);
+			setStepsEnabled(false);
+			history.push('/');
+        })
+    }
+
 	return (
 		<Container>
 			{props.onboarding &&
@@ -58,14 +76,27 @@ const ReportList = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onBeforeExit={()=>{return false;}}
+				options={{
+					skipLabel: 'Skip'
+				}}
 				onAfterChange={(nextIndex, newElement)=>{
+					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
+						setOnboarding();
+						setIsSuccess(true);
+					})
 					if(nextIndex == 1){
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
 							window.location.href=`/app/intelreports/${props.reports[0].uniqueid}`;
 						})
 					}
+				}}
+				onBeforeExit={()=>{
+					if(isSuccess){
+						setStepsEnabled(false);
+						window.location.href='/app';
+					}
+					return false;
 				}}
 				onExit={()=>{}}
 			/>}

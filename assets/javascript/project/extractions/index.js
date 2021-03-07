@@ -42,6 +42,7 @@ const ExtractionList = (props) => {
 	const [groupError, setGroupError] = useState(false);
 	const [bannerCustom, setBannerCustom] = useState(false);
 	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const [isSuccess, setIsSuccess] = useState(false);
 	const steps = [{
 		element: '#attribute',
 		intro: 'Custom attributes  by matching text in each Intel Report'
@@ -128,6 +129,21 @@ const ExtractionList = (props) => {
 		}
 	}
 
+
+	const setOnboarding = () => {
+        fetch('/api/onboarding', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+            },
+            credentials: 'same-origin',
+        }).then(res=>{return res.json();})
+        .then(res=>{
+            setIsSuccess(res.onboarding);
+        })
+    }
+
 	return (
 		<Container>
 			{props.onboarding &&
@@ -136,6 +152,9 @@ const ExtractionList = (props) => {
 				steps={steps}
 				initialStep={0}
 				onAfterChange={(nextIndex, newElement)=>{
+					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
+						setOnboarding();
+					})
 					if(nextIndex == 1){
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
@@ -143,7 +162,13 @@ const ExtractionList = (props) => {
 						})
 					}
 				}}
-				onBeforeExit={()=>{return false;}}
+				onBeforeExit={()=>{
+					if(isSuccess){
+						setStepsEnabled(false);
+						window.location.href = "/app"
+					}
+					return false;
+				}}
 				onExit={()=>{}}
 			/>}
 			<Dialog

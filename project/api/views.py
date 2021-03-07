@@ -1087,7 +1087,7 @@ def webhooks(request):
 def reports(request):
 	if 'id' in request.data:
 		if request.data['id'] == '':
-			groupid = UserIntelGroupRoles.objects.filter(id=request.user.id).order_by('intelgroup_id').last().intelgroup_id
+			groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).last().intelgroup_id
 		else:
 			groupid = request.data['id']
 	elif 'uniqueid' in request.data:
@@ -2107,17 +2107,21 @@ def feeds(request):
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])
 def feedlist(request):
+	if request.data['id'] == '':
+		groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).last().intelgroup_id
+	else:
+		groupid = request.data['id']
 	customfeeds = True
 	groupfeeds = []
 	groupfeedids = []
-	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
-	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+	created_at = IntelGroups.objects.filter(id=groupid).last().created_at
+	subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 	if subid != None:
 		planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
 		productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 		if Product.objects.filter(djstripe_id=productid).last().metadata['custom_feeds'] == 'false':
 			customfeeds = False
-	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=request.data['id']).order_by('id').all():
+	for groupfeed in GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all():
 		serializer = GroupCategoryFeedSerializer(groupfeed)
 		if serializer.data['feed']['isglobal']:
 			groupfeeds.append(serializer.data)
@@ -2885,6 +2889,5 @@ def changegroup(request, subscription_holder=None):
 @api_view(['GET'])
 def onboarding(request):
 	CustomUser.objects.filter(id=request.user.id).update(onboarding=False)
-	print(CustomUser.objects.filter(id=request.user.id).update(onboarding=False))
 	onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
 	return Response({'onboarding': onboarding})

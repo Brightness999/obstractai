@@ -102,41 +102,41 @@ const IntelGroup = function(props) {
                         <div className="field column is-four-fifths">
                             <label className="label">Name</label>
                             <TextField
-                            placeholder="write a name of feed"
-                            className="column is-three-quarters"
-                            margin="normal"
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            variant="outlined"
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
+                                placeholder="write a name of feed"
+                                className="column is-three-quarters"
+                                margin="normal"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                variant="outlined"
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
                             /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
                         
                             <label className="label">Description</label>
                             <TextField
-                            placeholder="write about description of feed"
-                            className="column is-three-quarters"
-                            margin="normal"
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                            variant="outlined"
-                            value={description}
-                            onChange={(event) => setDescription(event.target.value)}
+                                placeholder="write about description of feed"
+                                className="column is-three-quarters"
+                                margin="normal"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                variant="outlined"
+                                value={description}
+                                onChange={(event) => setDescription(event.target.value)}
                             /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
                             {(props.planname == 'Silver' || props.planname == 'Gold') &&
                             <><label className="label">Public</label>
                             <TextField
-                            className="column is-three-quarters"
-                            select
-                            margin="normal"
-                            SelectProps={{
-                                native: true
-                            }}
-                            variant="outlined"
-                            value={isPublic}
-                            onChange={(event) => setIsPublic(event.target.value)}
+                                className="column is-three-quarters"
+                                select
+                                margin="normal"
+                                SelectProps={{
+                                    native: true
+                                }}
+                                variant="outlined"
+                                value={isPublic}
+                                onChange={(event) => setIsPublic(event.target.value)}
                             >
                                 <option value={false}>False</option>
                                 <option value={true}>True</option>

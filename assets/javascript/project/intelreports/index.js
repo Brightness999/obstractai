@@ -65,7 +65,7 @@ const ReportList = (props) => {
         .then(res=>{
             setIsSuccess(res.onboarding);
 			setStepsEnabled(false);
-			history.push('/');
+			window.location.href = '/app';
         })
     }
 
@@ -82,7 +82,7 @@ const ReportList = (props) => {
 				onAfterChange={(nextIndex, newElement)=>{
 					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
 						setOnboarding();
-						setIsSuccess(true);
+						// setIsSuccess(true);
 					})
 					if(nextIndex == 1){
 						newElement.addEventListener('click', function(){
@@ -92,10 +92,10 @@ const ReportList = (props) => {
 					}
 				}}
 				onBeforeExit={()=>{
-					if(isSuccess){
-						setStepsEnabled(false);
-						window.location.href='/app';
-					}
+					// if(isSuccess){
+					// 	setStepsEnabled(false);
+					// 	window.location.href='/app';
+					// }
 					return false;
 				}}
 				onExit={()=>{}}

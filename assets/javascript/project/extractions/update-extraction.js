@@ -66,6 +66,22 @@ const UpdateExtraction = (props) => {
 		}
 	}
 
+    const setOnboarding = () => {
+        fetch('/api/onboarding', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+            },
+            credentials: 'same-origin',
+        }).then(res=>{return res.json();})
+        .then(res=>{
+            setIsSuccess(res.onboarding);
+			setStepsEnabled(false);
+			window.location.href = "/app"
+        })
+    }
+
     return (
         <Container>
             {props.onboarding &&
@@ -88,6 +104,9 @@ const UpdateExtraction = (props) => {
                     }
                 }}
 				onAfterChange={(nextIndex, newElement)=>{
+                    document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
+						setOnboarding();
+					})
 					if(nextIndex == 3){
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);

@@ -5,6 +5,7 @@ import { Steps } from 'intro.js-react';
 
 const ViewReport = (props) => {
 	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const [isSuccess, setIsSuccess] = useState(true);
 	const steps = [{
 		element: '#detail',
 		intro: 'Intel Report Details',
@@ -166,6 +167,20 @@ const ViewReport = (props) => {
 		}
 	}
 	
+	const setOnboarding = () => {
+        fetch('/api/onboarding', {
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken,
+            },
+            credentials: 'same-origin',
+        }).then(res=>{return res.json();})
+        .then(res=>{
+            setIsSuccess(res.onboarding);
+        })
+    }
+
 	useEffect(()=>{
 		let str=props.feeditem.description;
 		indicators.forEach(indicator => {
@@ -318,9 +333,13 @@ const ViewReport = (props) => {
 					return false;
 				}}
 				options={{
-					doneLabel: 'Next'
+					doneLabel: 'Next',
+					skipLabel: 'Skip'
 				}}
 				onAfterChange={(nextIndex, newElement)=>{
+					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
+						setOnboarding();
+					})
 					// if(nextIndex == 1){
 					// 	newElement.addEventListener('click', function(){
 					// 		setStepsEnabled(false);
@@ -330,15 +349,19 @@ const ViewReport = (props) => {
 					if(nextIndex == 0 || nextIndex ==1){
 						document.querySelector('.introjs-helperLayer').style.height = window.innerHeight*0.1;
 						document.querySelector(".introjs-tooltip").style.bottom="18px";
-						console.log('aaaaaa')
 					}
 				}}
-				onBeforeExit={()=>{return false;}}
+				onBeforeExit={()=>{
+					if(isSuccess){
+						setStepsEnabled(false);
+						window.location.href='/app';
+					}
+					return false;
+				}}
 				onExit={(index)=>{
 					if(index ==1){
 						setStepsEnabled(false);
 						window.location.href='/app/extractions';
-
 					}
 				}}
 			/>}

@@ -178,6 +178,8 @@ const ViewReport = (props) => {
         }).then(res=>{return res.json();})
         .then(res=>{
             setIsSuccess(res.onboarding);
+			setStepsEnabled(false);
+			window.location.href = '/app';
         })
     }
 
@@ -351,13 +353,7 @@ const ViewReport = (props) => {
 						document.querySelector(".introjs-tooltip").style.bottom="18px";
 					}
 				}}
-				onBeforeExit={()=>{
-					if(isSuccess){
-						setStepsEnabled(false);
-						window.location.href='/app';
-					}
-					return false;
-				}}
+				onBeforeExit={()=>{return false;}}
 				onExit={(index)=>{
 					if(index ==1){
 						setStepsEnabled(false);

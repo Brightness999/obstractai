@@ -141,6 +141,8 @@ const ExtractionList = (props) => {
         }).then(res=>{return res.json();})
         .then(res=>{
             setIsSuccess(res.onboarding);
+			setStepsEnabled(false);
+			window.location.href = "/app"
         })
     }
 
@@ -162,13 +164,7 @@ const ExtractionList = (props) => {
 						})
 					}
 				}}
-				onBeforeExit={()=>{
-					if(isSuccess){
-						setStepsEnabled(false);
-						window.location.href = "/app"
-					}
-					return false;
-				}}
+				onBeforeExit={()=>{return false;}}
 				onExit={()=>{}}
 			/>}
 			<Dialog

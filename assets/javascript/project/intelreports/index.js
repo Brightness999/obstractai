@@ -82,7 +82,6 @@ const ReportList = (props) => {
 				onAfterChange={(nextIndex, newElement)=>{
 					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
 						setOnboarding();
-						// setIsSuccess(true);
 					})
 					if(nextIndex == 1){
 						newElement.addEventListener('click', function(){
@@ -91,13 +90,7 @@ const ReportList = (props) => {
 						})
 					}
 				}}
-				onBeforeExit={()=>{
-					// if(isSuccess){
-					// 	setStepsEnabled(false);
-					// 	window.location.href='/app';
-					// }
-					return false;
-				}}
+				onBeforeExit={()=>{return false;}}
 				onExit={()=>{}}
 			/>}
 			<section className="section">

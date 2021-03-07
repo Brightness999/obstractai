@@ -1994,7 +1994,7 @@ def feeds(request):
 						else:
 							print('item->', item)
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
-			IntelReports.objects.create(groupfeed_id=GroupFeeds.objects.last().id, feeditem_id=item.id)
+			IntelReports.objects.create(feeditem_id=item.id)
 		flag = True
 		is_exist = True
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
@@ -2062,7 +2062,7 @@ def feeds(request):
 		else:
 			GroupFeeds.objects.filter(id=groupfeed.id).update(category_id=data['category'])
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
-			IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id)
+			IntelReports.objects.create(feeditem_id=item.id)
 		flag = True
 		is_exist = True
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
@@ -2338,7 +2338,7 @@ def feedenable(request):
 	feed = Feeds.objects.filter(id=request.data['id']).last()
 	GroupFeeds.objects.create(feed_id=request.data['id'], intelgroup_id=groupid, name=feed.name, description=feed.description, tags=feed.tags, confidence=feed.confidence, category_id=feed.category_id, isenable=True )
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
-		IntelReports.objects.create(feeditem_id=item.id, groupfeed_id=GroupFeeds.objects.last().id)
+		IntelReports.objects.create(feeditem_id=item.id)
 	flag = True
 	is_exist = True
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():

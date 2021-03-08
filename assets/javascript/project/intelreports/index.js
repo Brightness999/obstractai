@@ -43,7 +43,6 @@ const ReportList = (props) => {
 	const [classification, setClassification] = useState('0');
 	const [intelligence, setIntelligence] = useState('');
 	const [stepsEnabled, setStepsEnabled] = useState(true);
-	const [isSuccess, setIsSuccess] = useState(true);
 	const history = useHistory();
 	const steps = [{
 		element: '#card',
@@ -63,9 +62,8 @@ const ReportList = (props) => {
             credentials: 'same-origin',
         }).then(res=>{return res.json();})
         .then(res=>{
-            setIsSuccess(res.onboarding);
-			setStepsEnabled(false);
-			window.location.href = '/app';
+				setStepsEnabled(false);
+				window.location.href = '/app';
         })
     }
 
@@ -77,7 +75,8 @@ const ReportList = (props) => {
 				steps={steps}
 				initialStep={0}
 				options={{
-					skipLabel: 'Skip'
+					skipLabel: 'Skip',
+					doneLabel: ''
 				}}
 				onAfterChange={(nextIndex, newElement)=>{
 					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){

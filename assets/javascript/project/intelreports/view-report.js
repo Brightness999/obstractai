@@ -5,13 +5,12 @@ import { Steps } from 'intro.js-react';
 
 const ViewReport = (props) => {
 	const [stepsEnabled, setStepsEnabled] = useState(true);
-	const [isSuccess, setIsSuccess] = useState(true);
 	const steps = [{
-		element: '#detail',
+		element: '#title',
 		intro: 'Intel Report Details',
 		position: 'top'
 	},{
-		element: '#detail',
+		element: '#extraction',
 		intro: 'Intel Report Details',
 		position: 'top'
 	}]
@@ -177,7 +176,6 @@ const ViewReport = (props) => {
             credentials: 'same-origin',
         }).then(res=>{return res.json();})
         .then(res=>{
-            setIsSuccess(res.onboarding);
 			setStepsEnabled(false);
 			window.location.href = '/app';
         })
@@ -314,8 +312,25 @@ const ViewReport = (props) => {
 				}
 			}
 		});
-		document.querySelector("#extraction").innerHTML=str;
 
+		// let pstartreg = /<p>/gi, plastreg = /<\/p>/gi, re, pstart = [], plast = [];
+		// while ((re = pstartreg.exec(str))) {
+		// 	pstart.push(re.index);
+		// }
+		// while ((re = plastreg.exec(str))) {
+		// 	plast.push(re.index);
+		// }
+		// for(let i=0;i<pstart.length;i++){
+		// 	if(str.search('<Tooltip') > pstart[i] && str.search('<Tooltip') < plast[i]){
+		// 		console.log(str.search('<Tooltip'));
+		// 		console.log(pstart[i], plast[i])
+		// 		console.log(str.substring(pstart[i], plast[i]))
+		// 		console.log(str.substring(0, pstart[i]+2))
+		// 		console.log(str.substr(pstart[i]+2, 50))
+		// 		str = str.substring(0, pstart[i]+2) + " id='detail' " + str.substr(pstart[i]+2)
+		// 	}
+		// }
+		document.querySelector("#extraction").innerHTML=str;
 	},[]);
 	return (
 		<Container>
@@ -324,42 +339,23 @@ const ViewReport = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
-				onStart={()=>{
-					document.querySelector('.introjs-helperLayer').style.height = window.innerHeight*0.1;
-				}}
-				onBeforeChange={(nextIndex)=>{
-					if(nextIndex == 0 || nextIndex == 1){
-						document.querySelector('.introjs-helperLayer').style.height = window.innerHeight*0.1;
-						return true;
-					}
-					return false;
-				}}
 				options={{
 					doneLabel: 'Next',
 					skipLabel: 'Skip'
 				}}
-				onAfterChange={(nextIndex, newElement)=>{
+				onAfterChange={()=>{
 					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
 						setOnboarding();
 					})
-					// if(nextIndex == 1){
-					// 	newElement.addEventListener('click', function(){
-					// 		setStepsEnabled(false);
-					// 		window.location.href='/app/extractions';
-					// 	})
-					// }
-					if(nextIndex == 0 || nextIndex ==1){
-						document.querySelector('.introjs-helperLayer').style.height = window.innerHeight*0.1;
-						document.querySelector(".introjs-tooltip").style.bottom="18px";
-					}
 				}}
-				onBeforeExit={()=>{return false;}}
-				onExit={(index)=>{
-					if(index ==1){
+				onBeforeExit={(index)=>{
+					if(index == 1){
 						setStepsEnabled(false);
 						window.location.href='/app/extractions';
 					}
+					return false;
 				}}
+				onExit={()=>{}}
 			/>}
 			<section className="section" id="title">
 				<Grid container>
@@ -391,8 +387,8 @@ const ViewReport = (props) => {
 			</section>
 			<section id="extraction">
 			</section>
-			<section className="section" id="detail">
-				<Grid container >
+			<section className="section" >
+				<Grid container id="detail">
 					<Grid item xs={3} className="pt-4">
 						<span>Confidence:</span>
 					</Grid>

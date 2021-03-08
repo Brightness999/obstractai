@@ -76,7 +76,6 @@ const UpdateExtraction = (props) => {
             credentials: 'same-origin',
         }).then(res=>{return res.json();})
         .then(res=>{
-            setIsSuccess(res.onboarding);
 			setStepsEnabled(false);
 			window.location.href = "/app"
         })
@@ -89,6 +88,7 @@ const UpdateExtraction = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
+                options={{skipLabel:'Skip'}}
                 onBeforeChange={(nextIndex)=>{
                     if(nextIndex ==0 || (nextIndex == 1 && type.trim() != '')){
                         return true;
@@ -114,7 +114,12 @@ const UpdateExtraction = (props) => {
 						})
 					}
 				}}
-				onBeforeExit={()=>{return false;}}
+				onBeforeExit={(index)=>{
+                    if(index == 1){
+                        setOnboarding();
+                    }
+                    return false;
+                }}
 				onExit={()=>{}}
 			/>}
             <section className="section app-card">

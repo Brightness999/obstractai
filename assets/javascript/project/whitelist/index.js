@@ -39,7 +39,6 @@ const Plan = (props) => {
 
 const WhiteList = (props) => {
     const [stepsEnabled, setStepsEnabled] = useState(true);
-    const [isSuccess, setIsSuccess] = useState(true);
 	const steps = [{
 		element: '#indicator',
 		intro: 'Indicators extracted from fulltext'
@@ -92,7 +91,8 @@ const WhiteList = (props) => {
             credentials: 'same-origin',
         }).then(res=>{return res.json();})
         .then(res=>{
-            setIsSuccess(res.onboarding);
+            setStepsEnabled(false);
+            window.location.href='/app';
         })
     }
 
@@ -103,20 +103,14 @@ const WhiteList = (props) => {
 				enabled={stepsEnabled}
 				steps={steps}
 				initialStep={0}
+                options={{doneLabel: 'Done'}}
                 onBeforeExit={(index)=>{
-                    if(index ==1 && !isSuccess){
-                        setStepsEnabled(false);
-                        window.location.href='/app';
+                    if(index == 1){
+                        setOnboarding();
                     }
                     return false;
                 }}
-                onAfterChange={(nextIndex)=>{
-                    if(nextIndex == 0){
-                        setOnboarding();
-                    }
-                }}
 				onExit={()=>{}}
-				options={{doneLabel: 'Done'}}
 			/>}
 			<section className="section">
                 {props.isInit&&

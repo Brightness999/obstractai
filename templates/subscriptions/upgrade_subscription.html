@@ -69,7 +69,9 @@
   <div class="columns">
     <div class="column is-three-quarters">
       <form id="subscription-form">
+        <div id="payment_information">
         {% include 'stripe/components/card_element.html' %}
+        </div>
         <button type="submit" id="subscribe-button" class="button is-primary">Upgrade</button>
         <button class="button is-outlined" id="back-button">Back</button>
         <div class="my-1" id="payment-details" ></div>
@@ -103,6 +105,8 @@
   // prevents submissions if one is already in progress
   let submissionPending = false;
 
+  let freeSelection = false;
+
   const getSelectedPlanElement = function () {
     return document.querySelector('.plan.is-selected');
   };
@@ -117,7 +121,8 @@
   };
 
   const handlePaymentMethodCreated = function (result) {
-    if (result.error) {
+    console.log(result);
+    if (result.error && !freeSelection) {
       handleError(result.error.message);
       submissionPending = false;
     } else {
@@ -196,6 +201,7 @@
   form.addEventListener('submit', function(event) {
     // We don't want to let default form submission happen here,
     // which would refresh the page.
+    console.log(cardElement)
     event.preventDefault();
     if (getSelectedPlanElement() && !submissionPending) {
       submissionPending = true;
@@ -226,7 +232,6 @@
   const paymentDetailsElement = document.getElementById('payment-details');
   const weeklyHelpText = " ";
   const dailyHelpText = " ";
-
   const updatePlans = function (isweekly) {
     for (let i = 0; i < planElements.length; i++) {
       let planElt = planElements[i];
@@ -291,6 +296,13 @@
   // hook up plan selection events
 
   const selectPlan = function(plan) {
+    if(plan.dataset.paymentAmount == '$0.00'){
+      document.querySelector('#payment_information').style.display='none';
+      freeSelection = true;
+    }
+    else{
+      document.querySelector('#payment_information').style.display='block';
+    }
     // if already selected there's nothing to do
     if (!plan.classList.contains('is-selected')) {
       plan.classList.add('is-selected');

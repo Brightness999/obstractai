@@ -59,9 +59,9 @@ def _view_subscription(request, subscription_holder, groupid):
     Show user's active subscription
     """
     # assert subscription_holder.has_active_subscription()
-    sub_id = IntelGroups.objects.filter(id=groupid).values()[0]['plan_id']
-    planid = Subscription.objects.filter(djstripe_id=sub_id).values()[0]['plan_id']
-    productid = Plan.objects.filter(djstripe_id=planid).values()[0]['product_id']
+    sub_id = IntelGroups.objects.filter(id=groupid).last().plan_id
+    planid = Subscription.objects.filter(djstripe_id=sub_id).last().plan_id
+    productid = Plan.objects.filter(djstripe_id=planid).last().product_id
     active_products = list(get_active_products_with_metadata())
     default_products = [p for p in active_products if p.metadata.is_default]
     default_product = default_products[0] if default_products else active_products[0]
@@ -74,7 +74,7 @@ def _view_subscription(request, subscription_holder, groupid):
                 'stripe_id': product_with_metadata.weekly_plan.id,
                 'payment_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount,
                                                                product_with_metadata.weekly_plan.currency),
-                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 12,
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 6,
                                                                product_with_metadata.weekly_plan.currency),
                 'interval': PlanInterval.week,  # set to day because we're dividing price by 12
             }
@@ -89,6 +89,22 @@ def _view_subscription(request, subscription_holder, groupid):
             }
         return product_data
 
+    active_plan_intervals = []
+    for plan_interval in get_active_plan_interval_metadata():
+        if Plan.objects.filter(djstripe_id=planid).last().interval == plan_interval.interval:
+            active_plan_intervals.append(plan_interval)
+    products = []
+    for product in active_products:
+        if Product.objects.filter(djstripe_id=productid).last().name == 'Free':
+            if product.metadata.name != 'Gold':
+                products.append(product)
+        elif Product.objects.filter(djstripe_id=productid).last().name == 'Silver':
+            if product.metadata.name == 'Gold':
+                products.append(product)
+    if Plan.objects.filter(djstripe_id=planid).last().interval == ACTIVE_PLAN_INTERVALS[0]:
+        default_to_weekly = True
+    else:
+        default_to_weekly = False
 
     return render(request, 'subscriptions/view_subscription.html', {
         'active_tab': 'subscription',
@@ -101,12 +117,13 @@ def _view_subscription(request, subscription_holder, groupid):
         'product': get_product_and_metadata_for_subscription(subscription_holder.active_stripe_subscription),
         'stripe_api_key': djstripe_settings.STRIPE_PUBLIC_KEY,
         'default_product': default_product,
-        'active_products': active_products,
+        'active_products': products,
         'active_products_json': {str(p.stripe_id): _to_dict(p) for p in active_products},
-        'active_plan_intervals': get_active_plan_interval_metadata(),
-        'default_to_weekly': ACTIVE_PLAN_INTERVALS[0] == PlanInterval.week,
+        'active_plan_intervals': active_plan_intervals,
+        'default_to_weekly': default_to_weekly,
         'payment_metadata': _get_payment_metadata_from_request(request),
-        'current_product_id': Product.objects.filter(djstripe_id=productid).values()[0]['id'],
+        'current_product_id': Product.objects.filter(djstripe_id=productid).last().id,
+        'current_period_end': Subscription.objects.filter(djstripe_id=sub_id).last().current_period_end,
         'groupid': groupid,
     })
 
@@ -129,7 +146,7 @@ def _upgrade_subscription(request, subscription_holder, groupid):
                 'stripe_id': product_with_metadata.weekly_plan.id,
                 'payment_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount,
                                                                product_with_metadata.weekly_plan.currency),
-                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 12,
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 6,
                                                                product_with_metadata.weekly_plan.currency),
                 'interval': PlanInterval.week,  # set to day because we're dividing price by 12
             }

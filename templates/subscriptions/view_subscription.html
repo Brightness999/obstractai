@@ -2,15 +2,18 @@
 {% load static %}
 {% block app %}
 <section class="section app-card">
-  
-  {% if active_plan_intervals|length > 1%}
-    <div class="buttons has-addons is-centered">
-      {% for interval in active_plan_intervals %}
-        <button class="button" id="plan-selector-{{interval.interval}}">{{ interval.name }}</button>
-      {% endfor %}
-    </div>
-    <div class="help is-size-6 has-text-centered" id="plan-help" ></div>
+  <div class="help is-size-4 has-text-centered has-text-primary">
+    <span>Your plan will be downgraded and limited on {{current_period_end}}</span>
+  </div>
+  {% if active_plan_intervals|length > 1 %}
+  <div class="buttons has-addons is-centered">
+    {% for interval in active_plan_intervals %}
+    <button class="button" id="plan-selector-{{interval.interval}}">{{ interval.name }}</button>
+    {% endfor %}
+  </div>
+  <div class="help is-size-6 has-text-centered" id="plan-help" ></div>
   {% endif %}
+  <div id="fullpage-form-wrapper">
   <div class="columns my-2" id="plan-selector">
     {% for product in active_products %}
       <div class="column has-text-centered">
@@ -47,6 +50,7 @@
       </div>
     {% endfor %}
   </div>
+</div>
   <div class="columns" id="upgrade" style="display: none;">
     <div class="column is-three-quarters">
       <form id="subscription-form">
@@ -220,7 +224,7 @@
       if (isweekly) {
         if (weeklySelector) {
           weeklySelector.classList.add('is-selected', 'is-primary');
-          dailySelector.classList.remove('is-selected', 'is-primary');
+          // dailySelector.classList.remove('is-selected', 'is-primary');
           // helpLabel.innerText = weeklyHelpText;
           helpLabel.classList.add('is-danger');
         // helpLabel.classList.remove('is-danger');
@@ -228,7 +232,7 @@
       updatePlans(isweekly);
     } else {
       if (dailySelector) {
-        weeklySelector.classList.remove('is-selected', 'is-primary');
+        // weeklySelector.classList.remove('is-selected', 'is-primary');
         dailySelector.classList.add('is-selected', 'is-primary');
         // helpLabel.innerText = dailyHelpText;
         helpLabel.classList.add('is-danger');

@@ -2879,8 +2879,8 @@ def changegroup(request, subscription_holder=None):
 			planname = Product.objects.filter(djstripe_id=productid).last().name
 			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
 			if datetime.now() > current_period_end.replace(tzinfo=None):
-				# starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
-				# Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+				starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
+				Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
 				IntelGroups.objects.filter(id=request.data['id']).update(plan_id=None)
 				isAutoDown = True
 		

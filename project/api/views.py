@@ -1037,15 +1037,18 @@ def account(request):
 @swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['POST'])
 def emailchange(request):
-	users = CustomUser.objects.filter(email=request.data['email']).all()
-	if len(users) > 1:
-		return Response({'isExist':True})
-	elif len(users) == 1:
-		if users[0].email != request.user.email:
-			return Response({'isExist': True})
-	CustomUser.objects.filter(id=request.data['id']).update(email=request.data['email'])
-	serializer = UserSerializer(CustomUser.objects.filter(id=request.data['id']).all()[0])
-	return Response(serializer.data)
+	if request.data['currentemail'] != request.user.email:
+		return Response({'isNotCorrect': True})
+	else:
+		users = CustomUser.objects.filter(email=request.data['newemail']).all()
+		if len(users) > 1:
+			return Response({'isExist':True})
+		elif len(users) == 1:
+			if request.data['newemail'] == request.user.email:
+				return Response({'isExist': True})
+		CustomUser.objects.filter(id=request.user.id).update(email=request.data['newemail'])
+		serializer = UserSerializer(CustomUser.objects.filter(id=request.user.id).all()[0])
+		return Response(serializer.data)
 
 @swagger_auto_schema(methods=['post'], request_body=APIKeyCreateSerializer, responses={201: APIkeySerializer(many=True)})
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: APIkeySerializer(many=True)})

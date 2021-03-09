@@ -379,11 +379,16 @@ const UpdateFeed = (props) => {
 									let str=item.description;
 									indicators[index].forEach(indicator => {
 										indicator.value.forEach(item => {
-											if(!(item*1>0 && item*1<10) && item.indexOf('?') == -1){
+											console.log(item)
+											if(!(item*1>0 && item*1<10)){
 												if(item.indexOf('?') > -1){
 													item = item.substring(0, item.indexOf('?'))
 												}
+												if(item.indexOf('(') > -1){
+													item = item.substring(0, item.indexOf('('))
+												}
 												item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
+												console.log(item);
 												let reg = new RegExp(item, 'g'), result, ids = [];
 												while ( (result = reg.exec(str)) ) {
 													ids.push(result.index);

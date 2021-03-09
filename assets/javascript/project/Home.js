@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
 import { Tooltip, TextField, Grid, Container } from "@material-ui/core";
@@ -7,6 +7,13 @@ import { yellow } from '@material-ui/core/colors';
 import { Steps, Hints } from 'intro.js-react';
 
 const Welcome = (props) => {
+	const history = useHistory();
+	useEffect(()=>{
+		if(props.currentgroup != "")
+		{
+			history.push('intelreports');
+		}
+	},[props.currentgroup]);
 	return (
 		<div className="my-6">
 			<h1 className="title is-size-2 has-text-centered py-6">Welcome to Cyobstract</h1>
@@ -225,6 +232,6 @@ const HomePage = (props) =>{
 
 	}
 	else
-		return <Welcome mygroups={props.mygroups} />
+		return <Welcome mygroups={props.mygroups} currentgroup={props.currentgroup} />
 }
 export default HomePage;

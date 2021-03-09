@@ -379,7 +379,6 @@ const UpdateFeed = (props) => {
 									let str=item.description;
 									indicators[index].forEach(indicator => {
 										indicator.value.forEach(item => {
-											console.log(item)
 											if(!(item*1>0 && item*1<10)){
 												if(item.indexOf('?') > -1){
 													item = item.substring(0, item.indexOf('?'))

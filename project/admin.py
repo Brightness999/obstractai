@@ -2,6 +2,7 @@ import os
 import urllib
 import xmltodict
 import json
+from datetime import datetime
 
 from cyobstract import extract
 from django.contrib import admin, messages
@@ -10,6 +11,7 @@ from django.core.exceptions import ValidationError
 # Register your models here.
 from .models import *
 import djstripe, stripe
+from djstripe.models import Plan, Product
 
 @admin.register(Feeds)
 class FeedAdmin(admin.ModelAdmin):
@@ -391,7 +393,7 @@ class GroupPlanAdmin(admin.ModelAdmin):
 		super().save_model(request, obj, form, change)
 		if not change:
 			stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
-			new_product=stripe.Product.create(
+			product=stripe.Product.create(
 				name=form.cleaned_data['name'],
 				description=form.cleaned_data['description'],
 				active= form.cleaned_data['active'],
@@ -404,38 +406,57 @@ class GroupPlanAdmin(admin.ModelAdmin):
 					'group_public':form.cleaned_data['group_public']
 				}
 			)
-			stripe.Plan.create(
+			Product.objects.create(active=product['active'], attributes=product['attributes'],caption="", created=datetime.fromtimestamp(product['created']), deactivate_on="", description=product['description'], \
+				id=product['id'], images=product['images'], livemode=product['livemode'], metadata=product['metadata'], name=product['name'], package_dimensions="", \
+					statement_descriptor="", type=product['type'], unit_label="", url="")
+			year_plan = stripe.Plan.create(
 				amount=form.cleaned_data['annual_amount'],
 				currency="usd",
 				interval="year",
-				product=new_product.id,
+				product=product.id,
 				billing_scheme="per_unit",
 				interval_count=1
 			)
-			stripe.Plan.create(
+			Plan.objects.create(active=year_plan['active'], aggregate_usage="", amount=year_plan['amount'], billing_scheme=year_plan['billing_scheme'], created=datetime.fromtimestamp(year_plan['created']), \
+				currency=year_plan['currency'], id=year_plan['id'], interval=year_plan['interval'], interval_count=year_plan['interval_count'], livemode=year_plan['livemode'], metadata=year_plan['metadata'], \
+					nickname="", product_id=Product.objects.order_by('id').last().djstripe_id, tiers_mode="", transform_usage="", \
+						trial_period_days=0, usage_type=year_plan['usage_type'])
+			month_plan = stripe.Plan.create(
 				amount=form.cleaned_data['monthly_amount'],
 				currency="usd",
 				interval="month",
-				product=new_product.id,
+				product=product.id,
 				billing_scheme="per_unit",
 				interval_count=1
 			)
-			stripe.Plan.create(
+			Plan.objects.create(active=month_plan['active'], aggregate_usage="", amount=month_plan['amount'], billing_scheme=month_plan['billing_scheme'], created=datetime.fromtimestamp(month_plan['created']), \
+				currency=month_plan['currency'], id=month_plan['id'], interval=month_plan['interval'], interval_count=month_plan['interval_count'], livemode=month_plan['livemode'], metadata=month_plan['metadata'], \
+					nickname="", product_id=Product.objects.order_by('id').last().djstripe_id, tiers_mode="", transform_usage="", \
+						trial_period_days=0, usage_type=month_plan['usage_type'])
+			week_plan = stripe.Plan.create(
 				amount=form.cleaned_data['weekly_amount'],
 				currency="usd",
 				interval="week",
-				product=new_product.id,
+				product=product.id,
 				billing_scheme="per_unit",
 				interval_count=1
 			)
-			stripe.Plan.create(
+			Plan.objects.create(active=week_plan['active'], aggregate_usage="", amount=week_plan['amount'], billing_scheme=week_plan['billing_scheme'], created=datetime.fromtimestamp(week_plan['created']), \
+				currency=week_plan['currency'], id=week_plan['id'], interval=week_plan['interval'], interval_count=week_plan['interval_count'], livemode=week_plan['livemode'], metadata=week_plan['metadata'], \
+					nickname="", product_id=Product.objects.order_by('id').last().djstripe_id, tiers_mode="", transform_usage="", \
+						trial_period_days=0, usage_type=week_plan['usage_type'])
+			day_plan = stripe.Plan.create(
 				amount=form.cleaned_data['daily_amount'],
 				currency="usd",
 				interval="day",
-				product=new_product.id,
+				product=product.id,
 				billing_scheme="per_unit",
 				interval_count=1
 			)
+			Plan.objects.create(active=day_plan['active'], aggregate_usage="", amount=day_plan['amount'], billing_scheme=day_plan['billing_scheme'], created=datetime.fromtimestamp(day_plan['created']), \
+				currency=day_plan['currency'], id=day_plan['id'], interval=day_plan['interval'], interval_count=day_plan['interval_count'], livemode=day_plan['livemode'], metadata=day_plan['metadata'], \
+					nickname="", product_id=Product.objects.order_by('id').last().djstripe_id, tiers_mode="", transform_usage="", \
+						trial_period_days=0, usage_type=day_plan['usage_type'])
 		return True
 
 @admin.register(IntelReports)

@@ -113,7 +113,7 @@ const App = () => {
           <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} />
           <Switch>
             <Route exact path="/">
-              <HomePage onboarding={onboarding} currentrole={currentrole} mygroups={mygroups} client={client} intelgroupSave={(data)=>intelgroupSave(data)} />
+              <HomePage onboarding={onboarding} currentrole={currentrole} mygroups={mygroups} client={client} intelgroupSave={(data)=>intelgroupSave(data)} currentgroup={currentgroup} />
             </Route>
             <Route path="/newgroup" >
               <IntelGroups currentgroup={currentgroup} currentrole={currentrole} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>

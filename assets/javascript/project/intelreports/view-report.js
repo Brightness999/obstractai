@@ -190,6 +190,9 @@ const ViewReport = (props) => {
 					if(item.indexOf('?') > -1){
 						item = item.substring(0, item.indexOf('?'))
 					}
+					if(item.indexOf('(') > -1){
+						item = item.substring(0, item.indexOf('('))
+					}
 					item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 					let reg = new RegExp(item, 'g'), result, ids = [];
 					while ((result = reg.exec(str))) {

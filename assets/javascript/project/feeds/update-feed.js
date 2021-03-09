@@ -15,7 +15,6 @@ const Loading = () => {
 }
 
 const UpdateFeed = (props) => {
-	console.log(props);
 	const [url, setUrl] = useState(props.url || '');
 	const [name, setName] = useState(props.name || '');
 	const [description, setDescription] = useState(props.description || '');
@@ -157,7 +156,6 @@ const UpdateFeed = (props) => {
 					body: JSON.stringify(params)
 				}).then(res=>{return res.json()})
 				.then(res=>{
-					console.log(res);
 					if(res.isUrlExist){
 						setUrlMessage(true);
 						setIsLoading(false);
@@ -382,6 +380,9 @@ const UpdateFeed = (props) => {
 									indicators[index].forEach(indicator => {
 										indicator.value.forEach(item => {
 											if(!(item*1>0 && item*1<10) && item.indexOf('?') == -1){
+												if(item.indexOf('?') > -1){
+													item = item.substring(0, item.indexOf('?'))
+												}
 												item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 												let reg = new RegExp(item, 'g'), result, ids = [];
 												while ( (result = reg.exec(str)) ) {

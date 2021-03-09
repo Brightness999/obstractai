@@ -19,35 +19,54 @@ const Loading = function() {
 
 const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
+    const [newEmail, setNewEmail] = useState("");
+    const [currentEmail, setCurrentEmail] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
     const [isAlert, setIsAlert] = useState(false);
     const [isExist, setIsExist] = useState(false);
+    const [isNotCorrect, setIsNotCorrect] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [emailValidataion, setEmailValidation] = useState(false);
 
     const changeEmail =() => {
         let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-        if(email.match(mailformat)){
-            let params = {
-                id: props.profile.id,
-                email: email
+        if(newEmail.match(mailformat) && currentEmail.match(mailformat)){
+            if(newEmail.trim() == currentEmail.trim()){
+                setIsExist(true);
             }
-            fetch('/api/changingemail', {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': props.client.transports[0].auth.csrfToken
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify(params)
-            }).then(res=>{return res.json();})
-            .then(res=>{
-                if(Boolean(res.isExist)){
-                    setIsExist(true);
+            else{
+                let params = {
+                    id: props.profile.id,
+                    newemail: newEmail.trim(),
+                    currentemail: currentEmail.trim()
                 }
-                else{
-                    setEmail(res.email);
-                    setIsSuccess(true);
-                }
-            })
+                fetch('/api/changingemail', {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': props.client.transports[0].auth.csrfToken
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(params)
+                }).then(res=>{return res.json();})
+                .then(res=>{
+                    if(Boolean(res.isNotCorrect)){
+                        setIsNotCorrect(true)                    
+                    }
+                    else{
+                        if(Boolean(res.isExist)){
+                            setIsExist(true);
+                        }
+                        else{
+                            setEmail(res.email);
+                            setIsSuccess(true);
+                        }
+                    }
+                })
+            }
+        }
+        else{
+            setEmailValidation(true);
         }
     }
 
@@ -61,7 +80,6 @@ const Profile = (props) => {
             credentials: 'same-origin',
         }).then(res=>{return res.json();})
         .then(res=>{
-            console.log(res);
             if(Boolean(res.delete)){
                 window.location.href="/accounts/logout";
             }
@@ -113,11 +131,60 @@ const Profile = (props) => {
                     <span className="subtitle is-5">You can't delete your account. To delete an account, there should be no group you are admin.</span>
                 </Alert>
             </Dialog>
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={isNotCorrect}
+                onClose={()=>setIsNotCorrect(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="error" className="my-5 has-text-centered">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Verification Error</AlertTitle>
+                    <span className="subtitle is-5">{currentEmail} doesn't exists.</span>
+                </Alert>
+            </Dialog>
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={emailValidataion}
+                onClose={()=>setEmailValidation(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="warn" className="my-5 has-text-centered">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
+                    <span className="subtitle is-5">Enter a valid email.</span>
+                </Alert>
+            </Dialog>
             <span>
-                <TextField id="outlined-basic1" size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" onChange={(e)=>{
-                    setEmail(e.target.value);
-                }} />
-                <button className="button is-primary ml-5" onClick={()=>changeEmail()}>Edit</button>
+                <TextField id="outlined-basic1" disabled={true} size="small" label="Email" value={email} placeholder="Email(confirmed)" variant="outlined" />
+                <Dialog
+                    open={open}
+                    onClose={()=>setOpen(false)}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">Add a webhook endpoint</DialogTitle>
+                    <DialogContent>
+                        {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
+                        <div className="semisection">
+                            <TextField id="outlined-basic1" label="New Email" InputLabelProps={{shrink: true,}} size="small" placeholder="a-z 0-9@xxx.xxx" variant="outlined" onChange={(e)=>setNewEmail(e.target.value)} />
+                        </div>
+                        <div className="semisection">
+                            <TextField id="outlined-basic" label="Current Email" InputLabelProps={{shrink: true,}} size="small" placeholder="a-z 0-9@xxx.xxx" variant="outlined" onChange={(e)=>setCurrentEmail(e.target.value)} />
+                        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <button onClick={()=>{changeEmail(); setOpen(false);}} className="button is-success" autoFocus>
+                            Confirm
+                        </button>
+                        <button onClick={()=>{setOpen(false);}} className="button is-danger" >
+                            Cancel
+                        </button>
+                    </DialogActions>
+                </Dialog>
+                <button className="button is-primary ml-5" onClick={()=>setOpen(true)}>Edit</button>
                 {props.intelgroups.length == 0 && <button className="button is-outlined is-pulled-right is-large" onClick={()=>deleteAccount()}>Delete Account</button>}
             </span>
             <p className="px-4 pt-4"><a className="muted-link" href ="/accounts/password/change"><span>Reset password</span></a></p>

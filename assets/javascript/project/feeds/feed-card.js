@@ -77,7 +77,7 @@ const FeedCard = function (props) {
                     <span>{props.feed.feed ? props.feed.feed.category.name : props.feed.category.name}</span>
                   </button>
                   {
-                    tags.map((tag, index) => {
+                    tags.length > 0 && tags.map((tag, index) => {
                       return (
                         <button key={index} className="button is-info is-rounded mx-1" >
                           <span>{tag}</span>

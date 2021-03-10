@@ -3,6 +3,7 @@ import { useHistory } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 
 const TopNavBar = (props) => {
+	console.log(props)
 	const [intelgroup, setIntelGroup] = useState('');
 	const history = useHistory();
 	

@@ -185,7 +185,7 @@ const Profile = (props) => {
                     </DialogActions>
                 </Dialog>
                 <button className="button is-primary ml-5" onClick={()=>setOpen(true)}>Edit</button>
-                {props.intelgroups.length == 0 && <button className="button is-outlined is-pulled-right is-large" onClick={()=>deleteAccount()}>Delete Account</button>}
+                <button className="button is-outlined is-pulled-right is-large" onClick={()=>deleteAccount()}>Delete Account</button>
             </span>
             <p className="px-4 pt-4"><a className="muted-link" href ="/accounts/password/change"><span>Reset password</span></a></p>
             <p className="px-4"><Link className="muted-link" to ="password/change"><span>Enable 2FA</span></Link></p>

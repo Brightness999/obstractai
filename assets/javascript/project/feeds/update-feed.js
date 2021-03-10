@@ -387,7 +387,6 @@ const UpdateFeed = (props) => {
 													item = item.substring(0, item.indexOf('('))
 												}
 												item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
-												console.log(item);
 												let reg = new RegExp(item, 'g'), result, ids = [];
 												while ( (result = reg.exec(str)) ) {
 													ids.push(result.index);

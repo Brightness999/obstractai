@@ -1640,13 +1640,17 @@ def feeds(request):
 		isUrlExist = False
 		for feed in Feeds.objects.all():
 			if(data['url'] in feed.url):
-				# if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).all()) > 0:
 				isUrlExist = True
-			else:
-				if data['tags'] == '':
-					GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+				if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).all()) == 0:
+					if data['tags'] == '':
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+					else:
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
 				else:
-					GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+					if data['tags'] == '':
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+					else:
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
 		if not isUrlExist:
 			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			max_feeds = 0
@@ -2214,6 +2218,7 @@ def configuredfeeds(request):
 		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True)
 		return Response(configuredfeeds.data)
 	elif request.method == 'PATCH':
+		print(request.data)
 		currentgroup = int(request.data['currentgroup'])
 		role = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=currentgroup).last().role
 		if role == 2:

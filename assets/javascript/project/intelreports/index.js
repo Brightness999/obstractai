@@ -76,13 +76,13 @@ const ReportList = (props) => {
 				initialStep={0}
 				options={{
 					skipLabel: 'Skip',
-					doneLabel: ''
 				}}
 				onAfterChange={(nextIndex, newElement)=>{
 					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
 						setOnboarding();
 					})
 					if(nextIndex == 1){
+						document.querySelector('.introjs-donebutton').style.display='none';
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
 							window.location.href=`/app/intelreports/${props.reports[0].uniqueid}`;

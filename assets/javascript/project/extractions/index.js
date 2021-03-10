@@ -157,6 +157,7 @@ const ExtractionList = (props) => {
 						setOnboarding();
 					})
 					if(nextIndex == 1){
+						document.querySelector('.introjs-donebutton').style.display='none';
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
 							window.location.href = "/app/extractions/new"
@@ -251,6 +252,7 @@ const ExtractionList = (props) => {
 
 
 const Extractions = (props) => {
+	console.log(props);
 	const [extractionlist, setExtractionList] = useState([]);
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);

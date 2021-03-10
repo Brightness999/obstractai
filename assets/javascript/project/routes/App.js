@@ -37,7 +37,7 @@ const App = () => {
 	const [isLoading, setIsLoading] = useState(true);
   const [mygroups, setMyGroups] = useState([]);
   const [onboarding, setOnBoarding] = useState(false);
-  const [currentgroup, setCurrentGroup] = useState('');
+  const [currentgroup, setCurrentGroup] = useState(2);
   const [isPlan, setIsPlan] = useState(true);
   const [planname, setPlanName] = useState('');
   const [isInit, setIsInit] = useState(false);
@@ -60,7 +60,7 @@ const App = () => {
       setIsLoading(false);
     })
   },[]);
-  
+
   const currentIntelgroup = (intelgroup) => {
     let params = {id:intelgroup};
     fetch('/api/changegroup', {
@@ -109,7 +109,7 @@ const App = () => {
     return (
       <Provider store={store}>
         <BrowserRouter basename='/app/'>
-          <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
+          <TopNavbar mygroups={mygroups} currentgroup={currentgroup} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
           <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} />
           <Switch>
             <Route exact path="/">

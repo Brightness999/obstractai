@@ -2115,7 +2115,7 @@ def feeds(request):
 @api_view(['POST'])
 def feedlist(request):
 	if request.data['id'] == '':
-		groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).last().intelgroup_id
+		groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).order_by('intelgroup_id').last().intelgroup_id
 	else:
 		groupid = request.data['id']
 	customfeeds = True

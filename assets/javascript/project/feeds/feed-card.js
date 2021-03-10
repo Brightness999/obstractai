@@ -19,14 +19,16 @@ const FeedCard = function (props) {
   if(props.feed.feed){
     if(props.feed.feed.tags != ''){
       if(props.feed.feed.tags.indexOf(",") > -1)
-        tags = props.feed.feed.tags.split(',');
+      tags = props.feed.feed.tags.split(',');
       else tags.push(props.feed.feed.tags);
     }
   }
   else{
-    if(props.feed.tags.indexOf(",") > -1)
-      tags = props.feed.tags.split(',');
-    else tags.push(props.feed.tags);
+    if(props.feed.tags != ''){
+      if(props.feed.tags.indexOf(",") > -1)
+        tags = props.feed.tags.split(',');
+      else tags.push(props.feed.tags);
+    }
   }
 
   const enableFeed = () => {

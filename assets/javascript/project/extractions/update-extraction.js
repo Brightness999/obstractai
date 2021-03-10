@@ -108,6 +108,7 @@ const UpdateExtraction = (props) => {
 						setOnboarding();
 					})
 					if(nextIndex == 3){
+						document.querySelector('.introjs-donebutton').style.display='none';
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
                             window.location.href = "/app/whitelist"

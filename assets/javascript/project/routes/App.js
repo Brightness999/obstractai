@@ -37,7 +37,7 @@ const App = () => {
 	const [isLoading, setIsLoading] = useState(true);
   const [mygroups, setMyGroups] = useState([]);
   const [onboarding, setOnBoarding] = useState(false);
-  const [currentgroup, setCurrentGroup] = useState('');
+  const [currentgroup, setCurrentGroup] = useState(localStorage.getItem('currentgroup') || '');
   const [isPlan, setIsPlan] = useState(true);
   const [planname, setPlanName] = useState('');
   const [isInit, setIsInit] = useState(false);
@@ -46,19 +46,47 @@ const App = () => {
   const [currentrole, setCurrentRole] = useState({});
 
 	useEffect(() => {
-    fetch('/api/home', {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'same-origin',
-    }).then((res)=>{return res.json()})
-    .then(res=>{
-      console.log(res);
-      setMyGroups(res.mygroups);
-      setOnBoarding(res.onboarding);
-      setIsLoading(false);
-    })
+    let params = {}
+    if(localStorage.getItem('currentgroup')){
+      params['id'] = localStorage.getItem('currentgroup');
+      fetch('/api/home', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': client.transports[0].auth.csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(params)
+      }).then((res)=>{return res.json()})
+      .then(res=>{
+        console.log(res);
+        setMyGroups(res.mygroups);
+        setOnBoarding(res.onboarding);
+        setCurrentRole(res.currentrole);
+        setCurrentGroup(localStorage.getItem('currentgroup'));
+        setIsPlan(res.isPlan);
+        setPlanName(res.planname);
+        setIsInit(res.isInit);
+        setIsAutoDown(res.isAutoDown);
+        setMessage(res.message);
+        setIsLoading(false);
+      })
+    }
+    else{
+      fetch('/api/home', {
+        method: 'get',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+      }).then((res)=>{return res.json()})
+      .then(res=>{
+        console.log(res);
+        setMyGroups(res.mygroups);
+        setOnBoarding(res.onboarding);
+        setIsLoading(false);
+      })
+    }
   },[]);
 
   const currentIntelgroup = (intelgroup) => {
@@ -109,7 +137,7 @@ const App = () => {
     return (
       <Provider store={store}>
         <BrowserRouter basename='/app/'>
-          <TopNavbar mygroups={mygroups} currentgroup={currentgroup} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
+          <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup)=>currentIntelgroup(intelgroup)} />
           <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} />
           <Switch>
             <Route exact path="/">

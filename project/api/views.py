@@ -2596,16 +2596,50 @@ def categories(request):
 		return Response({"Successfully deleted!"})
 
 @swagger_auto_schema(methods=['get'], responses={200: RoleGroupSerializer})
-@api_view(['GET'])
+@swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: RoleGroupSerializer})
+@api_view(['GET', 'POST'])
 def home(request):
-	for email in InviteEmails.objects.filter(email=request.user.email).all():
-		UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=email.intelgroup_id, role=0)
-	InviteEmails.objects.filter(email=request.user.email).delete()
-	groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
-	# if len(groups) > 0:
-	# 	CustomUser.objects.filter(id=request.user.id).update(onboarding=False)
-	onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
-	return Response({'mygroups':groups, 'onboarding':onboarding})
+	if request.method == 'GET':
+		for email in InviteEmails.objects.filter(email=request.user.email).all():
+			UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=email.intelgroup_id, role=0)
+		InviteEmails.objects.filter(email=request.user.email).delete()
+		groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
+		onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
+		return Response({'mygroups':groups, 'onboarding':onboarding})
+	else:
+		isPlan = True
+		isInit = False
+		isAutoDown = False
+		message = ''
+		planname = ''
+		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+		currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last())
+		if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
+			if subid == None:
+				if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=1):
+					isInit = True
+					date = str(created_at.replace(tzinfo=None)+timedelta(days=1)).split(' ')[0]
+					message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
+				else:
+					isPlan = False
+			else:
+				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+				planname = Product.objects.filter(djstripe_id=productid).last().name
+				current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+				if datetime.now() > current_period_end.replace(tzinfo=None):
+					starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
+					Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+					IntelGroups.objects.filter(id=request.data['id']).update(plan_id=None)
+					isAutoDown = True
+		for email in InviteEmails.objects.filter(email=request.user.email).all():
+			UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=email.intelgroup_id, role=0)
+		InviteEmails.objects.filter(email=request.user.email).delete()
+		groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
+		onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
+		return Response({'mygroups':groups, 'onboarding':onboarding, 'isPlan':isPlan, 'planname':planname, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole.data})
+
 
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={200: RoleGroupSerializer})
 @api_view(['DELETE'])

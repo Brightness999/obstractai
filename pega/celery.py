@@ -22,7 +22,7 @@ app.conf.beat_schedule = {
         'task': 'project.tasks.feed',
         # 'schedule': crontab(minute='*/60'),
         # 'schedule': crontab(minute='*/10'),
-        'schedule': 60.0,
+        'schedule': 10.0,
     }
 }
 

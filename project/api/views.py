@@ -1643,14 +1643,14 @@ def feeds(request):
 				isUrlExist = True
 				if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).all()) == 0:
 					if data['tags'] == '':
-						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'])
 					else:
-						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'])
 				else:
 					if data['tags'] == '':
-						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'])
 					else:
-						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'], intelgroup_id=groupid)
+						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isenable=True, confidence=data['confidence'])
 		if not isUrlExist:
 			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			max_feeds = 0
@@ -1661,7 +1661,7 @@ def feeds(request):
 				feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
 				if len(feeds) > int(max_feeds):
 					return Response({'message':True, 'isUrlExist':isUrlExist})
-			Feeds.objects.create(type=data['type'], url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isglobal=False, confidence=data['confidence'], intelgroup_id=groupid)
+			Feeds.objects.create(type=data['type'], url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isglobal=False, confidence=data['confidence'])
 			GroupFeeds.objects.create(feed_id=Feeds.objects.last().id, intelgroup_id=groupid, name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], confidence=data['confidence'], isenable=True)
 			for tag in tags:
 				flag = False

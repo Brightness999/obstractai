@@ -313,6 +313,7 @@ const IntelReports = (props) => {
 				body: JSON.stringify(params)
 			}).then((res)=> { return res.json();})
 			.then((res)=>{
+				console.log(res);
 				if(Boolean(res.banner)){
 					setBanner(res.banner);
 					setIsLoading(false);

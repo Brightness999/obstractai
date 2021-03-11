@@ -37,7 +37,7 @@ const App = () => {
 	const [isLoading, setIsLoading] = useState(true);
   const [mygroups, setMyGroups] = useState([]);
   const [onboarding, setOnBoarding] = useState(false);
-  const [currentgroup, setCurrentGroup] = useState(2);
+  const [currentgroup, setCurrentGroup] = useState('');
   const [isPlan, setIsPlan] = useState(true);
   const [planname, setPlanName] = useState('');
   const [isInit, setIsInit] = useState(false);

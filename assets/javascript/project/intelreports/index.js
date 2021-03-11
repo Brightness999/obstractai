@@ -286,21 +286,13 @@ const IntelReports = (props) => {
 	for (let i=1;i<100;i++){
 		confidences[confidences.length] = i;
 	}
-	const location = useLocation();
 
 	useEffect(()=>{
-		if(props.currentgroup == '' && location.pathname.split('/').length < 4 && !props.onboarding){
+		if(props.currentgroup == '' && !props.onboarding){
 			history.push('/');
 		}
 		else{
-			let params = {};
-			if(location.pathname.split('/').length == 4){
-				params['uniqueid'] = location.pathname.split('/')[3].split(' ')[0];
-				params['reportid'] = location.pathname.split('/')[2];
-			}
-			else{
-				params['id'] = props.currentgroup;
-			}
+			let params = {id:props.currentgroup}
 			setIsLoading(true);
 			fetch('/api/reports', {
 				method: 'post',

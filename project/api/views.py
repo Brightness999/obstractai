@@ -2368,11 +2368,9 @@ def feedenable(request):
 						}
 					}
 					try:
-						print(webhook.endpoint)
 						response = requests.post(webhook.endpoint, data=data)
 						if response.status_code >= 500:
 							flag = False
-						print(response)
 					except Exception as e:
 						print(str(e))
 						flag = False
@@ -2525,6 +2523,9 @@ We look forward to welcoming you onboard.
 					users,
 					fail_silently=False
 				)
+			except:
+				print('email sending error!')
+			try:
 				send_mail(
 					f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
 					f'''From: {settings.FROM}
@@ -2722,6 +2723,9 @@ We look forward to welcoming you onboard.
 					users,
 					fail_silently=False
 				)
+			except:
+				print('email sending error!')
+			try:
 				send_mail(
 					f'You’ve been invited to join the {name} Intel Group on Cyobstract',
 					f'''From: {settings.FROM}

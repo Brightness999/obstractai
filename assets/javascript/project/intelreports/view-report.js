@@ -327,11 +327,6 @@ const ViewReport = (props) => {
 		// }
 		// for(let i=0;i<pstart.length;i++){
 		// 	if(str.search('<Tooltip') > pstart[i] && str.search('<Tooltip') < plast[i]){
-		// 		console.log(str.search('<Tooltip'));
-		// 		console.log(pstart[i], plast[i])
-		// 		console.log(str.substring(pstart[i], plast[i]))
-		// 		console.log(str.substring(0, pstart[i]+2))
-		// 		console.log(str.substr(pstart[i]+2, 50))
 		// 		str = str.substring(0, pstart[i]+2) + " id='detail' " + str.substr(pstart[i]+2)
 		// 	}
 		// }

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const MenuBar = (props) => {
+    console.log(props);
     return (
         <div className="container semisection">
             {/* {props.currentgroup != '' && */}

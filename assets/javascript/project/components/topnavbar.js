@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import { TextField } from "@material-ui/core";
 
 const TopNavBar = (props) => {
-	const [intelgroup, setIntelGroup] = useState('');
+	const [intelgroup, setIntelGroup] = useState(localStorage.getItem('currentgroup') || '');
 	const history = useHistory();
 	useEffect(()=>{
 		const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
@@ -49,6 +49,7 @@ const TopNavBar = (props) => {
 									history.push('/newgroup');
 								}
 								else{
+									localStorage.setItem('currentgroup', event.target.value);
 									setIntelGroup(event.target.value);
 									if(event.target.value != "")
 										props.currentIntelgroup(event.target.value);}}
@@ -78,12 +79,15 @@ const TopNavBar = (props) => {
 								<a className="navbar-item" href="/accounts/password/change">
 								<span>Change Password</span>
 								</a>
-								<a className="navbar-item" href="/accounts/logout" >
+								<a className="navbar-item" href="#" onClick={()=>{
+									localStorage.removeItem('currentgroup');
+									window.location.href = "/accounts/logout";
+								}}>
 								<span>Sign out</span>
 								</a>
 							</div>
 						</div>:
-						<a className="navbar-item" href="/accounts/logout" >
+						<a className="navbar-item" href="#" >
 						<span>Sign out</span>
 						</a>}
 					</div>

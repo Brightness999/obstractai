@@ -93,14 +93,14 @@ def _view_subscription(request, subscription_holder, groupid):
     for plan_interval in get_active_plan_interval_metadata():
         if Plan.objects.filter(djstripe_id=planid).last().interval == plan_interval.interval:
             active_plan_intervals.append(plan_interval)
-    products = []
-    for product in active_products:
-        if Product.objects.filter(djstripe_id=productid).last().name == 'Free':
-            if product.metadata.name != 'Gold':
-                products.append(product)
-        elif Product.objects.filter(djstripe_id=productid).last().name == 'Silver':
-            if product.metadata.name == 'Gold':
-                products.append(product)
+    # products = []
+    # for product in active_products:
+    #     if Product.objects.filter(djstripe_id=productid).last().name == 'Free':
+    #         if product.metadata.name != 'Gold':
+    #             products.append(product)
+    #     elif Product.objects.filter(djstripe_id=productid).last().name == 'Silver':
+    #         if product.metadata.name == 'Gold':
+    #             products.append(product)
     if Plan.objects.filter(djstripe_id=planid).last().interval == ACTIVE_PLAN_INTERVALS[0]:
         default_to_weekly = True
     else:
@@ -117,7 +117,7 @@ def _view_subscription(request, subscription_holder, groupid):
         'product': get_product_and_metadata_for_subscription(subscription_holder.active_stripe_subscription),
         'stripe_api_key': djstripe_settings.STRIPE_PUBLIC_KEY,
         'default_product': default_product,
-        'active_products': products,
+        'active_products': active_products,
         'active_products_json': {str(p.stripe_id): _to_dict(p) for p in active_products},
         'active_plan_intervals': active_plan_intervals,
         'default_to_weekly': default_to_weekly,

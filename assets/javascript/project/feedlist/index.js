@@ -2,6 +2,7 @@ import React, {useState, useEffect} from "react";
 import { Switch,Route,Link,useHistory} from "react-router-dom";
 import { Container,TextField,Grid} from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
+import { Steps } from 'intro.js-react';
 
 import FeedCard from "./feed-card";
 
@@ -36,6 +37,12 @@ const FeedList = (props) => {
 	const [category, setCategory] = useState('');
 	const [tag, setTag] = useState('');
 	const [confidence, setConfidence] = useState('');
+	const [stepsEnabled, setStepsEnabled] = useState(true);
+	const steps = [{
+		element: '#card',
+		title:'Feed List',
+		intro: 'You can see feeds subscribed in here.'
+	}]
 	
 	const search = () =>{
 		let tag_value = "";
@@ -46,6 +53,22 @@ const FeedList = (props) => {
 	}
 	return (
 		<Container>
+			{props.onboarding &&
+			<Steps
+				enabled={stepsEnabled}
+				steps={steps}
+				initialStep={0}
+				options={{'doneLabel': 'Next'}}
+				onBeforeExit={(index)=>{
+					if(index == 0){
+						setStepsEnabled(false);
+						window.location.href="/app/intelreports";
+						return true;
+					}
+					return false;
+				}}
+				onExit={()=>{}}
+			/>}
 			<section className="section">
 				{props.isInit&&
 				<Alert severity="info" className="my-5">
@@ -134,7 +157,7 @@ const FeedList = (props) => {
 					</Grid>
 				</Grid>
 			</section>
-			{props.currentrole.role==2&&
+			{props.currentrole.role==2 || props.onboarding &&
 				props.feedlist.map((feed, index) => {
 					let feedchannel = {}
 					props.channels.forEach(channel => {
@@ -183,7 +206,7 @@ const FeedLists = (props) => {
 	}
 
 	useEffect(()=>{
-		if(props.currentgroup == '') history.push('/');
+		if(props.currentgroup == '' && !props.onboarding) history.push('/');
 		else{
 			let params = {
 				id: props.currentgroup
@@ -198,6 +221,7 @@ const FeedLists = (props) => {
 				body: JSON.stringify(params)
 			}).then(res=>{return res.json()})
 			.then(res=>{
+				console.log(res);
 				setFeedList(res.configuredfeeds);
 				setChannels(res.channels);
 				setCollections(res.collections);
@@ -251,9 +275,9 @@ const FeedLists = (props) => {
 				)
 			}
             else{
-				if(props.isPlan)
+				if(props.isPlan || props.onboarding)
 					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} channels={channels} collections={collections}
-                        Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+                        Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} onboarding={props.onboarding} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
             }
 		}

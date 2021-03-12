@@ -2145,26 +2145,28 @@ def feedlist(request):
 @api_view(['POST', 'PUT', 'DELETE', 'PATCH'])
 def configuredfeeds(request):
 	if request.method == 'POST':
-		if 'id' in request.data:
+		if request.data['id'] != '':
 			groupid = request.data['id']
-		elif 'uniqueid' in request.data:
-			groupid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id
-			if len(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).all()) == 0:
-				return Response({'banner':True})
-			else:
-				if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).last().role != 2:
-					return Response({'banner':True})
-			subid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().plan_id
-			created_at = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().created_at
-			if subid == None:
-				if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=1):
-					return Response({'banner':True})
-			else:
-				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-				api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
-				if not api_access:
-					return Response({'banner':True})
+		else:
+			groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).last().intelgroup_id
+			# groupid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id
+			# if len(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).all()) == 0:
+			# 	return Response({'banner':True})
+			# else:
+			# 	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).last().role != 2:
+			# 		return Response({'banner':True})
+			# subid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().plan_id
+			# created_at = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().created_at
+			# if subid == None:
+			# 	if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=1):
+			# 		return Response({'banner':True})
+			# else:
+			# 	planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+			# 	productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+			# 	api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
+			# 	if not api_access:
+			# 		return Response({'banner':True})
+		print(groupid)
 		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True)
 		feedids = []
 		feeditemids = []

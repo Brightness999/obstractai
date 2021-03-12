@@ -60,7 +60,7 @@ const FeedCard = function (props) {
       <section className="section app-card" id={props.index==0?"card":""} style={Styles.FeedStoreCard}>
         <div className="columns">
           <Grid container>
-            <Grid item xs={12} md={10}>
+            <Grid item xs={12} md={10} >
               <div>
                 <span> Name: </span>
                 <span> {props.feed.feed? props.feed.feed.name : props.feed.name} </span>

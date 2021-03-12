@@ -42,11 +42,10 @@ const FeedList = (props) => {
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
 		element: '#card',
-		intro: 'Global Feed'
-	},{
-		element: '#button',
-		intro: 'Click to add new feed for Intel Group'
+		title:'Global Feed',
+		intro: '<br/> Click "Enable" button to add feed in your Intel Group'
 	}]
+	
 	const search = () =>{
 		let tag_value = "";
 		for(const t of props.tags){
@@ -68,19 +67,19 @@ const FeedList = (props) => {
 				steps={steps}
 				initialStep={0}
 				onBeforeExit={()=>{return false;}}
-				onBeforeChange={(nextIndex)=>{
-					if(nextIndex == 0 || nextIndex == 1){
-						return true;
-					}
-					else{
-						return false;
-					}
-				}}
+				// onBeforeChange={(nextIndex)=>{
+				// 	if(nextIndex == 0 || nextIndex == 1){
+				// 		return true;
+				// 	}
+				// 	else{
+				// 		return false;
+				// 	}
+				// }}
 				onAfterChange={(nextIndex, newElement)=>{
-					if(nextIndex == 1){
+					if(nextIndex == 0){
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
-							window.location.href="/app/intelreports";
+							window.location.href="/app/feedlist";
 						})
 					}
 				}}

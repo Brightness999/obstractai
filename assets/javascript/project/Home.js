@@ -34,7 +34,6 @@ const AddIntelgroup = (props) => {
 	const [isPublic, setIsPublic] = useState(false);
 	const [isRefuse, setIsRefuse] = useState(false);
 	const [tags, setTags] = useState([]);
-	const [isSuccess, setIsSuccess] = useState(false);
 	const history = useHistory();
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const initialStep = 0;
@@ -47,6 +46,9 @@ const AddIntelgroup = (props) => {
 	  },{
 		element: '#description',
 		intro: 'Intel Group Description'
+	  },{
+		element: '#users',
+		intro: 'Users to invite Intel Group'
 	  },{
 		element: '#public',
 		intro: 'Options to make public or private Intel Group'
@@ -131,7 +133,9 @@ const AddIntelgroup = (props) => {
 							return true;
 						}
 						else if(nextIndex == 4){
-							setIsSuccess(true);
+							return true;
+						}
+						else if(nextIndex == 5){
 							return true;
 						}
 						else{
@@ -139,7 +143,7 @@ const AddIntelgroup = (props) => {
 						}
 					}}
 					onAfterChange={(nextIndex, newElement)=>{
-						if(nextIndex == 4){
+						if(nextIndex == 5){
 							newElement.addEventListener('click', function(){
 								setStepsEnabled(false);
 								window.location.href="/app/feeds";
@@ -184,7 +188,7 @@ const AddIntelgroup = (props) => {
 							onDelete={onDelete}
 							onAddition={onAddition}
 							addOnBlur={true}
-							allowNew={true}
+							allowNew={props.onboarding?false:true}
 							delimiters={['Enter', 'Tab', ',', ' ']}
 						/>
 					</Grid>
@@ -228,7 +232,7 @@ const AddIntelgroup = (props) => {
 
 const HomePage = (props) =>{
 	if(props.mygroups.length == 0 || props.onboarding){
-		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} />
+		return <AddIntelgroup users={props.users} client={props.client} intelgroupSave={props.intelgroupSave} onboarding={props.onboarding} />
 
 	}
 	else

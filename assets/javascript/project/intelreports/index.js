@@ -46,10 +46,8 @@ const ReportList = (props) => {
 	const history = useHistory();
 	const steps = [{
 		element: '#card',
-		intro: 'Intel Report'
-	},{
-		element: '#button',
-		intro: 'Click to view intelreport.'
+		title: 'Intel Report',
+		intro: 'Click "View intel" button to view report details.'
 	}]
 	
 	const setOnboarding = () => {
@@ -81,7 +79,7 @@ const ReportList = (props) => {
 					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
 						setOnboarding();
 					})
-					if(nextIndex == 1){
+					if(nextIndex == 0){
 						document.querySelector('.introjs-donebutton').style.display='none';
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);

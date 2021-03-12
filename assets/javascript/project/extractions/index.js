@@ -44,10 +44,8 @@ const ExtractionList = (props) => {
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const steps = [{
 		element: '#attribute',
-		intro: 'Custom attributes  by matching text in each Intel Report'
-	},{
-		element: '#attribute_button',
-		intro: 'Click to create new attribute'
+		title: 'Custom attributes',
+		intro: 'Here are Custom attributes by matching text in each Intel Report. <br/>Click "Add extraction" button to create new attribute'
 	}]
 	
 	const changeStatus = (index) => {
@@ -156,7 +154,7 @@ const ExtractionList = (props) => {
 					document.querySelector('.introjs-skipbutton').addEventListener('click', function(){
 						setOnboarding();
 					})
-					if(nextIndex == 1){
+					if(nextIndex == 0){
 						document.querySelector('.introjs-donebutton').style.display='none';
 						newElement.addEventListener('click', function(){
 							setStepsEnabled(false);
@@ -164,12 +162,7 @@ const ExtractionList = (props) => {
 						})
 					}
 				}}
-				onBeforeExit={(index)=>{
-					if(index == 1){
-						setOnboarding();
-					}	
-					return false;
-				}}
+				onBeforeExit={()=>{return false;}}
 				onExit={()=>{}}
 			/>}
 			<Dialog

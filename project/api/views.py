@@ -2983,3 +2983,8 @@ def onboarding(request):
 	CustomUser.objects.filter(id=request.user.id).update(onboarding=False)
 	onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
 	return Response({'onboarding': onboarding})
+
+@api_view(['POST'])
+def freeplan(request):
+	
+	return Response('success')

@@ -157,7 +157,7 @@ const FeedList = (props) => {
 					</Grid>
 				</Grid>
 			</section>
-			{props.currentrole.role==2 || props.onboarding &&
+			{(props.currentrole.role==2 || props.onboarding) &&
 				props.feedlist.map((feed, index) => {
 					let feedchannel = {}
 					props.channels.forEach(channel => {
@@ -170,7 +170,7 @@ const FeedList = (props) => {
 					return <FeedCard index={index} key={feed.id} feed={feed} channel={feedchannel} count={count} currentrole={props.currentrole} saveFeed={(data)=>props.saveFeed(data)} client={props.client} />;
 				})
 			}
-			{props.currentrole.role==1&&
+			{(props.currentrole.role==1 || props.onboarding)&&
 				props.feedlist.map((feed, index) => {
 					console.log(feed);
 					let feedchannel = {}

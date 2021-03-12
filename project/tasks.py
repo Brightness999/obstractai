@@ -8,6 +8,7 @@ from celery import Celery
 from celery_progress.backend import ProgressRecorder
 from celery.schedules import crontab
 from datetime import datetime, timedelta
+from django.conf import settings
 
 from pega.celery import app
 from .models import (IntelGroups, Feeds, FeedItems, FeedChannels, Indicators, GlobalIndicators, IntelReports, WebHooks, GroupFeeds)
@@ -212,8 +213,8 @@ def feed(self):
                                     if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
                                         GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Topic', value_api=result)
                                     Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
-                                else:
-                                    print('indicator->', result)
+                                # else:
+                                #     print('indicator->', result)
                         elif(item == 'author'):
                             FeedItems.objects.filter(id=itemid).update(author=items[item])
                         elif(item == 'category'):
@@ -228,18 +229,18 @@ def feed(self):
                             FeedItems.objects.filter(id=itemid).update(pubdate=items[item])
                         elif(item == 'source'):
                             FeedItems.objects.filter(id=itemid).update(source=items[item])
-                    isSuccess = True
                     for groupid in groupids:
+                        isSuccess = True
                         while isSuccess:
                             if len(WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all()) > 0:
                                 for webhook in WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all():
-                                    channelunique = FeedChannels.objects.filter(feed_id=request.data['id']).last().uniqueid
+                                    channelunique = FeedChannels.objects.filter(feed_id=feed.id).last().uniqueid
                                     groupunique = IntelGroups.objects.filter(id=groupid).last().uniqueid
                                     data = {
                                         'uuid': webhook.uniqueid,
                                         'channel': channelunique,
                                         'intelgroup': groupunique,
-                                        'reporturl': f"{settings.SITE_ROOT_URL}/app/intelreport/"+str(IntelReports.objects.filter(feeditem_id=FeedItems.objects.last().uniqueid).last().id),
+                                        'reporturl': f"{settings.SITE_ROOT_URL}/app/intelreport/"+str(IntelReports.objects.last().uniqueid),
                                         'addedtime': IntelReports.objects.filter(feeditem_id=FeedItems.objects.last().id).last().created_at,
                                         'data': {
                                             'title': FeedItems.objects.last().title,
@@ -247,13 +248,31 @@ def feed(self):
                                             'description': FeedItems.objects.last().description
                                         }
                                     }
-                                    try:
-                                        response = requests.post(webhook.endpoint, data=data)
-                                        if response.status_code >= 500:
+                                    if webhook.words == '':
+                                        try:
+                                            response = requests.post(webhook.endpoint, data=data)
+                                            if response.status_code >= 500:
+                                                isSuccess = False
+                                        except Exception as e:
+                                            print(str(e))
                                             isSuccess = False
-                                    except Exception as e:
-                                        print(str(e))
-                                        isSuccess = False
+                                    else:
+                                        isExist = False
+                                        for word in webhook.words.split(','):
+                                            if word.strip() in FeedItems.objects.last().title:
+                                                isExist = True
+                                            if word.strip() in FeedItems.objects.last().title:
+                                                isExist = True
+                                        if isExist:
+                                            try:
+                                                response = requests.post(webhook.endpoint, data=data)
+                                                if response.status_code >= 500:
+                                                    isSuccess = False
+                                            except Exception as e:
+                                                print(str(e))
+                                                isSuccess = False
+                                        else:
+                                            isSuccess = False
                             else:
                                 isSuccess = False
         if type(xmltodict.parse(contents)['rss']['channel']['item']) is not list:
@@ -409,18 +428,18 @@ def feed(self):
                         FeedItems.objects.filter(id=itemid).update(pubdate=xmltodict.parse(contents)['rss']['channel']['item'][item])
                     elif(item == 'source'):
                         FeedItems.objects.filter(id=itemid).update(source=xmltodict.parse(contents)['rss']['channel']['item'][item])
-            isSuccess = True
             for groupid in groupids:
+                isSuccess = True
                 while isSuccess:
                     if len(WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all()) > 0:
                         for webhook in WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all():
-                            channelunique = FeedChannels.objects.filter(feed_id=request.data['id']).last().uniqueid
+                            channelunique = FeedChannels.objects.filter(feed_id=feed.id).last().uniqueid
                             groupunique = IntelGroups.objects.filter(id=groupid).last().uniqueid
                             data = {
                                 'uuid': webhook.uniqueid,
                                 'channel': channelunique,
                                 'intelgroup': groupunique,
-                                'reporturl': f"{settings.SITE_ROOT_URL}/app/intelreport/"+str(IntelReports.objects.filter(feeditem_id=FeedItems.objects.last().uniqueid).last().id),
+                                'reporturl': f"{settings.SITE_ROOT_URL}/app/intelreport/"+str(IntelReports.objects.last().id),
                                 'addedtime': IntelReports.objects.filter(feeditem_id=FeedItems.objects.last().id).last().created_at,
                                 'data': {
                                     'title': FeedItems.objects.last().title,
@@ -428,13 +447,31 @@ def feed(self):
                                     'description': FeedItems.objects.last().description
                                 }
                             }
-                            try:
-                                response = requests.post(webhook.endpoint, data=data)
-                                if response.status_code >= 500:
+                            if webhook.words == '':
+                                try:
+                                    response = requests.post(webhook.endpoint, data=data)
+                                    if response.status_code >= 500:
+                                        isSuccess = False
+                                except Exception as e:
+                                    print(str(e))
                                     isSuccess = False
-                            except Exception as e:
-                                print(str(e))
-                                isSuccess = False
+                            else:
+                                isExist = False
+                                for word in webhook.words.split(','):
+                                    if word.strip() in FeedItems.objects.last().title:
+                                        isExist = True
+                                    if word.strip() in FeedItems.objects.last().title:
+                                        isExist = True
+                                if isExist:
+                                    try:
+                                        response = requests.post(webhook.endpoint, data=data)
+                                        if response.status_code >= 500:
+                                            isSuccess = False
+                                    except Exception as e:
+                                        print(str(e))
+                                        isSuccess = False
+                                else:
+                                    isSuccess = False
                     else:
                         isSuccess = False
 

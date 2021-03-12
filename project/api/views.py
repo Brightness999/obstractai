@@ -2002,9 +2002,9 @@ def feeds(request):
 							print('item->', item)
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			IntelReports.objects.create(feeditem_id=item.id)
-		flag = True
 		is_exist = True
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
+			flag = True
 			while flag:
 				if len(WebHooks.objects.filter(intelgroup_id=groupid).order_by('id').all()) > 0:
 					for webhook in WebHooks.objects.filter(intelgroup_id=groupid).order_by('id').all():
@@ -2022,11 +2022,31 @@ def feeds(request):
 								'description': item.description
 							}
 						}
-						try:
-							requests.post(webhook.endpoint, data=data)
-						except Exception as e:
-							print(str(e))
-							flag = False
+						if webhook.words == '':
+							try:
+								response = requests.post(webhook.endpoint, data=data)
+								if response.status_code >= 500:
+									flag = False
+							except Exception as e:
+								print(str(e))
+								flag = False
+						else:
+							isExist = False
+							for word in webhook.words.split(','):
+								if word.strip() in FeedItems.objects.last().title:
+									isExist = True
+								if word.strip() in FeedItems.objects.last().title:
+									isExist = True
+							if isExist:
+								try:
+									response = requests.post(webhook.endpoint, data=data)
+									if response.status_code >= 500:
+										flag = False
+								except Exception as e:
+									print(str(e))
+									flag = False
+							else:
+								flag = False
 				else:
 					flag = False
 					is_exist = False
@@ -2070,9 +2090,9 @@ def feeds(request):
 			GroupFeeds.objects.filter(id=groupfeed.id).update(category_id=data['category'])
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
 			IntelReports.objects.create(feeditem_id=item.id)
-		flag = True
 		is_exist = True
 		for item in FeedItems.objects.filter(feed_id=Feeds.objects.last().id).all():
+			flag = True
 			while flag:
 				if len(WebHooks.objects.filter(intelgroup_id=data['groupid']).order_by('id').all()) > 0:
 					for webhook in WebHooks.objects.filter(intelgroup_id=data['groupid']).order_by('id').all():
@@ -2090,11 +2110,31 @@ def feeds(request):
 								'description': item.description
 							}
 						}
-						try:
-							requests.post(webhook.endpoint, data=data)
-						except Exception as e:
-							print(str(e))
-							flag = False
+						if webhook.words == '':
+							try:
+								response = requests.post(webhook.endpoint, data=data)
+								if response.status_code >= 500:
+									flag = False
+							except Exception as e:
+								print(str(e))
+								flag = False
+						else:
+							isExist = False
+							for word in webhook.words.split(','):
+								if word.strip() in FeedItems.objects.last().title:
+									isExist = True
+								if word.strip() in FeedItems.objects.last().title:
+									isExist = True
+							if isExist:
+								try:
+									response = requests.post(webhook.endpoint, data=data)
+									if response.status_code >= 500:
+										flag = False
+								except Exception as e:
+									print(str(e))
+									flag = False
+							else:
+								flag = False
 				else:
 					flag = False
 					is_exist = False
@@ -2149,24 +2189,6 @@ def configuredfeeds(request):
 			groupid = request.data['id']
 		else:
 			groupid = UserIntelGroupRoles.objects.filter(user_id=request.user.id).last().intelgroup_id
-			# groupid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().id
-			# if len(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).all()) == 0:
-			# 	return Response({'banner':True})
-			# else:
-			# 	if UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=groupid).last().role != 2:
-			# 		return Response({'banner':True})
-			# subid = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().plan_id
-			# created_at = IntelGroups.objects.filter(uniqueid=request.data['uniqueid']).last().created_at
-			# if subid == None:
-			# 	if datetime.now() > created_at.replace(tzinfo=None)+timedelta(days=1):
-			# 		return Response({'banner':True})
-			# else:
-			# 	planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-			# 	productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-			# 	api_access = Product.objects.filter(djstripe_id=productid).last().metadata['api_access']
-			# 	if not api_access:
-			# 		return Response({'banner':True})
-		print(groupid)
 		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True)
 		feedids = []
 		feeditemids = []
@@ -2349,9 +2371,9 @@ def feedenable(request):
 	GroupFeeds.objects.create(feed_id=request.data['id'], intelgroup_id=groupid, name=feed.name, description=feed.description, tags=feed.tags, confidence=feed.confidence, category_id=feed.category_id, isenable=True )
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
 		IntelReports.objects.create(feeditem_id=item.id)
-	flag = True
 	is_exist = True
 	for item in FeedItems.objects.filter(feed_id=request.data['id']).all():
+		flag = True
 		while flag:
 			if len(WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all()) > 0:
 				for webhook in WebHooks.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all():
@@ -2369,13 +2391,31 @@ def feedenable(request):
 							'description': item.description
 						}
 					}
-					try:
-						response = requests.post(webhook.endpoint, data=data)
-						if response.status_code >= 500:
+					if webhook.words == '':
+						try:
+							response = requests.post(webhook.endpoint, data=data)
+							if response.status_code >= 500:
+								flag = False
+						except Exception as e:
+							print(str(e))
 							flag = False
-					except Exception as e:
-						print(str(e))
-						flag = False
+					else:
+						isExist = False
+						for word in webhook.words.split(','):
+							if word.strip() in FeedItems.objects.last().title:
+								isExist = True
+							if word.strip() in FeedItems.objects.last().title:
+								isExist = True
+						if isExist:
+							try:
+								response = requests.post(webhook.endpoint, data=data)
+								if response.status_code >= 500:
+									flag = False
+							except Exception as e:
+								print(str(e))
+								flag = False
+						else:
+							flag = False
 			else:
 				flag = False
 				is_exist = False

@@ -17,6 +17,7 @@ class IntelGroups(BaseModel):
     description = models.CharField(max_length=100, default='')
     plan = models.ForeignKey(Subscription, on_delete=models.CASCADE, null=True, blank=True)
     ispublic = models.BooleanField(default=False)
+    isfree = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

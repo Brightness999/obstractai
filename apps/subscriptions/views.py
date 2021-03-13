@@ -48,7 +48,7 @@ def subscription(request, subscription_holder=None, groupid=0):
         groupid = IntelGroups.objects.filter(plan_id=subid).last().id
         return _view_subscription(request, subscription_holder, groupid)
     else:
-        if IntelGroups.objects.filter(id=groupid).values()[0]['plan_id'] != None:
+        if IntelGroups.objects.filter(id=groupid).last().plan_id != None or IntelGroups.objects.filter(id=groupid).last().isfree:
             return _view_subscription(request, subscription_holder, groupid)
         else:
             return _upgrade_subscription(request, subscription_holder, groupid)
@@ -59,8 +59,13 @@ def _view_subscription(request, subscription_holder, groupid):
     Show user's active subscription
     """
     # assert subscription_holder.has_active_subscription()
-    sub_id = IntelGroups.objects.filter(id=groupid).last().plan_id
-    planid = Subscription.objects.filter(djstripe_id=sub_id).last().plan_id
+    if IntelGroups.objects.filter(id=groupid).last().isfree:
+        planid = Plan.objects.filter(amount=0).last().djstripe_id
+        current_period_end = ''
+    else:
+        sub_id = IntelGroups.objects.filter(id=groupid).last().plan_id
+        planid = Subscription.objects.filter(djstripe_id=sub_id).last().plan_id
+        current_period_end = Subscription.objects.filter(djstripe_id=sub_id).last().current_period_end
     productid = Plan.objects.filter(djstripe_id=planid).last().product_id
     active_products = list(get_active_products_with_metadata())
     default_products = [p for p in active_products if p.metadata.is_default]
@@ -91,8 +96,11 @@ def _view_subscription(request, subscription_holder, groupid):
 
     active_plan_intervals = []
     for plan_interval in get_active_plan_interval_metadata():
-        if Plan.objects.filter(djstripe_id=planid).last().interval == plan_interval.interval:
+        if IntelGroups.objects.filter(id=groupid).last().isfree:
             active_plan_intervals.append(plan_interval)
+        else:
+            if Plan.objects.filter(djstripe_id=planid).last().interval == plan_interval.interval:
+                active_plan_intervals.append(plan_interval)
     products = []
     for product in active_products:
         if product.metadata.name != Product.objects.filter(djstripe_id=productid).last().name:
@@ -125,7 +133,7 @@ def _view_subscription(request, subscription_holder, groupid):
         'default_to_weekly': default_to_weekly,
         'payment_metadata': _get_payment_metadata_from_request(request),
         'current_product_id': Product.objects.filter(djstripe_id=productid).last().id,
-        'current_period_end': Subscription.objects.filter(djstripe_id=sub_id).last().current_period_end,
+        'current_period_end': current_period_end,
         'groupid': groupid,
     })
 
@@ -261,7 +269,8 @@ def create_customer(request, subscription_holder=None):
     email = request_body['user_email']
     assert request.user.id == user_id
     assert request.user.email == email
-    
+
+    IntelGroups.objects.filter(id=request_body['groupid']).update(isfree=False)
     subid = IntelGroups.objects.filter(id=request_body['groupid']).last().plan_id
     if subid != None:
         planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
@@ -276,35 +285,35 @@ def create_customer(request, subscription_holder=None):
         current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
         current_period_start = Subscription.objects.filter(djstripe_id=subid).last().current_period_start
         current_interval = Plan.objects.filter(djstripe_id=planid).last().interval
-        if current_interval == 'day' and interval == 'week':
-            return JsonResponse(
-                data = {'dayweek':True}
-            )
-        if current_interval == 'week' and interval == 'day':
-            return JsonResponse(
-                data = {'weekday':True}
-            )
+        # if current_interval == 'day' and interval == 'week':
+        #     return JsonResponse(
+        #         data = {'dayweek':True}
+        #     )
+        # if current_interval == 'week' and interval == 'day':
+        #     return JsonResponse(
+        #         data = {'weekday':True}
+        #     )
         if (current_product_name=='Gold' and product_name=='Silver') or (current_product_name=='Gold' and product_name=='Free') or (current_product_name=='Silver' and product_name=='Free'):
             users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()
-            feeds = Feeds.objects.filter(intelgroup_id=request_body['groupid'])
+            feeds = GroupFeeds.objects.filter(intelgroup_id=request_body['groupid']).all()
             if len(users) > int(max_users) and len(feeds) > int(max_feeds):
                 result = {
-                    'users': len(users),
-                    'feeds': len(feeds)
+                    'users': len(users)-int(max_users),
+                    'feeds': len(feeds)-int(max_feeds)
                 }
                 return JsonResponse(
                     data=result,
                 )
             elif len(users) > int(max_users):
                 result = {
-                    'users': len(users),
+                    'users': len(users)-int(max_users),
                 }
                 return JsonResponse(
                     data=result,
                 )
             elif len(feeds) > int(max_feeds):
                 result = {
-                    'feeds': len(feeds)
+                    'feeds': len(feeds)-int(max_feeds)
                 }
                 return JsonResponse(
                     data=result,

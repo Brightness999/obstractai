@@ -119,81 +119,99 @@
     submissionPending = false;
     location.href = subscriptionSuccessUrl;
   };
-
+  
   const handlePaymentMethodCreated = function (result) {
-    console.log("{% url 'api:feeds' %}")
-    if (result.error && !freeSelection) {
-      handleError(result.error.message);
-      submissionPending = false;
-    } else {
-      let selectedPlanElement = getSelectedPlanElement();
-      let selectedPlan = selectedPlanElement.dataset.planId;
-      const paymentParams = {...paymentMetadata};
-      paymentParams.plan_id = selectedPlan;
-      paymentParams.payment_method = result.paymentMethod.id;
-      paymentParams.groupid = groupid
-      fetch(createCustomerUrl, {
+    if(getSelectedPlanElement().dataset.paymentAmount == '$0.00'){
+      let params = {id:groupid};
+      fetch("{% url 'api:freeplan' %}", {
         method: 'post',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': App.Cookies.get('csrftoken'),
         },
         credentials: 'same-origin',
-        body: JSON.stringify(paymentParams),
-      }).then(function(response) {
-        return response.json();
-      }).then(function(result) {
-        console.log(result);
-        if (result.error) {
-          handleError(result.error.message);
-          submissionPending = false;
-        } else {
-          const subscription = result.subscription;
-          // check/handle error cases https://stripe.com/docs/billing/subscriptions/set-up-subscription#manage-sub-status
-          const { latest_invoice } = subscription;
-          const { payment_intent } = latest_invoice;
-          if (payment_intent) {
-            const { client_secret, status } = payment_intent;
-            if (status === 'requires_action') {
-              // trigger 3D-secure workflow
-              stripe.confirmCardPayment(client_secret).then(function(result) {
-                if (result.error) {
-                  // The card was declined (i.e. insufficient funds, card has expired, etc)
-                  handleError(result.error.message);
-                  submissionPending = false;
-                } else {
-                  // Show a success message to your customer
-                  handleSubscriptionSuccess();
-                }
-              });
+        body: JSON.stringify(params)
+      }).then(function(res){
+        return res.json();
+      }).then(function(res){
+        submissionPending = false;
+        location.href = `/subscriptions/intelgroup/${groupid}`;
+      })
+    }
+    else{
+      if (result.error && !freeSelection) {
+        handleError(result.error.message);
+        submissionPending = false;
+      } else {
+        let selectedPlanElement = getSelectedPlanElement();
+        let selectedPlan = selectedPlanElement.dataset.planId;
+        const paymentParams = {...paymentMetadata};
+        paymentParams.plan_id = selectedPlan;
+        paymentParams.payment_method = result.paymentMethod.id;
+        paymentParams.groupid = groupid
+        fetch(createCustomerUrl, {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': App.Cookies.get('csrftoken'),
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(paymentParams),
+        }).then(function(response) {
+          return response.json();
+        }).then(function(result) {
+          console.log(result);
+          if (result.error) {
+            handleError(result.error.message);
+            submissionPending = false;
+          } else {
+            const subscription = result.subscription;
+            // check/handle error cases https://stripe.com/docs/billing/subscriptions/set-up-subscription#manage-sub-status
+            const { latest_invoice } = subscription;
+            const { payment_intent } = latest_invoice;
+            if (payment_intent) {
+              const { client_secret, status } = payment_intent;
+              if (status === 'requires_action') {
+                // trigger 3D-secure workflow
+                stripe.confirmCardPayment(client_secret).then(function(result) {
+                  if (result.error) {
+                    // The card was declined (i.e. insufficient funds, card has expired, etc)
+                    handleError(result.error.message);
+                    submissionPending = false;
+                  } else {
+                    // Show a success message to your customer
+                    handleSubscriptionSuccess();
+                  }
+                });
+              } else {
+                // No additional information was needed
+                // Show a success message to your customer
+                handleSubscriptionSuccess();
+              }
+            } else if (subscription.pending_setup_intent) {
+              const { client_secret, status } = subscription.pending_setup_intent;
+              if (status === 'requires_action') {
+                stripe.confirmCardSetup(client_secret).then(function (result) {
+                  if (result.error) {
+                    // The card was declined (i.e. insufficient funds, card has expired, etc)
+                    // todo: in this state should the trial be canceled?
+                    handleError(result.error.message);
+                    submissionPending = false;
+                  } else {
+                    // Show a success message to your customer
+                    handleSubscriptionSuccess();
+                  }
+                });
+              }
             } else {
-              // No additional information was needed
-              // Show a success message to your customer
               handleSubscriptionSuccess();
             }
-          } else if (subscription.pending_setup_intent) {
-            const { client_secret, status } = subscription.pending_setup_intent;
-            if (status === 'requires_action') {
-              stripe.confirmCardSetup(client_secret).then(function (result) {
-                if (result.error) {
-                  // The card was declined (i.e. insufficient funds, card has expired, etc)
-                  // todo: in this state should the trial be canceled?
-                  handleError(result.error.message);
-                  submissionPending = false;
-                } else {
-                  // Show a success message to your customer
-                  handleSubscriptionSuccess();
-                }
-              });
-            }
-          } else {
-            handleSubscriptionSuccess();
           }
-        }
-      }).catch(function (error) {
-        handleError("Sorry, there was an unexpected error processing your payment. Please contact us for support.");
-        submissionPending = false;
-      });
+        }).catch(function (error) {
+          handleError("Sorry, there was an unexpected error processing your payment. Please contact us for support.");
+          submissionPending = false;
+        });
+      }
     }
   };
 
@@ -201,9 +219,9 @@
   form.addEventListener('submit', function(event) {
     // We don't want to let default form submission happen here,
     // which would refresh the page.
-    console.log(getSelectedPlanElement().dataset.paymentAmount)
     event.preventDefault();
     if(getSelectedPlanElement().dataset.paymentAmount == '$0.00'){
+      subscribeButton.classList.add('is-loading');
       handlePaymentMethodCreated();
     }
     else{

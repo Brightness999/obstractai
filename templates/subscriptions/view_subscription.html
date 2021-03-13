@@ -2,9 +2,11 @@
 {% load static %}
 {% block app %}
 <section class="section app-card">
+  {% if current_period_end != '' %}
   <div class="help is-size-4 has-text-centered has-text-primary">
     <span>Your plan will be downgraded and limited on {{current_period_end}}</span>
   </div>
+  {% endif %}
   {% if active_plan_intervals|length > 1 %}
   <div class="buttons has-addons is-centered">
     {% for interval in active_plan_intervals %}
@@ -111,88 +113,109 @@
   };
 
   const handlePaymentMethodCreated = function (result) {
-    if (result.error) {
-      handleError(result.error.message);
-      submissionPending = false;
-    } else {
-      let selectedPlanElement = getSelectedPlanElement();
-      let selectedPlan = selectedPlanElement.dataset.planId;
-      const paymentParams = {...paymentMetadata};
-      paymentParams.plan_id = selectedPlan;
-      paymentParams.payment_method = result.paymentMethod.id;
-      paymentParams.groupid = groupid;
-      paymentParams.stripeToken = stripeToken;
-      fetch(createCustomerUrl, {
+    let selectedPlanElement = getSelectedPlanElement();
+    if(selectedPlanElement.dataset.paymentAmount == '$0.00'){
+      let params = {id:groupid};
+      fetch("{% url 'api:freeplan' %}", {
         method: 'post',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': App.Cookies.get('csrftoken'),
         },
         credentials: 'same-origin',
-        body: JSON.stringify(paymentParams),
-      }).then(function(response) {
-        return response.json();
-      }).then(function(result) {
-        console.log(result);
-        if(Boolean(result.feeds) || Boolean(result.users)){
-          helpLabel.innerHTML = `<h1 class="is-size-4">You can't downgrade your plan until you correct the features where quota is exceeded.</h1>`;
-        }
-        if(Boolean(result.dayweek)){
-          helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from daily plan to weekly plan!</h1>`;
-        }
-        if(Boolean(result.weekday)){
-          helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from weekly plan to daily plan!</h1>`;
-        }
-        if (result.error) {
-          handleError(result.error.message);
-          submissionPending = false;
-        } else {
-          const subscription = result.subscription;
-          // check/handle error cases https://stripe.com/docs/billing/subscriptions/set-up-subscription#manage-sub-status
-          const { latest_invoice } = subscription;
-          const { payment_intent } = latest_invoice;
-          if (payment_intent) {
-            const { client_secret, status } = payment_intent;
-            if (status === 'requires_action') {
-              // trigger 3D-secure workflow
-              stripe.confirmCardPayment(client_secret).then(function(result) {
-                if (result.error) {
-                  // The card was declined (i.e. insufficient funds, card has expired, etc)
-                  handleError(result.error.message);
-                  submissionPending = false;
-                } else {
-                  // Show a success message to your customer
-                  handleSubscriptionSuccess();
-                }
-              });
+        body: JSON.stringify(params)
+      }).then(function(res){
+        return res.json();
+      }).then(function(res){
+        submissionPending = false;
+        location.href = `/subscriptions/intelgroup/${groupid}`;
+      })
+    }
+    else{
+      if (result.error) {
+        handleError(result.error.message);
+        submissionPending = false;
+      } else {
+        let selectedPlan = selectedPlanElement.dataset.planId;
+        const paymentParams = {...paymentMetadata};
+        paymentParams.plan_id = selectedPlan;
+        paymentParams.payment_method = result.paymentMethod.id;
+        paymentParams.groupid = groupid;
+        paymentParams.stripeToken = stripeToken;
+        fetch(createCustomerUrl, {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': App.Cookies.get('csrftoken'),
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(paymentParams),
+        }).then(function(response) {
+          return response.json();
+        }).then(function(result) {
+          console.log(result);
+          if(Boolean(result.feeds) || Boolean(result.users)){
+            helpLabel.innerHTML = `<h1 class="is-size-4">You can't downgrade your plan until you correct the features where quota is exceeded.</h1>
+            </br><h1 class="is-size-5">Your Intel Group's ${result.users} users are exceeded.</h1>
+            </br><h1 class="is-size-5">Your Intel Group's ${result.feeds} feeds are exceeded.</h1>`;
+          }
+          if(Boolean(result.dayweek)){
+            helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from daily plan to weekly plan!</h1>`;
+          }
+          if(Boolean(result.weekday)){
+            helpLabel.innerHTML = `<h1 class="is-size-4">You can't switch from weekly plan to daily plan!</h1>`;
+          }
+          if (result.error) {
+            handleError(result.error.message);
+            submissionPending = false;
+          } else {
+            const subscription = result.subscription;
+            // check/handle error cases https://stripe.com/docs/billing/subscriptions/set-up-subscription#manage-sub-status
+            const { latest_invoice } = subscription;
+            const { payment_intent } = latest_invoice;
+            if (payment_intent) {
+              const { client_secret, status } = payment_intent;
+              if (status === 'requires_action') {
+                // trigger 3D-secure workflow
+                stripe.confirmCardPayment(client_secret).then(function(result) {
+                  if (result.error) {
+                    // The card was declined (i.e. insufficient funds, card has expired, etc)
+                    handleError(result.error.message);
+                    submissionPending = false;
+                  } else {
+                    // Show a success message to your customer
+                    handleSubscriptionSuccess();
+                  }
+                });
+              } else {
+                // No additional information was needed
+                // Show a success message to your customer
+                handleSubscriptionSuccess();
+              }
+            } else if (subscription.pending_setup_intent) {
+              const { client_secret, status } = subscription.pending_setup_intent;
+              if (status === 'requires_action') {
+                stripe.confirmCardSetup(client_secret).then(function (result) {
+                  if (result.error) {
+                    // The card was declined (i.e. insufficient funds, card has expired, etc)
+                    // todo: in this state should the trial be canceled?
+                    handleError(result.error.message);
+                    submissionPending = false;
+                  } else {
+                    // Show a success message to your customer
+                    handleSubscriptionSuccess();
+                  }
+                });
+              }
             } else {
-              // No additional information was needed
-              // Show a success message to your customer
               handleSubscriptionSuccess();
             }
-          } else if (subscription.pending_setup_intent) {
-            const { client_secret, status } = subscription.pending_setup_intent;
-            if (status === 'requires_action') {
-              stripe.confirmCardSetup(client_secret).then(function (result) {
-                if (result.error) {
-                  // The card was declined (i.e. insufficient funds, card has expired, etc)
-                  // todo: in this state should the trial be canceled?
-                  handleError(result.error.message);
-                  submissionPending = false;
-                } else {
-                  // Show a success message to your customer
-                  handleSubscriptionSuccess();
-                }
-              });
-            }
-          } else {
-            handleSubscriptionSuccess();
           }
-        }
-      }).catch(function (error) {
-        handleError("Sorry, there was an unexpected error processing your payment. Please contact us for support.");
-        submissionPending = false;
-      });
+        }).catch(function (error) {
+          handleError("Sorry, there was an unexpected error processing your payment. Please contact us for support.");
+          submissionPending = false;
+        });
+      }
     }
   };
 
@@ -226,17 +249,17 @@
       if (isweekly) {
         if (weeklySelector) {
           weeklySelector.classList.add('is-selected', 'is-primary');
-          // dailySelector.classList.remove('is-selected', 'is-primary');
-          // helpLabel.innerText = weeklyHelpText;
+          dailySelector.classList.remove('is-selected', 'is-primary');
+          helpLabel.innerText = weeklyHelpText;
           helpLabel.classList.add('is-danger');
         // helpLabel.classList.remove('is-danger');
       }
       updatePlans(isweekly);
     } else {
       if (dailySelector) {
-        // weeklySelector.classList.remove('is-selected', 'is-primary');
+        weeklySelector.classList.remove('is-selected', 'is-primary');
         dailySelector.classList.add('is-selected', 'is-primary');
-        // helpLabel.innerText = dailyHelpText;
+        helpLabel.innerText = dailyHelpText;
         helpLabel.classList.add('is-danger');
         // helpLabel.classList.remove('is-primary');
       }
@@ -299,18 +322,24 @@
     event.preventDefault();
     let selectedPlanElement = getSelectedPlanElement()
     if(selectedPlanElement.dataset.productId < current_product_id)
-      if(confirm("If you downgrade, you will lose custom mapping functionality and lose API access. Are you sure to downgrade?"))
-        if (getSelectedPlanElement() && !submissionPending) {
-          submissionPending = true;
+      if(confirm("If you downgrade, you will lose custom mapping functionality and lose API access. Are you sure to downgrade?")){
+        if(selectedPlanElement.dataset.paymentAmount == '$0.00'){
           subscribeButton.classList.add('is-loading');
-          stripe.createPaymentMethod({
-            type: 'card',
-            card: cardElement,
-            billing_details: {
-              email: userEmail,
-            },
-          }).then(handlePaymentMethodCreated);
+          handlePaymentMethodCreated();
+        }{
+          if (getSelectedPlanElement() && !submissionPending) {
+            submissionPending = true;
+            subscribeButton.classList.add('is-loading');
+            stripe.createPaymentMethod({
+              type: 'card',
+              card: cardElement,
+              billing_details: {
+                email: userEmail,
+              },
+            }).then(handlePaymentMethodCreated);
+          }
         }
+      }
     if(selectedPlanElement.dataset.productId > current_product_id)
       if (getSelectedPlanElement() && !submissionPending) {
         submissionPending = true;

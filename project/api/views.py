@@ -2986,5 +2986,21 @@ def onboarding(request):
 
 @api_view(['POST'])
 def freeplan(request):
-	
-	return Response('success')
+	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+	if subid != None:
+		max_users = Product.objects.filter(name='Free').last().metadata['max_users']
+		max_feeds = Product.objects.filter(name='Free').last().metadata['max_feeds']
+		users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all()
+		feeds = GroupFeeds.objects.filter(intelgroup_id=request.data['id']).all()
+		if len(users) > int(max_users) and len(feeds) > int(max_feeds):
+			return Response({'users':len(users) - int(max_users), 'feeds':len(feeds) - int(max_feeds)})
+		elif len(users) > int(max_users):
+			return Response({'users':len(users) - int(max_users)})
+		elif len(feeds) > int(max_feeds):
+			return Response({'feeds':len(feeds) - int(max_feeds)})
+		else:
+			IntelGroups.objects.filter(id=request.data['id']).update(isfree=True)
+			return Response('success')
+	else:
+		IntelGroups.objects.filter(id=request.data['id']).update(isfree=True)
+		return Response('success')

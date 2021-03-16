@@ -9,42 +9,42 @@ const ExtractionTable = (props) => {
     const [type, setType] = useState(props.extraction.attribute || '');
     const [value, setValue] = useState(props.extraction.value || '');
     const [words, setWords] = useState(props.extraction.words_matched || '');
-    const [isenable, setIsEnable] = useState(props.extraction.isenable?'Enable':'Disable' || '');
+    const [isenable, setIsEnable] = useState(props.extraction.isenable ? 'Enable' : 'Disable' || '');
 
-    const editAttribute = () =>{
+    const editAttribute = () => {
         if (type.trim() == '' || value == '' || words.trim() == '' || isenable == '')
             setIsEditAlert(true);
-        else{
+        else {
             props.editAttribute(props.index, words, value, type, isenable);
             setOpen(false);
         }
     }
 
     return (
-        <Tr id={props.index==0?"type":""}>
-            <Td>{props.extraction.attribute+'('+props.extraction.api_attribute+')'}</Td>
-            <Td>{props.extraction.value+'('+props.extraction.api_value+')'}</Td>
+        <Tr id={props.index == 0 ? "type" : ""}>
+            <Td>{props.extraction.attribute + '(' + props.extraction.api_attribute + ')'}</Td>
+            <Td>{props.extraction.value + '(' + props.extraction.api_value + ')'}</Td>
             <Td>{props.extraction.words_matched}</Td>
             <Td>
-                <a className="button is-primary mx-2" onClick={()=>setOpen(true)}>Edit</a>
-                <a className={props.extraction.isenable?"button is-text":"button is-success"} onClick={()=>props.changeStatus(props.index)}>{props.extraction.isenable?'Disable':'Enable'}</a>
+                <a className="button is-primary mx-2" onClick={() => setOpen(true)}>Edit</a>
+                <a className={props.extraction.isenable ? "button is-text" : "button is-success"} onClick={() => props.changeStatus(props.index)}>{props.extraction.isenable ? 'Disable' : 'Enable'}</a>
                 <Dialog
                     open={open}
-                    onClose={()=>setOpen(false)}
+                    onClose={() => setOpen(false)}
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description"
                 >
                     <DialogTitle id="alert-dialog-title">Edit Attribute</DialogTitle>
                     <DialogContent>
-                        {isEditAlert && <Alert severity="error" onClose={()=>setIsEditAlert(false)}>Please input exactly!!!</Alert>}
+                        {isEditAlert && <Alert severity="error" onClose={() => setIsEditAlert(false)}>Please input exactly!!!</Alert>}
                         <div className="semisection">
-                            <TextField  size="small" placeholder="Type" value={type} variant="outlined" onChange={(e)=>setType(e.target.value)} />
+                            <TextField size="small" placeholder="Type" value={type} variant="outlined" onChange={(e) => setType(e.target.value)} />
                         </div>
                         <div className="semisection">
-                            <TextField  size="small" placeholder="Value" value={value} variant="outlined" onChange={(e)=>setValue(e.target.value)} />
+                            <TextField size="small" placeholder="Value" value={value} variant="outlined" onChange={(e) => setValue(e.target.value)} />
                         </div>
                         <div className="semisection">
-                            <TextField  size="small" placeholder="Words matched on" value={words} variant="outlined" onChange={(e)=>setWords(e.target.value)} />
+                            <TextField size="small" placeholder="Words matched on" value={words} variant="outlined" onChange={(e) => setWords(e.target.value)} />
                         </div>
                         <div className="semisection">
                             <TextField
@@ -53,7 +53,7 @@ const ExtractionTable = (props) => {
                                 fullWidth
                                 size="small"
                                 value={isenable}
-                                onChange={(e)=>setIsEnable(e.target.value)}
+                                onChange={(e) => setIsEnable(e.target.value)}
                                 SelectProps={{
                                     native: true,
                                 }}
@@ -65,10 +65,10 @@ const ExtractionTable = (props) => {
                         </div>
                     </DialogContent>
                     <DialogActions>
-                        <button onClick={()=>editAttribute()} className="button is-success" autoFocus>
+                        <button onClick={() => editAttribute()} className="button is-success" autoFocus>
                             Confirm
                         </button>
-                        <button onClick={()=>setOpen(false)} className="button is-danger" >
+                        <button onClick={() => setOpen(false)} className="button is-danger" >
                             Cancel
                         </button>
                     </DialogActions>

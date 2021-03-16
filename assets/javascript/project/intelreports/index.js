@@ -324,7 +324,6 @@ const IntelReports = (props) => {
 	},[props.currentgroup]);
 
 	const searchReport = (category, indicator, tag, feedname, confidence, classification, intelligence) => {
-		setIsLoading(true);
 		let params = {
 			id:props.currentgroup,
 			category:category,
@@ -347,7 +346,6 @@ const IntelReports = (props) => {
 		.then(res=>{
 			setIndicators(res.indicators);
 			setReports(res.reports);
-			setIsLoading(false);
 		})
 	}
 

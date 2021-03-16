@@ -142,6 +142,25 @@ const IntelGroup = function(props) {
                                 <option value={true}>True</option>
                             </TextField>
                             <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
+                            {props.planname == 'Free' &&
+                            <><label className="label">Public</label>
+                            <TextField
+                                className="column is-three-quarters"
+                                select
+                                disabled
+                                margin="normal"
+                                SelectProps={{
+                                    native: true
+                                }}
+                                variant="outlined"
+                                value={isPublic}
+                                onChange={(event) => setIsPublic(event.target.value)}
+                            >
+                                <option value="">Upgrade to paid plan to enable</option>
+                                <option value={false}>False</option>
+                                <option value={true}>True</option>
+                            </TextField>
+                            <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
                         </div>
                         <div className="field is-grouped">
                             <div className="control">

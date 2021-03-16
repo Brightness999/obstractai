@@ -328,7 +328,7 @@ PROJECT_METADATA = {
 }
 
 
-ADMINS = [('pega', 'kardzavaryan@gmail.com')]
+ADMINS = [('pega', 'postmaster@mg.obstractai.com')]
 
 GOOGLE_ANALYTICS_ID = ''  # replace with your google analytics ID to connect to Google Analytics
 
@@ -344,7 +344,7 @@ STRIPE_LIVE_MODE = False  # Change to True in production
 # Get it from the section in the Stripe dashboard where you added the webhook endpoint
 # or from the stripe CLI when testing
 
-DJSTRIPE_WEBHOOK_SECRET = os.environ.get("DJSTRIPE_WEBHOOK_SECRET", "whsec_wAo9D0lTNnQqSA0cqS5yeQOnD7KJuU1r")
+DJSTRIPE_WEBHOOK_SECRET = os.environ.get("DJSTRIPE_WEBHOOK_SECRET")
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 USER_EMAIL = os.environ.get('USER_EMAIL')
 FROM = os.environ.get('FROM')

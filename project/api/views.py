@@ -2610,13 +2610,6 @@ We look forward to welcoming you onboard.
 		InviteEmails.objects.filter(id=request.data['id']).delete()
 		return Response('Success')
 
-# @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: UserGroupRoleSerializer})
-# @api_view(['POST'])
-# def currentrole(request):
-# 	currentrole = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).all()
-# 	serializer = UserGroupRoleSerializer(currentrole[0])
-# 	return Response({'currentrole':serializer.data})
-
 @swagger_auto_schema(methods=['post'], request_body=CategoryCreateSerializer, responses={201: CategorySerializer})
 @swagger_auto_schema(methods=['put'], request_body=CategoryUpdateSerializer, responses={200: CategorySerializer})
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: CategorySerializer})

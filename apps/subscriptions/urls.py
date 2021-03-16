@@ -15,5 +15,6 @@ urlpatterns = [
     path('subscription-gated-page/', views.subscription_gated_page, name='subscription_gated_page'),
     path('stripe-portal/', views.create_stripe_portal_session, name='create_stripe_portal_session'),
     path('api/create_customer/', views.create_customer, name='create_customer'),
+    path('api/update_customer/', views.update_customer, name='update_customer'),
 
 ]

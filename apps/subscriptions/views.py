@@ -292,7 +292,6 @@ def create_customer(request, subscription_holder=None):
         IntelGroups.objects.filter(id=request_body['groupid']).update(isfree=False)
 
     payment_method = request_body['payment_method']
-    card_id = request_body['cardId']
     stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
 
     # first sync payment method to local DB to workaround https://github.com/dj-stripe/dj-stripe/issues/1125

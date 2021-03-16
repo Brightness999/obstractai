@@ -1601,7 +1601,8 @@ def pullfeed(request):
 		if(request.data['url'] in feed.url):
 			if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).all()) > 0:
 				isUrlExist = True
-				return Response({'isUrlExist':isUrlExist})
+				existed_name = GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).last().name
+				return Response({'isUrlExist':isUrlExist, 'existed_name':existed_name})
 	if not isUrlExist:
 		ftr = "http://ftr-premium.fivefilters.org/"
 		encode = urllib.parse.quote_plus(request.data['url'])

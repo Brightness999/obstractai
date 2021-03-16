@@ -153,7 +153,7 @@ const IntelGroup = function(props) {
                                     native: true
                                 }}
                                 variant="outlined"
-                                value={isPublic}
+                                value=""
                                 onChange={(event) => setIsPublic(event.target.value)}
                             >
                                 <option value="">Upgrade to paid plan to enable</option>

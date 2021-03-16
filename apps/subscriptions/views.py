@@ -82,7 +82,7 @@ def _view_subscription(request, subscription_holder, groupid):
                 'stripe_id': product_with_metadata.weekly_plan.id,
                 'payment_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount,
                                                                product_with_metadata.weekly_plan.currency),
-                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 6,
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 7,
                                                                product_with_metadata.weekly_plan.currency),
                 'interval': PlanInterval.week,  # set to day because we're dividing price by 12
             }
@@ -169,7 +169,7 @@ def _upgrade_subscription(request, subscription_holder, groupid):
                 'stripe_id': product_with_metadata.weekly_plan.id,
                 'payment_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount,
                                                                product_with_metadata.weekly_plan.currency),
-                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 6,
+                'daily_amount': get_friendly_currency_amount(product_with_metadata.weekly_plan.amount / 7,
                                                                product_with_metadata.weekly_plan.currency),
                 'interval': PlanInterval.week,  # set to day because we're dividing price by 12
             }

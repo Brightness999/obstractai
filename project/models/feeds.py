@@ -23,7 +23,6 @@ class Feeds(BaseModel):
     confidence = models.PositiveIntegerField(default=0, blank=True)
     isglobal = models.BooleanField(default=False)
     time = models.PositiveIntegerField(default=60)
-    intelgroup = models.ForeignKey(IntelGroups, on_delete=models.CASCADE, null=True)
         
 
     class Meta:

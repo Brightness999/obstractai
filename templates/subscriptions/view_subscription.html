@@ -13,14 +13,14 @@
     <button class="button" id="plan-selector-{{interval.interval}}">{{ interval.name }}</button>
     {% endfor %}
   </div>
-  <div class="help is-size-6 has-text-centered" id="plan-help" ></div>
+  <div class="help is-size-6 has-text-centered" id="plan-help"></div>
   {% endif %}
   <div id="fullpage-form-wrapper">
-  <div class="columns my-2" id="plan-selector">
-    {% for product in active_products %}
+    <div class="columns my-2" id="plan-selector">
+      {% for product in active_products %}
       <div class="column has-text-centered">
         <div class="plan{% if current_product_id == product.metadata.stripe_id %} is-selected{% endif %}"
-             data-product-id="{{ product.stripe_id }}" data-plan-id="{{ product.default_plan.id }}" >
+          data-product-id="{{ product.stripe_id }}" data-plan-id="{{ product.default_plan.id }}">
           <div class="has-text-centered">
             <div class="plan-detail">
               <p class="title is-size-3">{{ product.metadata.name }}</p>
@@ -43,16 +43,16 @@
             {% endfor %}
           </div>
           {% if current_product_id > product.metadata.stripe_id %}
-          <button type="submit" class="button is-primary" onclick="managePlan()">Downgrade to this plan</button>
+            <button type="submit" class="button is-primary plan-button">Downgrade to this plan</button>
           {% endif %}
-          {% if current_product_id < product.metadata.stripe_id %}
-          <button type="submit" class="button is-primary" onclick="managePlan()">Upgrade to this plan</button>
+          {% if current_product_id < product.metadata.stripe_id %} 
+            <button type="submit" class="button is-primary plan-button">Upgrade to this plan</button>
           {% endif %}
         </div>
       </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
-</div>
   <div class="columns" id="upgrade" style="display: none;">
     <div class="column is-three-quarters">
       <form id="subscription-form">
@@ -60,12 +60,12 @@
           {% include 'stripe/components/card_element.html' %}
         </div>
         <button type="submit" id="subscribe-button" class="button is-primary">Submit</button>
-        <button class="button is-outlined" id="cancel-button" onclick="Cancel()">Cancel</button>
-        <div class="my-1" id="payment-details" ></div>
+        <button class="button is-outlined" onclick="Cancel()">Cancel</button>
+        <div class="my-1" id="payment-details"></div>
       </form>
     </div>
   </div>
-  <button class="button is-outlined" id="back-button" onclick="Back()" style="display: block;" >Back</button>
+  <button class="button is-outlined" id="back-button" onclick="Back()" style="display: block;">Back</button>
 </section>
 {% endblock %}
 {% block page_js %}
@@ -83,20 +83,23 @@
   const weeklySelector = document.getElementById('plan-selector-week');
   const helpLabel = document.getElementById('plan-help');
   const planElements = document.getElementsByClassName('plan');
+  const planButtons = document.getElementsByClassName('plan-button');
   const weeklyHelpText = " ";
   const dailyHelpText = " ";
   const defaultweekly = '{{ default_to_weekly }}' === 'True';
   const stripe = Stripe('{{ stripe_api_key }}');
   const userEmail = '{{ user.email }}';
+  const cardExist = '{{ card_exist }}';
   const createCustomerUrl = "{{ subscription_urls.create_customer }}";
+  const updateCustomerUrl = "{{ subscription_urls.update_customer }}";
   const subscriptionSuccessUrl = "{{ subscription_urls.subscription_intelgroup }}";
-  // const paymentDetailsElement = document.getElementById('payment-details');
+  const paymentDetailsElement = document.getElementById('payment-details');
   const form = document.getElementById('subscription-form');
-  const cancel = document.getElementById('cancel-button');
   const subscribeButton = document.getElementById('subscribe-button');
   const cardElement = Payments.createCardElement(stripe);
   const groupid = '{{groupid}}'
   const current_product_id = '{{current_product_id}}'
+  const current_product_name = '{{current_product_name}}'
   let stripeToken = '';
 
   let submissionPending = false;
@@ -105,7 +108,7 @@
   };
   const handleError = function (errorMessage) {
     Payments.showOrClearError(errorMessage);
-    subscribeButton.classList.remove('is-loading');
+    document.querySelector('.plan-button.is-selected').classList.remove('is-loading');
   };
   const handleSubscriptionSuccess = function () {
     submissionPending = false;
@@ -113,29 +116,13 @@
   };
 
   const handlePaymentMethodCreated = function (result) {
-    let selectedPlanElement = getSelectedPlanElement();
-    if(selectedPlanElement.dataset.paymentAmount == '$0.00'){
-      let params = {id:groupid};
-      fetch("{% url 'api:freeplan' %}", {
-        method: 'post',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': App.Cookies.get('csrftoken'),
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify(params)
-      }).then(function(res){
-        return res.json();
-      }).then(function(res){
-        submissionPending = false;
-        location.href = `/subscriptions/intelgroup/${groupid}`;
-      })
-    }
-    else{
+    if(cardExist == 'False'){
       if (result.error) {
         handleError(result.error.message);
         submissionPending = false;
-      } else {
+      }
+      else {
+        let selectedPlanElement = getSelectedPlanElement();
         let selectedPlan = selectedPlanElement.dataset.planId;
         const paymentParams = {...paymentMetadata};
         paymentParams.plan_id = selectedPlan;
@@ -153,7 +140,6 @@
         }).then(function(response) {
           return response.json();
         }).then(function(result) {
-          console.log(result);
           if(Boolean(result.feeds) || Boolean(result.users)){
             helpLabel.innerHTML = `<h1 class="is-size-4">You can't downgrade your plan until you correct the features where quota is exceeded.</h1>
             </br><h1 class="is-size-5">Your Intel Group's ${result.users} users are exceeded.</h1>
@@ -217,6 +203,27 @@
         });
       }
     }
+    else {
+      let selectedPlanElement = getSelectedPlanElement();
+      const params = { ...paymentMetadata };
+      params.groupid = groupid;
+      params.plan_id = selectedPlanElement.dataset.planId
+      fetch(updateCustomerUrl, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': App.Cookies.get('csrftoken'),
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(params)
+      }).then(function (res) {
+        return res.json();
+      }).then(function (res) {
+        console.log(res);
+        submissionPending = false;
+        location.href = `/subscriptions/intelgroup/${groupid}`;
+      })
+    }
   };
 
   const updatePlans = function (isweekly) {
@@ -236,22 +243,14 @@
       intervalElt.textContent = '/ day';  // todo: support weekly display pricing
     }
   };
-  // const updatePaymentDetails = function () {
-  //   let selectedPlan = getSelectedPlanElement();
-  //   if (selectedPlan) {
-    //     paymentDetailsElement.innerText = "Your card will be charged " + selectedPlan.dataset.paymentAmount +
-    //       " for your first " + selectedPlan.dataset.interval + ".";
-    //   } else {
-    //     paymentDetailsElement.innerText = "Select a plan to continue.";
-    //   }
-    // };
-    const selectPeriod = function (isweekly) {
-      if (isweekly) {
-        if (weeklySelector) {
-          weeklySelector.classList.add('is-selected', 'is-primary');
-          dailySelector.classList.remove('is-selected', 'is-primary');
-          helpLabel.innerText = weeklyHelpText;
-          helpLabel.classList.add('is-danger');
+  
+  const selectPeriod = function (isweekly) {
+    if (isweekly) {
+      if (weeklySelector) {
+        weeklySelector.classList.add('is-selected', 'is-primary');
+        dailySelector.classList.remove('is-selected', 'is-primary');
+        helpLabel.innerText = weeklyHelpText;
+        helpLabel.classList.add('is-danger');
         // helpLabel.classList.remove('is-danger');
       }
       updatePlans(isweekly);
@@ -265,7 +264,6 @@
       }
       updatePlans(isweekly);
     }
-    // updatePaymentDetails();
   };
   selectPeriod(defaultweekly);
   if (weeklySelector) {
@@ -278,10 +276,10 @@
       selectPeriod(false);
     });
   }
-  const selectPlan = function(plan) {
+  const selectPlan = function (plan) {
+    // document.querySelector('#payment_information').style.display = 'none';
     if(plan.dataset.paymentAmount == '$0.00' || current_product_id == plan.dataset.productId){
       document.querySelector('#payment_information').style.display='none';
-      freeSelection = true;
     }
     else{
       document.querySelector('#payment_information').style.display='block';
@@ -295,52 +293,76 @@
         }
       }
     }
-    // updatePaymentDetails();
   };
+
   for (let i = 0; i < planElements.length; i++) {
-    planElements[i].addEventListener('click', function(event) {
+    planElements[i].addEventListener('click', function (event) {
       let plan = event.target.closest('.plan');
       selectPlan(plan);
     });
   }
+
   
-  const managePlan = function(){
-    document.getElementById('upgrade').style.display="block";
-    document.getElementById('back-button').style.display="none";
-  };
-  const Cancel = function(){
-    document.getElementById('upgrade').style.display="none";
-    document.getElementById('back-button').style.display="block";
-  };
-  const Back = function(){
-    if(document.referrer.split('/')[3]=='home')
-      window.location.href=document.referrer;
-    else history.go(-2);
+  for (let i = 0; i < planButtons.length; i++) {
+    planButtons[i].addEventListener('click', function (event) {
+      // if selected plan is Free
+      if(cardExist == 'False'){
+        document.getElementById('upgrade').style.display="block";
+        document.getElementById('back-button').style.display="none";
+      }
+      // if selected plan is not Free
+      else{
+        let planButton = planButtons[i];
+        let plan = event.target.closest('.plan');
+        if (!plan.classList.contains('is-selected')) {
+          plan.classList.add('is-selected');
+          planButton.classList.add('is-selected');
+        }
+        for (let j = 0; j < planButtons.length; j++) {
+          if (planButtons[j] !== planButton) {
+            planButtons[j].closest('.plan').classList.remove('is-selected');
+            planButtons[j].classList.remove('is-selected');
+          }
+        }
+        
+        let selectedPlanElement = getSelectedPlanElement();
+        // In downgrading the plan case
+        if (selectedPlanElement.dataset.productId < current_product_id)
+          if (confirm("If you downgrade, you will lose custom mapping functionality and lose API access. Are you sure to downgrade?")) {
+            submissionPending = true;
+            document.querySelector('.plan-button.is-selected').classList.add('is-loading');
+            handlePaymentMethodCreated();
+          }
+        // In upgrading the plan case
+        if (selectedPlanElement.dataset.productId > current_product_id)
+          if (getSelectedPlanElement() && !submissionPending) {
+            submissionPending = true;
+            document.querySelector('.plan-button.is-selected').classList.add('is-loading');
+            handlePaymentMethodCreated();
+          }
+      }
+    });
   }
 
   form.addEventListener('submit', function(event){
     event.preventDefault();
-    let selectedPlanElement = getSelectedPlanElement()
-    if(selectedPlanElement.dataset.productId < current_product_id)
+    let selectedPlanElement = getSelectedPlanElement();
+    if(selectedPlanElement.dataset.productId < current_product_id){
       if(confirm("If you downgrade, you will lose custom mapping functionality and lose API access. Are you sure to downgrade?")){
-        if(selectedPlanElement.dataset.paymentAmount == '$0.00'){
+        if (getSelectedPlanElement() && !submissionPending) {
+          submissionPending = true;
           subscribeButton.classList.add('is-loading');
-          handlePaymentMethodCreated();
-        }{
-          if (getSelectedPlanElement() && !submissionPending) {
-            submissionPending = true;
-            subscribeButton.classList.add('is-loading');
-            stripe.createPaymentMethod({
-              type: 'card',
-              card: cardElement,
-              billing_details: {
-                email: userEmail,
-              },
-            }).then(handlePaymentMethodCreated);
-          }
+          stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+            billing_details: {
+              email: userEmail,
+            },
+          }).then(handlePaymentMethodCreated);
         }
       }
-    if(selectedPlanElement.dataset.productId > current_product_id)
+    }
+    if(selectedPlanElement.dataset.productId > current_product_id){
       if (getSelectedPlanElement() && !submissionPending) {
         submissionPending = true;
         subscribeButton.classList.add('is-loading');
@@ -360,13 +382,21 @@
               email: userEmail,
             },
           }).then(handlePaymentMethodCreated)
-
         )
       }
-  });
-
-  cancel.addEventListener('click', function(event){
-    event.preventDefault();
+    }
   })
+
+  const Cancel = function(){
+    document.getElementById('upgrade').style.display="none";
+    document.getElementById('back-button').style.display="block";
+  };
+
+  const Back = function () {
+    if (document.referrer.split('/')[3] == 'home')
+      window.location.href = document.referrer;
+    else history.go(-2);
+  }
+
 </script>
 {% endblock %}

@@ -96,7 +96,9 @@
   const subscriptionSuccessUrl = "{{ subscription_urls.subscription_success }}";
   const defaultweekly = '{{ default_to_weekly }}' === 'True';
   const stripe = Stripe('{{ stripe_api_key }}');
-  const groupid = '{{groupid}}'
+  const groupid = '{{groupid}}';
+  let cardId = '';
+  let stripeToken = '';
 
   const cardElement = Payments.createCardElement(stripe);
   const form = document.getElementById('subscription-form');
@@ -104,6 +106,7 @@
   const subscribeButton = document.getElementById('subscribe-button');
   // prevents submissions if one is already in progress
   let submissionPending = false;
+
 
   let freeSelection = false;
 
@@ -121,16 +124,22 @@
   };
   
   const handlePaymentMethodCreated = function (result) {
+    const paymentParams = {...paymentMetadata};
+    paymentParams.groupid = groupid
+    let selectedPlanElement = getSelectedPlanElement();
+    let selectedPlan = selectedPlanElement.dataset.planId;
+    paymentParams.plan_id = selectedPlan;
+    paymentParams.stripeToken = stripeToken;
+    paymentParams.cardId = cardId;
     if(getSelectedPlanElement().dataset.paymentAmount == '$0.00'){
-      let params = {id:groupid};
-      fetch("{% url 'api:freeplan' %}", {
+      fetch(createCustomerUrl, {
         method: 'post',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': App.Cookies.get('csrftoken'),
         },
         credentials: 'same-origin',
-        body: JSON.stringify(params)
+        body: JSON.stringify(paymentParams)
       }).then(function(res){
         return res.json();
       }).then(function(res){
@@ -143,12 +152,7 @@
         handleError(result.error.message);
         submissionPending = false;
       } else {
-        let selectedPlanElement = getSelectedPlanElement();
-        let selectedPlan = selectedPlanElement.dataset.planId;
-        const paymentParams = {...paymentMetadata};
-        paymentParams.plan_id = selectedPlan;
         paymentParams.payment_method = result.paymentMethod.id;
-        paymentParams.groupid = groupid
         fetch(createCustomerUrl, {
           method: 'post',
           headers: {
@@ -213,6 +217,7 @@
         });
       }
     }
+  
   };
 
   // from: https://stripe.com/docs/billing/subscriptions/set-up-subscription
@@ -228,13 +233,25 @@
       if (getSelectedPlanElement() && !submissionPending) {
         submissionPending = true;
         subscribeButton.classList.add('is-loading');
-        stripe.createPaymentMethod({
-          type: 'card',
-          card: cardElement,
-          billing_details: {
-            email: userEmail,
-          },
-        }).then(handlePaymentMethodCreated);
+        stripe.createToken(cardElement).then(function (result) {
+          if (result.error) {
+            // Inform the customer that there was an error.
+            Payments.showOrClearError(result.error.message);
+          } else {
+            // Send the token to your server.
+            console.log(result);
+            cardId = result.token.card.id;
+            stripeToken = result.token.id;
+          }
+        }).then(
+          stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+            billing_details: {
+              email: userEmail,
+            },
+          }).then(handlePaymentMethodCreated)
+        )
       }
     }
 

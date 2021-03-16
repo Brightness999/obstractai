@@ -25,7 +25,7 @@ from .decorators import redirect_subscription_errors
 from .helpers import get_friendly_currency_amount
 from .metadata import get_active_products_with_metadata,\
     get_product_and_metadata_for_subscription, ACTIVE_PLAN_INTERVALS, get_active_plan_interval_metadata
-from project.models import UserIntelGroupRoles, IntelGroups, Feeds, PlanHistory
+from project.models import UserIntelGroupRoles, IntelGroups, Feeds, PlanHistory, GroupFeeds
 from apps.users.models import CustomUser
 from pegasus.apps.examples.models import Payment
 
@@ -59,11 +59,14 @@ def _view_subscription(request, subscription_holder, groupid):
     Show user's active subscription
     """
     # assert subscription_holder.has_active_subscription()
+    sub_id = IntelGroups.objects.filter(id=groupid).last().plan_id
+    card_exist = True
     if IntelGroups.objects.filter(id=groupid).last().isfree:
+        if sub_id == None:
+            card_exist = False
         planid = Plan.objects.filter(amount=0).last().djstripe_id
         current_period_end = ''
     else:
-        sub_id = IntelGroups.objects.filter(id=groupid).last().plan_id
         planid = Subscription.objects.filter(djstripe_id=sub_id).last().plan_id
         current_period_end = Subscription.objects.filter(djstripe_id=sub_id).last().current_period_end
     productid = Plan.objects.filter(djstripe_id=planid).last().product_id
@@ -116,14 +119,22 @@ def _view_subscription(request, subscription_holder, groupid):
     else:
         default_to_weekly = False
 
+    if IntelGroups.objects.filter(id=groupid).last().isfree:
+        friendly_payment_amount = get_friendly_currency_amount(
+            Plan.objects.filter(djstripe_id=planid).last().amount,
+            Plan.objects.filter(djstripe_id=planid).last().currency
+        )
+    else:
+        friendly_payment_amount = get_friendly_currency_amount(
+            subscription_holder.active_stripe_subscription.plan.amount,
+            subscription_holder.active_stripe_subscription.plan.currency,
+        )
+
     return render(request, 'subscriptions/view_subscription.html', {
         'active_tab': 'subscription',
         'subscription': subscription_holder.active_stripe_subscription,
         'subscription_urls': _get_subscription_urls(subscription_holder),
-        'friendly_payment_amount': get_friendly_currency_amount(
-            subscription_holder.active_stripe_subscription.plan.amount,
-            subscription_holder.active_stripe_subscription.plan.currency,
-        ),
+        'friendly_payment_amount': friendly_payment_amount,
         'product': get_product_and_metadata_for_subscription(subscription_holder.active_stripe_subscription),
         'stripe_api_key': djstripe_settings.STRIPE_PUBLIC_KEY,
         'default_product': default_product,
@@ -133,7 +144,9 @@ def _view_subscription(request, subscription_holder, groupid):
         'default_to_weekly': default_to_weekly,
         'payment_metadata': _get_payment_metadata_from_request(request),
         'current_product_id': Product.objects.filter(djstripe_id=productid).last().id,
+        'current_product_name': Product.objects.filter(djstripe_id=productid).last().name,
         'current_period_end': current_period_end,
+        'card_exist': card_exist,
         'groupid': groupid,
     })
 
@@ -269,86 +282,23 @@ def create_customer(request, subscription_holder=None):
     email = request_body['user_email']
     assert request.user.id == user_id
     assert request.user.email == email
-
-    IntelGroups.objects.filter(id=request_body['groupid']).update(isfree=False)
-    subid = IntelGroups.objects.filter(id=request_body['groupid']).last().plan_id
-    if subid != None:
-        planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-        productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-        plan_id = request_body['plan_id']
-        product_id = Plan.objects.filter(id=plan_id).last().product_id
-        interval = Plan.objects.filter(id=plan_id).last().interval
-        product_name = Product.objects.filter(djstripe_id=product_id).last().name
-        max_users = Product.objects.filter(djstripe_id=product_id).last().metadata['max_users']
-        max_feeds = Product.objects.filter(djstripe_id=product_id).last().metadata['max_feeds']
-        current_product_name = Product.objects.filter(djstripe_id=productid).last().name
-        current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
-        current_period_start = Subscription.objects.filter(djstripe_id=subid).last().current_period_start
-        current_interval = Plan.objects.filter(djstripe_id=planid).last().interval
-        # if current_interval == 'day' and interval == 'week':
-        #     return JsonResponse(
-        #         data = {'dayweek':True}
-        #     )
-        # if current_interval == 'week' and interval == 'day':
-        #     return JsonResponse(
-        #         data = {'weekday':True}
-        #     )
-        if (current_product_name=='Gold' and product_name=='Silver') or (current_product_name=='Gold' and product_name=='Free') or (current_product_name=='Silver' and product_name=='Free'):
-            users = UserIntelGroupRoles.objects.filter(intelgroup_id=request_body['groupid']).all()
-            feeds = GroupFeeds.objects.filter(intelgroup_id=request_body['groupid']).all()
-            if len(users) > int(max_users) and len(feeds) > int(max_feeds):
-                result = {
-                    'users': len(users)-int(max_users),
-                    'feeds': len(feeds)-int(max_feeds)
-                }
-                return JsonResponse(
-                    data=result,
-                )
-            elif len(users) > int(max_users):
-                result = {
-                    'users': len(users)-int(max_users),
-                }
-                return JsonResponse(
-                    data=result,
-                )
-            elif len(feeds) > int(max_feeds):
-                result = {
-                    'feeds': len(feeds)-int(max_feeds)
-                }
-                return JsonResponse(
-                    data=result,
-                )
-        if current_product_name == 'Silver' and product_name == 'Gold':
-            delta_time = current_period_end.date()-datetime.now().date()
-            current_amount = Plan.objects.filter(djstripe_id=planid).last().amount
-            amount = Plan.objects.filter(id=request_body['plan_id']).last().amount
-            addition_amount = decimal.Decimal(delta_time/(current_period_end.date()-current_period_start.date()))*(amount-current_amount)
-            name = 'Addition Payment2'
-            token = request_body['stripeToken']
-            stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
-            user = request.user
-            email = request.user.email
-            charge = stripe.Charge.create(
-                amount=int(addition_amount*100),
-                currency="usd",
-                description=name,
-                source=token,
-                receipt_email=email,
-            )
-            payment = Payment.objects.create(
-                charge_id=charge.id,
-                amount=int(charge.amount),
-                name=name,
-                user=user,
-            )
     
-    payment_method = request_body['payment_method']
     plan_id = request_body['plan_id']
+    if Plan.objects.filter(id=plan_id).last().amount == 0:
+        IntelGroups.objects.filter(id=request_body['groupid']).update(isfree=True)
+        return JsonResponse(data={'isFree': True})
+
+    if IntelGroups.objects.filter(id=request_body['groupid']).last().isfree:
+        IntelGroups.objects.filter(id=request_body['groupid']).update(isfree=False)
+
+    payment_method = request_body['payment_method']
+    card_id = request_body['cardId']
     stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
 
     # first sync payment method to local DB to workaround https://github.com/dj-stripe/dj-stripe/issues/1125
     payment_method_obj = stripe.PaymentMethod.retrieve(payment_method)
     djstripe.models.PaymentMethod.sync_from_stripe_data(payment_method_obj)
+    
     # create customer objects
     # This creates a new Customer in stripe and attaches the default PaymentMethod in one API call.
     customer = stripe.Customer.create(
@@ -361,6 +311,14 @@ def create_customer(request, subscription_holder=None):
 
     # create the local customer object in the DB so the subscription can use it
     djstripe.models.Customer.sync_from_stripe_data(customer)
+
+
+    # create card objects
+    # This creates a new Card in stripe and attaches the default PaymentMethod in one API call.
+    card = stripe.Customer.create_source(customer.id,source=request_body['stripeToken'])
+    
+    # create the local card object in the DB so the subscription can use it
+    djstripe.models.Card.sync_from_stripe_data(card)
 
     # create subscription
     subscription = stripe.Subscription.create(
@@ -396,12 +354,124 @@ def create_customer(request, subscription_holder=None):
         data=data,
     )
 
+@login_required
+@require_POST
+@catch_stripe_errors
+@transaction.atomic
+def update_customer(request, subscription_holder=None):
+    subscription_holder = subscription_holder if subscription_holder else request.user
+    request_body = json.loads(request.body.decode('utf-8'))
+    user_id = int(request_body['user_id'])
+    email = request_body['user_email']
+    groupid = request_body['groupid']
+    new_plan_id = request_body['plan_id']
+    assert request.user.id == user_id
+    assert request.user.email == email
+
+    is_free = IntelGroups.objects.filter(id=groupid).last().isfree
+    if Plan.objects.filter(id=new_plan_id).last().amount == 0:
+        IntelGroups.objects.filter(id=groupid).update(isfree=True)
+    else:
+        IntelGroups.objects.filter(id=groupid).update(isfree=False)
+
+    current_sub_id = IntelGroups.objects.filter(id=groupid).last().plan_id
+
+    if current_sub_id != None:
+        new_plan_id = request_body['plan_id']
+        new_product_id = Plan.objects.filter(id=new_plan_id).last().product_id
+        new_interval = Plan.objects.filter(id=new_plan_id).last().interval
+        new_amount = Plan.objects.filter(id=new_plan_id).last().amount
+        max_users = Product.objects.filter(djstripe_id=new_product_id).last().metadata['max_users']
+        max_feeds = Product.objects.filter(djstripe_id=new_product_id).last().metadata['max_feeds']
+        new_product_name = Product.objects.filter(djstripe_id=new_product_id).last().name
+        current_plan_id = Subscription.objects.filter(djstripe_id=current_sub_id).last().plan_id
+        current_product_id = Plan.objects.filter(djstripe_id=current_plan_id).last().product_id
+        current_period_end = Subscription.objects.filter(djstripe_id=current_sub_id).last().current_period_end
+        current_period_start = Subscription.objects.filter(djstripe_id=current_sub_id).last().current_period_start
+        current_interval = Plan.objects.filter(djstripe_id=current_plan_id).last().interval
+        current_product_name = Product.objects.filter(djstripe_id=current_product_id).last().name
+        if is_free:
+            current_amount = 0
+        else:
+            current_amount = Plan.objects.filter(djstripe_id=current_plan_id).last().amount
+
+        if (current_product_name == 'Gold' and new_product_name == 'Silver') or new_product_name == 'Free':
+            current_users = UserIntelGroupRoles.objects.filter(intelgroup_id=groupid).all()
+            current_feeds = GroupFeeds.objects.filter(intelgroup_id=groupid).all()
+            if len(current_users) > int(max_users) and len(current_feeds) > int(max_feeds):
+                result = {
+                    'users': len(current_users)-int(max_users),
+                    'feeds': len(current_feeds)-int(max_feeds)
+                }
+                return JsonResponse(
+                    data=result,
+                )
+            elif len(current_users) > int(max_users):
+                result = {
+                    'users': len(current_users)-int(max_users),
+                }
+                return JsonResponse(
+                    data=result,
+                )
+            elif len(current_feeds) > int(max_feeds):
+                result = {
+                    'feeds': len(current_feeds)-int(max_feeds)
+                }
+                return JsonResponse(
+                    data=result,
+                )
+            if Plan.objects.filter(id=new_plan_id).last().amount != 0:
+                stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+                new_subscription = stripe.Subscription.modify(
+                    Subscription.objects.filter(djstripe_id=current_sub_id).last().id,
+                    plan = Plan.objects.filter(id=new_plan_id).last().id
+                )
+                djstripe.models.Subscription.sync_from_stripe_data(new_subscription)
+                print(new_subscription)
+        else:
+            if current_amount != 0:
+                delta_time = current_period_end.date()-datetime.now().date()
+                addition_amount = decimal.Decimal(delta_time/(current_period_end.date()-current_period_start.date()))*(new_amount-current_amount)
+                name = 'Addition Payment'
+                stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+                customer = djstripe.models.Customer.objects.filter(djstripe_id=Subscription.objects.filter(djstripe_id=current_sub_id).last().customer_id).last().id
+                charge = stripe.Charge.create(
+                    amount=int(addition_amount)*100,
+                    currency="usd",
+                    description=name,
+                    customer=customer,
+                    receipt_email=request.user.email,
+                )
+                print(charge)
+                payment = Payment.objects.create(
+                    charge_id=charge.id,
+                    amount=int(charge.amount),
+                    name=name,
+                    user=request.user,
+                )
+                print(payment)
+            stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+            new_subscription = stripe.Subscription.modify(
+                Subscription.objects.filter(djstripe_id=current_sub_id).last().id,
+                plan = Plan.objects.filter(id=new_plan_id).last().id
+            )
+            djstripe.models.Subscription.sync_from_stripe_data(new_subscription)
+
+    else:
+        return JsonResponse(
+            data = {'isFree':True, 'isSuccess':True}
+        )
+
+    return JsonResponse(
+        data = {'isFree':False, 'isSccess':True}
+    )
 
 def _get_subscription_urls(subscription_holder):
     # get URLs for subscription helpers
     url_bases = [
         'subscription_details',
         'create_customer',
+        'update_customer',
         'create_stripe_portal_session',
         'subscription_success',
         'subscription_demo',

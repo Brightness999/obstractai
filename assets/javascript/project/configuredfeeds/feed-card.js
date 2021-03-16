@@ -1,14 +1,14 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Grid } from "@material-ui/core";
 
 import Styles from "../styles";
 
 const FeedCard = function (props) {
   let tags = [];
-  if(props.feed){
-    if(props.feed.tags != ''){
-      if(props.feed.tags.indexOf(",") > -1)
+  if (props.feed) {
+    if (props.feed.tags != '') {
+      if (props.feed.tags.indexOf(",") > -1)
         tags = props.feed.tags.split(',');
       else tags.push(props.feed.tags);
     }
@@ -26,10 +26,10 @@ const FeedCard = function (props) {
       },
       credentials: 'same-origin',
       body: JSON.stringify(params)
-    }).then(res=>{return res.json()})
-    .then(res=>{
-      props.saveFeed(res);
-    })
+    }).then(res => { return res.json() })
+      .then(res => {
+        props.saveFeed(res);
+      })
   }
 
   return (
@@ -40,20 +40,20 @@ const FeedCard = function (props) {
             <Grid item xs={12} md={10}>
               <div>
                 <span> Name: </span>
-                <span> {props.feed? props.feed.name :''} </span>
+                <span> {props.feed ? props.feed.name : ''} </span>
               </div>
               <div>
                 <span> Description: </span>
-                <span> {props.feed? props.feed.description:''} </span>
+                <span> {props.feed ? props.feed.description : ''} </span>
               </div>
               <div>
                 <span> URL: </span>
-                <span> {props.feed? props.feed.feed.url :''} </span>
+                <span> {props.feed ? props.feed.feed.url : ''} </span>
               </div>
               <div>
                 <span>
                   <button className="button is-primary is-rounded mx-1" >
-                    <span>{props.feed.category ? props.feed.category.name :''}</span>
+                    <span>{props.feed.category ? props.feed.category.name : ''}</span>
                   </button>
                   {
                     tags.map((tag, index) => {
@@ -68,15 +68,15 @@ const FeedCard = function (props) {
               </div>
             </Grid>
             <Grid item xs={12} md={2} className="has-text-centered" >
-              {props.feed.isenable?
-              <button className="button is-fullwidth" onClick={enableFeed}>
-                <span className="is-size-4">Disable</span>
-              </button>:
-              <button className="button is-fullwidth is-success" onClick={enableFeed}>
-                <span className="is-size-4">Enable</span>
-              </button>}
+              {props.feed.isenable ?
+                <button className="button is-fullwidth" onClick={enableFeed}>
+                  <span className="is-size-4">Disable</span>
+                </button> :
+                <button className="button is-fullwidth is-success" onClick={enableFeed}>
+                  <span className="is-size-4">Enable</span>
+                </button>}
               <Link to={`/configuredfeeds/${props.feed.uniqueid}`} className="button is-text">
-                <span>{props.feed.isenable? "Edit settings" : "Edit settings and enable"}</span>
+                <span>{props.feed.isenable ? "Edit settings" : "Edit settings and enable"}</span>
               </Link>
             </Grid>
           </Grid>

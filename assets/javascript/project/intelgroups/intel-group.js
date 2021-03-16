@@ -125,7 +125,7 @@ const IntelGroup = function(props) {
                                 value={description}
                                 onChange={(event) => setDescription(event.target.value)}
                             /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-                            {(props.planname == 'Silver' || props.planname == 'Gold') &&
+                            {(props.planname == 'Silver' || props.planname == 'Gold' || props.isInit) &&
                             <><label className="label">Public</label>
                             <TextField
                                 className="column is-three-quarters"

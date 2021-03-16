@@ -2567,7 +2567,7 @@ To confirm or reject this invitation, log into your profile, and select confirm 
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
 						settings.SMTP_USER,
-						user,
+						[user],
 						fail_silently=False
 					)
 				except:
@@ -2588,7 +2588,7 @@ To accept this invitation, you must first create an Obstract AI account.
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
 						settings.SMTP_USER,
-						email,
+						[email],
 						fail_silently=False
 					)
 				except:
@@ -2772,7 +2772,7 @@ To confirm or reject this invitation, log into your profile, and select confirm 
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
 						settings.SMTP_USER,
-						user,
+						[user],
 						fail_silently=False
 					)
 				except:
@@ -2793,7 +2793,7 @@ To accept this invitation, you must first create an Obstract AI account.
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
 						settings.SMTP_USER,
-						email,
+						[email],
 						fail_silently=False
 					)
 				except Exception as e:

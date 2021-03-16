@@ -39,6 +39,5 @@ urlpatterns = [
     path(r'pullfeed', views.pullfeed, name='pullfeed'),
     path(r'webhook/', views.webhook, name='webhook'),
     path(r'onboarding/', views.onboarding, name='onboarding'),
-    path(r'freeplan', views.freeplan, name='freeplan'),
    
 ]

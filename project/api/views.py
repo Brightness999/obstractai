@@ -2453,15 +2453,17 @@ def attributes(request):
 			created_at = IntelGroups.objects.filter(id=groupid).last().created_at
 			subid = IntelGroups.objects.filter(id=groupid).last().plan_id
 			customobservable = True
-			if subid != None:
-				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-				if Product.objects.filter(djstripe_id=productid).last().metadata['custom_observables'] == 'false':
-					customobservable = False
-			attributes = Attributes.objects.filter(intelgroup_id=groupid).order_by('id').all()
-			attribute_serializer = UserGroupAttributeSerializer(attributes, many=True)
-			enableglobalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True)
-			return Response({'attributes':attribute_serializer.data, 'globalattributes':enableglobalattributes.data, 'customobservable':customobservable})
+			if IntelGroups.objects.filter(id=groupid).last().isfree:
+				customobservable = False
+			else:
+				if subid != None:
+					planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+					productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+					if Product.objects.filter(djstripe_id=productid).last().metadata['custom_observables'] == 'false':
+						customobservable = False
+			attributes = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True).data
+			enableglobalattributes = GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=groupid).all(), many=True).data
+			return Response({'attributes':attributes, 'globalattributes':enableglobalattributes, 'customobservable':customobservable})
 	elif request.method == 'PUT':
 		Attributes.objects.filter(id=request.data['id']).update(attribute=request.data['attribute'],api_attribute='_'.join(request.data['attribute'].split(' ')).lower(), value=request.data['value'], api_value='_'.join(request.data['value'].split(' ')).lower(), words_matched=request.data['words_matched'], isenable=request.data['isenable'], user_id=request.user.id, intelgroup_id=request.data['currentgroup'])
 		serializer = UserGroupAttributeSerializer(Attributes.objects.filter(id=request.data['id']).all()[0])
@@ -2655,33 +2657,37 @@ def home(request):
 		isAutoDown = False
 		message = ''
 		planname = ''
-		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
-		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
-		currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last())
-		if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
-			if subid == None:
-				if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=1):
-					isInit = True
-					date = str(created_at.replace(tzinfo=None)+timedelta(days=1)).split(' ')[0]
-					message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
+
+		if IntelGroups.objects.filter(id=request.data['id']).last().isfree:
+			planname = 'Free'
+		else:			
+			subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+			created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+			if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
+				if subid == None:
+					if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=1):
+						isInit = True
+						date = str(created_at.replace(tzinfo=None)+timedelta(days=1)).split(' ')[0]
+						message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
+					else:
+						isPlan = False
 				else:
-					isPlan = False
-			else:
-				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-				planname = Product.objects.filter(djstripe_id=productid).last().name
-				current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
-				if datetime.now() > current_period_end.replace(tzinfo=None):
-					starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
-					Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
-					IntelGroups.objects.filter(id=request.data['id']).update(plan_id=None)
-					isAutoDown = True
+					planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+					productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+					planname = Product.objects.filter(djstripe_id=productid).last().name
+					current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+					if datetime.now() > current_period_end.replace(tzinfo=None):
+						starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
+						Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+						IntelGroups.objects.filter(id=request.data['id']).update(plan_id=None)
+						isAutoDown = True
 		for email in InviteEmails.objects.filter(email=request.user.email).all():
 			UserIntelGroupRoles.objects.create(user_id=request.user.id, intelgroup_id=email.intelgroup_id, role=0)
 		InviteEmails.objects.filter(email=request.user.email).delete()
 		groups = RoleGroupSerializer(UserIntelGroupRoles.objects.order_by('intelgroup_id').exclude(role=4).filter(user_id=request.user.id).all(), many=True).data
 		onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
-		return Response({'mygroups':groups, 'onboarding':onboarding, 'isPlan':isPlan, 'planname':planname, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole.data})
+		currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last()).data
+		return Response({'mygroups':groups, 'onboarding':onboarding, 'isPlan':isPlan, 'planname':planname, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole})
 
 
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={200: RoleGroupSerializer})
@@ -2954,53 +2960,36 @@ def changegroup(request, subscription_holder=None):
 	isAutoDown = False
 	message = ''
 	planname = ''
-	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
-	created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
-	currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last())
-	if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
-		if subid == None:
-			if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=1):
-				isInit = True
-				date = str(created_at.replace(tzinfo=None)+timedelta(days=1)).split(' ')[0]
-				message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
+
+	if IntelGroups.objects.filter(id=request.data['id']).last().isfree:
+		planname = 'Free'
+	else:
+		subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
+		created_at = IntelGroups.objects.filter(id=request.data['id']).last().created_at
+		if not CustomUser.objects.filter(id=request.user.id).last().is_staff:
+			if subid == None:
+				if datetime.now() < created_at.replace(tzinfo=None)+timedelta(days=1):
+					isInit = True
+					date = str(created_at.replace(tzinfo=None)+timedelta(days=1)).split(' ')[0]
+					message = f'Your plan will be downgraded and limited on {date}, to keep all existing features, you must select a plan before this date.'
+				else:
+					isPlan = False
 			else:
-				isPlan = False
-		else:
-			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
-			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
-			planname = Product.objects.filter(djstripe_id=productid).last().name
-			current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
-			if datetime.now() > current_period_end.replace(tzinfo=None):
-				starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
-				Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
-				IntelGroups.objects.filter(id=request.data['id']).update(plan_id=None)
-				isAutoDown = True
+				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
+				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
+				planname = Product.objects.filter(djstripe_id=productid).last().name
+				current_period_end = Subscription.objects.filter(djstripe_id=subid).last().current_period_end
+				if datetime.now() > current_period_end.replace(tzinfo=None):
+					starterid = Plan.objects.filter(interval='week', amount=0).last().djstripe_id
+					Subscription.objects.filter(djstripe_id=subid).update(plan_id=starterid)
+					IntelGroups.objects.filter(id=request.data['id']).update(plan_id=None)
+					isAutoDown = True
+	currentrole = UserGroupRoleSerializer(UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=request.data['id']).last()).data
 		
-	return Response({'isPlan':isPlan, 'planname':planname, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole.data})
+	return Response({'isPlan':isPlan, 'planname':planname, 'isInit':isInit, 'isAutoDown':isAutoDown, 'message':message, 'currentrole':currentrole})
 
 @api_view(['GET'])
 def onboarding(request):
 	CustomUser.objects.filter(id=request.user.id).update(onboarding=False)
 	onboarding = CustomUser.objects.filter(id=request.user.id).last().onboarding
 	return Response({'onboarding': onboarding})
-
-@api_view(['POST'])
-def freeplan(request):
-	subid = IntelGroups.objects.filter(id=request.data['id']).last().plan_id
-	if subid != None:
-		max_users = Product.objects.filter(name='Free').last().metadata['max_users']
-		max_feeds = Product.objects.filter(name='Free').last().metadata['max_feeds']
-		users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['id']).all()
-		feeds = GroupFeeds.objects.filter(intelgroup_id=request.data['id']).all()
-		if len(users) > int(max_users) and len(feeds) > int(max_feeds):
-			return Response({'users':len(users) - int(max_users), 'feeds':len(feeds) - int(max_feeds)})
-		elif len(users) > int(max_users):
-			return Response({'users':len(users) - int(max_users)})
-		elif len(feeds) > int(max_feeds):
-			return Response({'feeds':len(feeds) - int(max_feeds)})
-		else:
-			IntelGroups.objects.filter(id=request.data['id']).update(isfree=True)
-			return Response('success')
-	else:
-		IntelGroups.objects.filter(id=request.data['id']).update(isfree=True)
-		return Response('success')

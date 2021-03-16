@@ -139,7 +139,6 @@ const User = (props) => {
 	}, [props.currentgroup]);
 
 	const handleUserSaved = function(invitedUsers, invitedEmails) {
-		console.log(invitedEmails);
 		const newUsers = [];
 		for (let existingUser of users) {
 			newUsers.push(existingUser);

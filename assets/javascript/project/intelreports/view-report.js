@@ -162,7 +162,7 @@ const ViewReport = (props) => {
 			Analysis:analysis,
 			Hash:hash
 		},
-		Attributes: {
+		Observables: {
 			Global:global,
 			Intel_Group:intel,
 		}

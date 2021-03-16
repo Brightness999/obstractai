@@ -47,7 +47,7 @@ const App = () => {
 
 	useEffect(() => {
     let params = {}
-    if(localStorage.getItem('currentgroup')){
+    if(Boolean(localStorage.getItem('currentgroup'))){
       params['id'] = localStorage.getItem('currentgroup');
       fetch('/api/home', {
         method: 'post',

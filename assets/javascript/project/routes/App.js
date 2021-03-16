@@ -47,32 +47,32 @@ const App = () => {
 
 	useEffect(() => {
     let params = {}
-    if(Boolean(localStorage.getItem('currentgroup'))){
-      params['id'] = localStorage.getItem('currentgroup');
-      fetch('/api/home', {
-        method: 'post',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': client.transports[0].auth.csrfToken
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify(params)
-      }).then((res)=>{return res.json()})
-      .then(res=>{
-        console.log(res);
-        setMyGroups(res.mygroups);
-        setOnBoarding(res.onboarding);
-        setCurrentRole(res.currentrole);
-        setCurrentGroup(localStorage.getItem('currentgroup'));
-        setIsPlan(res.isPlan);
-        setPlanName(res.planname);
-        setIsInit(res.isInit);
-        setIsAutoDown(res.isAutoDown);
-        setMessage(res.message);
-        setIsLoading(false);
-      })
-    }
-    else{
+    // if(localStorage.getItem('currentgroup')){
+    //   params['id'] = localStorage.getItem('currentgroup');
+    //   fetch('/api/home', {
+    //     method: 'post',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'X-CSRFToken': client.transports[0].auth.csrfToken
+    //     },
+    //     credentials: 'same-origin',
+    //     body: JSON.stringify(params)
+    //   }).then((res)=>{return res.json()})
+    //   .then(res=>{
+    //     console.log(res);
+    //     setMyGroups(res.mygroups);
+    //     setOnBoarding(res.onboarding);
+    //     setCurrentRole(res.currentrole);
+    //     setCurrentGroup(localStorage.getItem('currentgroup'));
+    //     setIsPlan(res.isPlan);
+    //     setPlanName(res.planname);
+    //     setIsInit(res.isInit);
+    //     setIsAutoDown(res.isAutoDown);
+    //     setMessage(res.message);
+    //     setIsLoading(false);
+    //   })
+    // }
+    // else{
       fetch('/api/home', {
         method: 'get',
         headers: {
@@ -86,7 +86,7 @@ const App = () => {
         setOnBoarding(res.onboarding);
         setIsLoading(false);
       })
-    }
+    // }
   },[]);
 
   const currentIntelgroup = (intelgroup) => {

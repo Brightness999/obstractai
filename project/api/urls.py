@@ -19,6 +19,7 @@ urlpatterns = [
     path(r'configuredfeeds', views.configuredfeeds, name='configuredfeeds'),
     path(r'feedlist', views.feedlist, name='feedlist'),
     path(r'searchfeeds', views.searchfeeds, name='searchfeeds'),
+    path(r'searchconfiguredfeeds', views.searchconfiguredfeeds, name='searchconfiguredfeeds'),
     path(r'attributes', views.attributes, name='attributes'),
     path(r'enableglobal', views.enableglobal, name='enableglobal'),
     path(r'whitelist', views.whitelist, name='whitelist'),

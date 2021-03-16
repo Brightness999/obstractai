@@ -2181,8 +2181,7 @@ def feedlist(request):
 @swagger_auto_schema(methods=['post'], request_body=IDSerializer, responses={201: GroupCategoryFeedSerializer})
 @swagger_auto_schema(methods=['put'], request_body=FeedUpdateSerializer, responses={200: GroupCategoryFeedSerializer})
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupCategoryFeedSerializer})
-@swagger_auto_schema(methods=['patch'], request_body=FeedUpdateSerializer, responses={203: GroupCategoryFeedSerializer})
-@api_view(['POST', 'PUT', 'DELETE', 'PATCH'])
+@api_view(['POST', 'PUT', 'DELETE'])
 def configuredfeeds(request):
 	if request.method == 'POST':
 		if request.data['id'] != '':
@@ -2241,46 +2240,48 @@ def configuredfeeds(request):
 		GroupFeeds.objects.filter(id=request.data['id']).delete()
 		configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True)
 		return Response(configuredfeeds.data)
-	elif request.method == 'PATCH':
-		print(request.data)
-		currentgroup = int(request.data['currentgroup'])
-		role = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=currentgroup).last().role
-		if role == 2:
-			if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup).order_by('id').all(), many=True)
-			if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, category_id=request.data['category']).order_by('id').all(), many=True)
-			if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, tags__contains=request.data['tags']).order_by('id').all(), many=True)
-			if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
-			if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all(), many=True)
-			if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], tags__contains=request.data['tags']).order_by('id').all(), many=True)
-			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category']).order_by('id').all(), many=True)
-			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category'], confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
-			return Response(configuredfeeds.data)
-		elif role == 1:
-			if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup).order_by('id').all(), many=True)
-			if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, category_id=request.data['category']).order_by('id').all(), many=True)
-			if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, tags__contains=request.data['tags']).order_by('id').all(), many=True)
-			if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
-			if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all(), many=True)
-			if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], tags__contains=request.data['tags']).order_by('id').all(), many=True)
-			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category']).order_by('id').all(), many=True)
-			if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
-				configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category'], confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
-			return Response(configuredfeeds.data)
+	
+@swagger_auto_schema(methods=['post'], request_body=FeedUpdateSerializer, responses={201: GroupCategoryFeedSerializer})
+@api_view(['POST'])
+def searchconfiguredfeeds(request):	
+	currentgroup = int(request.data['currentgroup'])
+	role = UserIntelGroupRoles.objects.filter(user_id=request.user.id, intelgroup_id=currentgroup).last().role
+	if role == 2:
+		if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup).order_by('id').all(), many=True)
+		if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, category_id=request.data['category']).order_by('id').all(), many=True)
+		if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, tags__contains=request.data['tags']).order_by('id').all(), many=True)
+		if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
+		if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all(), many=True)
+		if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], tags__contains=request.data['tags']).order_by('id').all(), many=True)
+		if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category']).order_by('id').all(), many=True)
+		if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category'], confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
+		return Response(configuredfeeds.data)
+	elif role == 1:
+		if(request.data['category'] == '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup).order_by('id').all(), many=True)
+		if(request.data['category'] != '' and request.data['tags'] == '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, category_id=request.data['category']).order_by('id').all(), many=True)
+		if(request.data['category'] == '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, tags__contains=request.data['tags']).order_by('id').all(), many=True)
+		if(request.data['confidence'] != '' and request.data['tags'] == '' and request.data['category'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
+		if(request.data['confidence'] != '' and request.data['category'] != '' and request.data['tags'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], category_id=request.data['category']).order_by('id').all(), many=True)
+		if(request.data['confidence'] != '' and request.data['tags'] != '' and request.data['category'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, confidence__gte=request.data['confidence'], tags__contains=request.data['tags']).order_by('id').all(), many=True)
+		if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] == ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category']).order_by('id').all(), many=True)
+		if(request.data['category'] != '' and request.data['tags'] != '' and request.data['confidence'] != ''):
+			configuredfeeds = GroupCategoryFeedSerializer(GroupFeeds.objects.filter(isenable=True, intelgroup_id=currentgroup, tags__contains=request.data['tags'], category_id = request.data['category'], confidence__gte=request.data['confidence']).order_by('id').all(), many=True)
+		return Response(configuredfeeds.data)
 
 @swagger_auto_schema(methods=['post'], request_body=SearchFeedSerializer, responses={201: FeedCategorySerializer})
 @api_view(['POST'])

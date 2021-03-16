@@ -187,8 +187,8 @@ const ConfiguredFeeds = (props) => {
 			confidence: confidence,
 			currentgroup: props.currentgroup
 		}
-		fetch('/api/configuredfeeds', {
-			method: 'patch',
+		fetch('/api/searchconfiguredfeeds', {
+			method: 'post',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-CSRFToken': props.client.transports[0].auth.csrfToken

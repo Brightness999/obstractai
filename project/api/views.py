@@ -2551,10 +2551,11 @@ def invite(request):
 				flag = True
 		if flag:
 			groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
-			try:
-				send_mail(
-					f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-					f'''From: {settings.FROM}
+			for user in users:
+				try:
+					send_mail(
+						f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+						f'''From: {settings.FROM}
 Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}.com
 Title: You've been invited to join the {groupname} Intel Group on Cyobstract
@@ -2565,16 +2566,17 @@ To confirm or reject this invitation, log into your profile, and select confirm 
 {settings.SITE_ROOT_URL}/app/account
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
-					settings.SMTP_USER,
-					users,
-					fail_silently=False
-				)
-			except:
-				print('email sending error!')
-			try:
-				send_mail(
-					f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
-					f'''From: {settings.FROM}
+						settings.SMTP_USER,
+						user,
+						fail_silently=False
+					)
+				except:
+					print('email sending error!')
+			for email in emails:
+				try:
+					send_mail(
+						f'You’ve been invited to join the {groupname} Intel Group on Cyobstract',
+						f'''From: {settings.FROM}
 Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}.com
 Title: You've been invited to join the {groupname} Intel Group on Cyobstract
@@ -2585,13 +2587,13 @@ To accept this invitation, you must first create an Obstract AI account.
 {settings.SITE_ROOT_URL}/accounts/signup
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
-					settings.SMTP_USER,
-					emails,
-					fail_silently=False
-				)
-			except:
-				print('email sending error!')
-			users = [];
+						settings.SMTP_USER,
+						email,
+						fail_silently=False
+					)
+				except:
+					print('email sending error!')
+			users = []
 			for userid in userids:
 				existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()
 				if len(existing_user) == 0:
@@ -2754,10 +2756,11 @@ def intelgroups(request):
 				name = 'Intel Group' + ''. join(random.choice(letters) for i in range(10))
 			else:
 				name = request.data['name']
-			try:
-				send_mail(
-					f'You’ve been invited to join the {name} Intel Group on Cyobstract',
-					f'''From: {settings.FROM}
+			for user in users:
+				try:
+					send_mail(
+						f'You’ve been invited to join the {name} Intel Group on Cyobstract',
+						f'''From: {settings.FROM}
 Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}
 Title: You've been invited to join the {name} Intel Group on Cyobstract
@@ -2768,16 +2771,17 @@ To confirm or reject this invitation, log into your profile, and select confirm 
 {settings.SITE_ROOT_URL}/app/account
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
-					settings.SMTP_USER,
-					users,
-					fail_silently=False
-				)
-			except:
-				print('email sending error!')
-			try:
-				send_mail(
-					f'You’ve been invited to join the {name} Intel Group on Cyobstract',
-					f'''From: {settings.FROM}
+						settings.SMTP_USER,
+						user,
+						fail_silently=False
+					)
+				except:
+					print('email sending error!')
+			for email in emails:
+				try:
+					send_mail(
+						f'You’ve been invited to join the {name} Intel Group on Cyobstract',
+						f'''From: {settings.FROM}
 Name: Sherlock at Cyobstract
 Reply-to: {settings.REPLY}
 Title: You've been invited to join the {name} Intel Group on Cyobstract
@@ -2788,13 +2792,13 @@ To accept this invitation, you must first create an Obstract AI account.
 {settings.SITE_ROOT_URL}/accounts/signup
 We look forward to welcoming you onboard.
 		The Obstract AI team''',
-					settings.SMTP_USER,
-					emails,
-					fail_silently=False
-				)
-			except Exception as e:
-				print(str(e))
-			
+						settings.SMTP_USER,
+						email,
+						fail_silently=False
+					)
+				except Exception as e:
+					print(str(e))
+				
 			IntelGroups.objects.create(name=name, description=request.data['description'], ispublic=request.data['ispublic'])
 			new_group = IntelGroups.objects.last()
 			for globalattribute in GlobalAttributes.objects.all():

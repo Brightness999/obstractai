@@ -37,6 +37,7 @@ const UpdateFeed = (props) => {
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [open, setOpen] = useState(false);
 	const [urlMessage, setUrlMessage] = useState(false);
+	const [existedName, setExistedName] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [webhook, setWebhhook] = useState(false);
 	const value = props.confidence ? props.confidence : 0;
@@ -158,6 +159,7 @@ const UpdateFeed = (props) => {
 					.then(res => {
 						if (res.isUrlExist) {
 							setUrlMessage(true);
+							setExistedName(res.existed_name);
 							setIsLoading(false);
 						}
 						else {
@@ -216,7 +218,7 @@ const UpdateFeed = (props) => {
 				>
 					<Alert severity="warning" className="my-5 has-text-centered">
 						<AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
-						<span className="subtitle is-5">! You already have an enabled feed with this URL with title {name}. Please edit it.</span>
+						<span className="subtitle is-5">! You already have an enabled feed with this URL with title <span className="title is-4 has-text-primary"> {existedName} </span>. Please edit it.</span>
 					</Alert>
 				</Dialog>
 				<section className="section app-card">

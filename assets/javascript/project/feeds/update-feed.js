@@ -380,11 +380,8 @@ const UpdateFeed = (props) => {
 									indicators[index].forEach(indicator => {
 										indicator.value.forEach(item => {
 											if (!(item * 1 > 0 && item * 1 < 10)) {
-												if (item.indexOf('?') > -1) {
+												if(item.indexOf('?') > -1 || item.indexOf('(') > -1 || item.indexOf(')') > -1){
 													item = item.substring(0, item.indexOf('?'))
-												}
-												if (item.indexOf('(') > -1) {
-													item = item.substring(0, item.indexOf('('))
 												}
 												item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 												let reg = new RegExp(item, 'g'), result, ids = [];
@@ -546,6 +543,9 @@ const UpdateFeed = (props) => {
 										indicators[0].forEach(indicator => {
 											indicator.value.forEach(item => {
 												if (!(item * 1 > 0 && item * 1 < 10) && item.indexOf('?') == -1) {
+													if(item.indexOf('?') > -1 || item.indexOf('(') > -1 || item.indexOf(')') > -1){
+														item = item.substring(0, item.indexOf('?'))
+													}
 													item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 													let reg = new RegExp(item, 'g'), result, ids = [];
 													while ((result = reg.exec(str))) {

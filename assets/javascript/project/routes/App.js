@@ -46,7 +46,7 @@ const App = () => {
   const [currentrole, setCurrentRole] = useState({});
 
 	useEffect(() => {
-    let params = {}
+    // let params = {}
     // if(localStorage.getItem('currentgroup')){
     //   params['id'] = localStorage.getItem('currentgroup');
     //   fetch('/api/home', {

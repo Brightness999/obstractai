@@ -41,7 +41,7 @@ const FeedList = (props) => {
 	const steps = [{
 		element: '#card',
 		title: 'Feed List',
-		intro: 'You can see feeds subscribed in here.'
+		intro: 'You can see feeds subscribed in your Intel Group in here.'
 	}]
 
 	const search = () => {

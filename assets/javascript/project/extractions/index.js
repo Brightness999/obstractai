@@ -68,7 +68,6 @@ const ExtractionList = (props) => {
 				body: JSON.stringify(params)
 			}).then(res => { return res.json() })
 				.then(res => {
-					console.log(res);
 					props.saveExtraction(res);
 				})
 		}
@@ -245,7 +244,6 @@ const ExtractionList = (props) => {
 
 
 const Extractions = (props) => {
-	console.log(props);
 	const [extractionlist, setExtractionList] = useState([]);
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -266,6 +264,7 @@ const Extractions = (props) => {
 				body: JSON.stringify(params)
 			}).then(res => { return res.json() })
 				.then(res => {
+					console.log(res);
 					setExtractionList(res.attributes);
 					setGlobalAttributes(res.globalattributes);
 					setCustomObservable(res.customobservable)

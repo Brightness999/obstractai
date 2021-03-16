@@ -130,7 +130,6 @@
     let selectedPlan = selectedPlanElement.dataset.planId;
     paymentParams.plan_id = selectedPlan;
     paymentParams.stripeToken = stripeToken;
-    paymentParams.cardId = cardId;
     if(getSelectedPlanElement().dataset.paymentAmount == '$0.00'){
       fetch(createCustomerUrl, {
         method: 'post',
@@ -239,8 +238,6 @@
             Payments.showOrClearError(result.error.message);
           } else {
             // Send the token to your server.
-            console.log(result);
-            cardId = result.token.card.id;
             stripeToken = result.token.id;
           }
         }).then(

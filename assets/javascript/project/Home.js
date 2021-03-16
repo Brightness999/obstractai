@@ -34,7 +34,6 @@ const AddIntelgroup = (props) => {
 	const [isPublic, setIsPublic] = useState(false);
 	const [isRefuse, setIsRefuse] = useState(false);
 	const [tags, setTags] = useState([]);
-	const history = useHistory();
 	const [stepsEnabled, setStepsEnabled] = useState(true);
 	const initialStep = 0;
 	const steps = [{

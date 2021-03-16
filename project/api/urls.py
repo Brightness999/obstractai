@@ -25,7 +25,6 @@ urlpatterns = [
     path(r'whitelist', views.whitelist, name='whitelist'),
     path(r'indicators', views.indicators, name='indicators'),
     path(r'invite', views.invite, name='invite'),
-    # path(r'currentrole', views.currentrole, name='currentrole'),
     path(r'categories', views.categories, name='categories'),
     path(r'leavegroup', views.leavegroup, name='leavegroup'),
     path(r'deleteaccount', views.deleteaccount, name='deleteaccount'),

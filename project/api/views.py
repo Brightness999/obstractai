@@ -29,6 +29,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from django.contrib.auth.hashers import check_password
 
 load_dotenv()
 from apps.users.models import CustomUser
@@ -1037,7 +1038,9 @@ def account(request):
 @swagger_auto_schema(methods=['post'], request_body=ChangeEmailSerializer, responses={201: UserSerializer})
 @api_view(['POST'])
 def emailchange(request):
-	if request.data['currentemail'] != request.user.email:
+	new_password = request.data['password']
+	encoded_password = CustomUser.objects.filter(email=request.user.email).last().password
+	if not check_password(new_password, encoded_password):
 		return Response({'isNotCorrect': True})
 	else:
 		users = CustomUser.objects.filter(email=request.data['newemail']).all()

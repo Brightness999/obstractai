@@ -16,6 +16,7 @@ class CustomUser(SubscriptionModelMixin, AbstractUser):
                                      help_text=_("The user's Stripe Subscription object, if it exists"))
     
     onboarding = models.BooleanField(default=True)
+    is_mailerlite = models.BooleanField(default=False)
 
     def __str__(self):
         return self.email

@@ -2,51 +2,54 @@ import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
 import { Alert, AlertTitle } from '@material-ui/lab';
-import { Container, Dialog} from "@material-ui/core";
+import { Container, Dialog } from "@material-ui/core";
 
-const UpdateUser = function(props) {
+const UpdateUser = function (props) {
   const [tags, setTags] = useState([]);
   const [isAlert, setIsAlert] = useState(false);
   const history = useHistory();
-  const reacttag= React.createRef();
-  const onDelete= (i)=> {
-      var temp = tags.slice(0)
-      temp.splice(i, 1)
-      setTags(temp)
+  const reacttag = React.createRef();
+  const onDelete = (i) => {
+    var temp = tags.slice(0)
+    temp.splice(i, 1)
+    setTags(temp)
   }
-  const onAddition = (tag)=> {
+  const onAddition = (tag) => {
     let mailformat = /^([A-Za-z0-9_\-\.\+])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-    if(tag.name.match(mailformat)){
+    if (tag.name.match(mailformat)) {
       var temp = [].concat(tags, tag)
       setTags(temp)
     }
   }
-  
-  const inviteUser = function() {
+
+  const inviteUser = function () {
     const emails = [];
+    const users = [];
     tags.forEach(tag => {
-      if(tag.name.search('\\+') > -1){
-				let pluspos = tag.name.search('\\+');
-				let lastpos = tag.name.search('@');
+      if (tag.name.search('\\+') > -1) {
+        let pluspos = tag.name.search('\\+');
+        let lastpos = tag.name.search('@');
         let flag = true;
         emails.forEach(email => {
-          if(email == tag.name.substring(0,pluspos) + tag.name.substr(lastpos)){
+          if (email == tag.name.substring(0, pluspos) + tag.name.substr(lastpos)) {
             flag = false;
           }
         });
-        if(flag){
-          emails.push(tag.name.substring(0,pluspos) + tag.name.substr(lastpos))
+        if (flag) {
+          emails.push(tag.name.substring(0, pluspos) + tag.name.substr(lastpos));
         }
-			}
-			else{
-				emails.push(tag.name)
-			}
+      }
+      else {
+        emails.push(tag.name);
+      }
+      users.push(tag.name);
     });
     let params = {
-      group_id: props.group_id,
-      emails: emails
+      groupid: props.groupid,
+      emails: emails,
+      users: users,
     };
-    if(emails.length > 0){
+    if (emails.length > 0) {
       document.querySelector('#button').classList.add('is-loading');
       fetch('/api/invite', {
         method: 'post',
@@ -56,39 +59,39 @@ const UpdateUser = function(props) {
         },
         credentials: 'same-origin',
         body: JSON.stringify(params)
-      }).then(res=> {return res.json()})
-      .then(res=>{
-        if(Boolean(res.message)){
-          setIsAlert(true);
-        }
-        else{
-          if(!Boolean(res.users.role)){
-            props.userSaved(res.users, res.emails);
+      }).then(res => { return res.json() })
+        .then(res => {
+          if (Boolean(res.message)) {
+            setIsAlert(true);
           }
-          else{
-            props.userSaved([], res.emails);
+          else {
+            if (!Boolean(res.users.role)) {
+              props.userSaved(res.users, res.emails);
+            }
+            else {
+              props.userSaved([], res.emails);
+            }
+            history.push('/users');
           }
-          history.push('/users');
-        }
-      })
+        })
     }
   };
 
   return (
     <Container>
       <Dialog
-				maxWidth="md"
-				fullWidth
-				open={isAlert}
-				onClose={()=>setIsAlert(false)}
-				aria-labelledby="alert-dialog-title"
-				aria-describedby="alert-dialog-description"
-			>
-				<Alert severity="warning" className="my-5">
-				<AlertTitle className="subtitle is-4 has-text-weight-bold">Fail</AlertTitle>
-				<span className="subtitle is-5">! You must upgrade your Intel Group plan to perform that action.</span>
-				</Alert>
-			</Dialog>
+        maxWidth="md"
+        fullWidth
+        open={isAlert}
+        onClose={() => setIsAlert(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <Alert severity="warning" className="my-5">
+          <AlertTitle className="subtitle is-4 has-text-weight-bold">Fail</AlertTitle>
+          <span className="subtitle is-5">! You must upgrade your Intel Group plan to perform that action.</span>
+        </Alert>
+      </Dialog>
       <section className="section app-card">
         <h2 className="subtitle">User Details</h2>
         <div className="field" id="users">
@@ -104,7 +107,7 @@ const UpdateUser = function(props) {
             delimiters={['Enter', 'Tab', ',', ' ']}
           />
         </div>
-        
+
         <div className="field is-grouped">
           <div className="control">
             <button type='button' className="button is-primary" id="button" onClick={() => inviteUser()}>
@@ -112,9 +115,9 @@ const UpdateUser = function(props) {
             </button>
           </div>
           <div className="control">
-              <button className="button is-text" onClick={()=>history.goBack()}>
-                <span>Cancel</span>
-              </button>
+            <button className="button is-text" onClick={() => history.goBack()}>
+              <span>Cancel</span>
+            </button>
           </div>
         </div>
       </section>

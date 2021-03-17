@@ -426,7 +426,6 @@ def update_customer(request, subscription_holder=None):
                     plan = Plan.objects.filter(id=new_plan_id).last().id
                 )
                 djstripe.models.Subscription.sync_from_stripe_data(new_subscription)
-                print(new_subscription)
         else:
             if current_amount != 0:
                 delta_time = current_period_end.date()-datetime.now().date()
@@ -441,14 +440,12 @@ def update_customer(request, subscription_holder=None):
                     customer=customer,
                     receipt_email=request.user.email,
                 )
-                print(charge)
                 payment = Payment.objects.create(
                     charge_id=charge.id,
                     amount=int(charge.amount),
                     name=name,
                     user=request.user,
                 )
-                print(payment)
             stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
             new_subscription = stripe.Subscription.modify(
                 Subscription.objects.filter(djstripe_id=current_sub_id).last().id,

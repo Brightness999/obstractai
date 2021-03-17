@@ -290,6 +290,11 @@ SMTP_FROM_NAME = os.environ.get('SMTP_FROM_NAME')
 DEFAULT_FROM_EMAIL = '%s <%s>' % (SMTP_FROM_NAME, SMTP_USER)
 SMTP_REPLY_TO = os.environ.get('SMTP_REPLY_TO')
 
+# Settings for mailist
+
+MAILERLIST_API_KEY = os.environ.get('MAILERLITE_TOKEN')
+MAILERLIST_GROUP_ID = os.environ.get('MAILERLITE_GROUPID')
+
 
 # Django sites
 

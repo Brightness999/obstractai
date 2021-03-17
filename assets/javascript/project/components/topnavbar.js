@@ -89,7 +89,7 @@ const TopNavBar = (props) => {
 									</a>
 								</div>
 							</div> :
-							<a className="navbar-item" href="#" >
+							<a className="navbar-item" href="/accounts/logout" >
 								<span>Sign out</span>
 							</a>}
 					</div>

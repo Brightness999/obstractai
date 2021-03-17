@@ -2599,16 +2599,21 @@ def indicators(request):
 def invite(request):
 	if request.method == 'POST':
 		userids = []
+		emailids = []
 		users = []
 		emails = []
 		for email in request.data['emails']:
 			if len(CustomUser.objects.filter(email=email).all()) != 0:
-				userids.append(CustomUser.objects.filter(email=email).last().id)
 				users.append(CustomUser.objects.filter(email=email).last().email)
 			else:
 				emails.append(email)
-		created_at = IntelGroups.objects.filter(id=request.data['group_id']).last().created_at
-		subid = IntelGroups.objects.filter(id=request.data['group_id']).last().plan_id
+		for email in request.data['users']:
+			if len(CustomUser.objects.filter(email=email).all()) != 0:
+				userids.append(CustomUser.objects.filter(email=email).last().id)
+			else:
+				emailids.append(email)
+		created_at = IntelGroups.objects.filter(id=request.data['groupid']).last().created_at
+		subid = IntelGroups.objects.filter(id=request.data['groupid']).last().plan_id
 		flag = False
 		if subid == None:
 			if datetime.now()<created_at.replace(tzinfo=None)+timedelta(days=1):
@@ -2617,11 +2622,11 @@ def invite(request):
 			planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
 			productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 			max_users = Product.objects.filter(djstripe_id=productid).last().metadata['max_users']
-			users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id']).all()
+			users = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid']).all()
 			if len(users) < int(max_users):
 				flag = True
 		if flag:
-			groupname = IntelGroups.objects.filter(id=request.data['group_id']).all()[0].name
+			groupname = IntelGroups.objects.filter(id=request.data['groupid']).all()[0].name
 			for user in users:
 				try:
 					send_mail(
@@ -2666,15 +2671,15 @@ We look forward to welcoming you onboard.
 					print('email sending error!')
 			users = []
 			for userid in userids:
-				existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid).all()
+				existing_user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid'], user_id=userid).all()
 				if len(existing_user) == 0:
-					UserIntelGroupRoles.objects.create(intelgroup_id=request.data['group_id'], user_id=userid, role=0)
-					user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['group_id'], user_id=userid, role=0).all()
+					UserIntelGroupRoles.objects.create(intelgroup_id=request.data['groupid'], user_id=userid, role=0)
+					user = UserIntelGroupRoles.objects.filter(intelgroup_id=request.data['groupid'], user_id=userid, role=0).all()
 					serializer = UserIntelGroupRolesSerializer(user[0])
 					users.append(serializer.data)
-			for email in emails:
-				InviteEmails.objects.create(email=email, intelgroup_id=request.data['group_id'])
-			emails = GroupInviteEmialSerializer(InviteEmails.objects.filter(intelgroup_id=request.data['group_id']).all(), many=True).data
+			for email in emailids:
+				InviteEmails.objects.create(email=email, intelgroup_id=request.data['groupid'])
+			emails = GroupInviteEmialSerializer(InviteEmails.objects.filter(intelgroup_id=request.data['groupid']).all(), many=True).data
 			if(len(users) == 0):
 					users={'role': True}
 			return Response({'users':users, 'emails':emails})

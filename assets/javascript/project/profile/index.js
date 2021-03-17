@@ -4,6 +4,14 @@ import { Dialog, DialogActions, DialogContent, DialogTitle,TextField, Container 
 import { Table, Thead, Tbody, Tr, Th } from 'react-super-responsive-table';
 import { Alert, AlertTitle } from '@material-ui/lab';
 
+import IconButton from '@material-ui/core/IconButton';
+import OutlinedInput from '@material-ui/core/OutlinedInput';
+import InputLabel from '@material-ui/core/InputLabel';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import FormControl from '@material-ui/core/FormControl';
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
+
 import IntelgroupTable from "./intelgroup-table";
 import APIKeyTable from "./apikey-table";
 import WebhookTable from "./webhook-table";
@@ -20,25 +28,47 @@ const Loading = function() {
 const Profile = (props) => {
     const [email, setEmail] = useState(props.profile.email);
     const [newEmail, setNewEmail] = useState("");
-    const [currentEmail, setCurrentEmail] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
     const [isAlert, setIsAlert] = useState(false);
     const [isExist, setIsExist] = useState(false);
     const [isNotCorrect, setIsNotCorrect] = useState(false);
     const [open, setOpen] = useState(false);
     const [emailValidataion, setEmailValidation] = useState(false);
+    const [pass, setPass] = useState(false);
+    const [password, setPassword] = useState("");
+
+    const [values, setValues] = useState({
+        amount: '',
+        password: '',
+        weight: '',
+        weightRange: '',
+        showPassword: false,
+    });
+
+    const handleChange = (prop) => (event) => {
+        setValues({ ...values, [prop]: event.target.value });
+        setPassword(event.target.value);
+    };
+
+    const handleClickShowPassword = () => {
+        setValues({ ...values, showPassword: !values.showPassword });
+    };
+    
+    const handleMouseDownPassword = (event) => {
+        event.preventDefault();
+    };
 
     const changeEmail =() => {
         let mailformat = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
-        if(newEmail.match(mailformat) && currentEmail.match(mailformat)){
-            if(newEmail.trim() == currentEmail.trim()){
+        if(newEmail.match(mailformat)){
+            if(newEmail.trim() == email.trim()){
                 setIsExist(true);
             }
             else{
                 let params = {
                     id: props.profile.id,
                     newemail: newEmail.trim(),
-                    currentemail: currentEmail.trim()
+                    password: password
                 }
                 fetch('/api/changingemail', {
                     method: 'post',
@@ -51,15 +81,36 @@ const Profile = (props) => {
                 }).then(res=>{return res.json();})
                 .then(res=>{
                     if(Boolean(res.isNotCorrect)){
-                        setIsNotCorrect(true)                    
+                        setIsNotCorrect(true);
+                        setValues({
+                            amount: '',
+                            password: '',
+                            weight: '',
+                            weightRange: '',
+                            showPassword: false,
+                        });
                     }
                     else{
                         if(Boolean(res.isExist)){
                             setIsExist(true);
+                            setValues({
+                                amount: '',
+                                password: '',
+                                weight: '',
+                                weightRange: '',
+                                showPassword: false,
+                            });
                         }
                         else{
                             setEmail(res.email);
                             setIsSuccess(true);
+                            setValues({
+                                amount: '',
+                                password: '',
+                                weight: '',
+                                weightRange: '',
+                                showPassword: false,
+                            });
                         }
                     }
                 })
@@ -67,6 +118,13 @@ const Profile = (props) => {
         }
         else{
             setEmailValidation(true);
+            setValues({
+                amount: '',
+                password: '',
+                weight: '',
+                weightRange: '',
+                showPassword: false,
+            });
         }
     }
 
@@ -141,7 +199,7 @@ const Profile = (props) => {
             >
                 <Alert severity="error" className="my-5 has-text-centered">
                     <AlertTitle className="subtitle is-4 has-text-weight-bold">Verification Error</AlertTitle>
-                    <span className="subtitle is-5">{currentEmail} doesn't exists.</span>
+                    <span className="subtitle is-5">Your password is incorrect.</span>
                 </Alert>
             </Dialog>
             <Dialog
@@ -152,7 +210,7 @@ const Profile = (props) => {
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <Alert severity="warn" className="my-5 has-text-centered">
+                <Alert severity="warning" className="my-5 has-text-centered">
                     <AlertTitle className="subtitle is-4 has-text-weight-bold">Warning</AlertTitle>
                     <span className="subtitle is-5">Enter a valid email.</span>
                 </Alert>
@@ -165,21 +223,62 @@ const Profile = (props) => {
                     aria-labelledby="alert-dialog-title"
                     aria-describedby="alert-dialog-description"
                 >
-                    <DialogTitle id="alert-dialog-title">Add a webhook endpoint</DialogTitle>
+                    <DialogTitle id="alert-dialog-title" className="has-text-centered">Change email</DialogTitle>
                     <DialogContent>
                         {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
                         <div className="semisection">
                             <TextField id="outlined-basic1" label="New Email" InputLabelProps={{shrink: true,}} size="small" placeholder="a-z 0-9@xxx.xxx" variant="outlined" onChange={(e)=>setNewEmail(e.target.value)} />
                         </div>
-                        <div className="semisection">
-                            <TextField id="outlined-basic" label="Current Email" InputLabelProps={{shrink: true,}} size="small" placeholder="a-z 0-9@xxx.xxx" variant="outlined" onChange={(e)=>setCurrentEmail(e.target.value)} />
-                        </div>
                     </DialogContent>
                     <DialogActions>
-                        <button onClick={()=>{changeEmail(); setOpen(false);}} className="button is-success" autoFocus>
+                        <button onClick={()=>{setOpen(false); setPass(true);}} className="button is-success" autoFocus>
                             Confirm
                         </button>
                         <button onClick={()=>{setOpen(false);}} className="button is-danger" >
+                            Cancel
+                        </button>
+                    </DialogActions>
+                </Dialog>
+                <Dialog
+                    open={pass}
+                    onClose={()=>setPass(false)}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title" className="has-text-centered">Confirm password</DialogTitle>
+                    <DialogContent>
+                        {isAlert && <Alert severity="error" className="title is-size-4" onClose={()=>setIsAlert(false)}>Please input exactly!!!</Alert>}
+                        <div className="semisection">
+                            <FormControl variant="outlined">
+                                <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+                                <OutlinedInput
+                                    id="outlined-adornment-password"
+                                    type={values.showPassword ? 'text' : 'password'}
+                                    value={values.password}
+                                    onChange={handleChange('password')}
+                                    endAdornment={
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={handleClickShowPassword}
+                                        onMouseDown={handleMouseDownPassword}
+                                        edge="end"
+                                        >
+                                        {values.showPassword ? <Visibility /> : <VisibilityOff />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                    }
+                                    labelWidth={70}
+                                />
+                            </FormControl>
+                        
+                        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <button onClick={()=>{changeEmail(); setPass(false);}} className="button is-success" autoFocus>
+                            Confirm
+                        </button>
+                        <button onClick={()=>{setPass(false);}} className="button is-danger" >
                             Cancel
                         </button>
                     </DialogActions>

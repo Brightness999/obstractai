@@ -189,8 +189,14 @@ const ViewReport = (props) => {
 			let items = indicator.value.split(',');
 			items.forEach(item => {
 				if(!(item*1>0 && item*1<10)){
-					if(item.indexOf('?') > -1 || item.indexOf('(') > -1 || item.indexOf(')') > -1){
+					if(item.indexOf('?') > -1 ){
 						item = item.substring(0, item.indexOf('?'))
+					}
+					if(item.indexOf('(') > -1){
+						item = item.substring(0, item.indexOf('('))
+					}
+					if(item.indexOf(')') > -1){
+						item = item.substring(0, item.indexOf(')'))
 					}
 					item = item.replace(/'/gi, "").replace(/\\/gi, "").trim();
 					let reg = new RegExp(item, 'g'), result, ids = [];

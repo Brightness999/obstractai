@@ -1641,6 +1641,7 @@ def feeds(request):
 		data=request.data
 		tags = data['tags'].split(',')
 		groupid= request.data['intelgroup_id']
+		print(groupid)
 		isUrlExist = False
 		for feed in Feeds.objects.all():
 			if(data['url'] in feed.url):
@@ -1662,7 +1663,7 @@ def feeds(request):
 				planid = Subscription.objects.filter(djstripe_id=subid).last().plan_id
 				productid = Plan.objects.filter(djstripe_id=planid).last().product_id
 				max_feeds = Product.objects.filter(djstripe_id=productid).last().metadata['max_feeds']
-				feeds = Feeds.objects.filter(intelgroup_id=groupid).all()
+				feeds = GroupFeeds.objects.filter(intelgroup_id=groupid).all()
 				if len(feeds) > int(max_feeds):
 					return Response({'message':True, 'isUrlExist':isUrlExist})
 			Feeds.objects.create(type=data['type'], url=data['url'], name=data['name'], description=data['description'], category_id=data['category'], tags=data['tags'], isglobal=False, confidence=data['confidence'])

@@ -43,39 +43,8 @@ from django.conf import settings
 from django.core.mail.message import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
-from ..models import (APIKeys, Attributes, Categories, FeedChannels, FeedItems,
-                      Feeds, GlobalAttributes, GlobalIndicators, GroupFeeds,
-                      GroupGlobalAttributes, Indicators, IntelGroups,
-                      IntelReports, PlanHistory, Tags, UserIntelGroupRoles,
-                      WebHooks, Whitelists, InviteEmails)
-from ..serializers import (AccepInviteSerializer, APIKeyCreateSerializer,
-                           APIkeySerializer, AttributeCreateSerializer,
-                           AttributeUpdateSerializer, CategoryCreateSerializer,
-                           CategorySerializer, CategoryUpdateSerializer,
-                           ChangeEmailSerializer, GroupInviteEmialSerializer,
-                           CustomUserSerializer, EnabledSerializer,
-                           FeedCategorySerializer, FeedChannelSerializer,
-                           FeedCreateSerializer, FeedItemSerializer,
-                           FeedUpdateSerializer, GlobalAttributeSerializer,
-                           GlobalIndicatorSerializer,
-                           GlobalItemIndicatorSerializer,
-                           GroupCategoryFeedSerializer,
-                           GroupGlobalAttributeSerializer, GroupIDSerializer,
-                           GroupRoleSerializer, GroupWebHookSerializer,
-                           IDSerializer, IndicatorGlobalSerializer,
-                           IntelgroupCreateSerializer, IntelGroupSerializer,
-                           IntelgroupUpdateSerializer, InviteSerializer,
-                           ItemReportSerializer,
-                           ItemIndicatorSerializer, RoleGroupSerializer,
-                           RoleUpdateSerializer, SearchFeedSerializer,
-                           SearchReportSerializer, TagSerializer,
-                           UserGlobalIndicatorSerializer,
-                           UserGroupAttributeSerializer,
-                           UserGroupRoleSerializer,APIFeedSerializer,
-                           UserIndicatorWhitelistSerializer,APIReportSerializer,
-                           UserIntelGroupRolesSerializer, UserSerializer,
-                           WebhookCreateSerializer, WebhookUpdateSerializer,
-                           WhitelistCreateSerializer, APIGroupSerializer)
+from ..models import *
+from ..serializers import *
 
 uuid = openapi.Parameter('UUID', openapi.IN_QUERY, description="feed UUID", type=openapi.TYPE_STRING)
 groupids = openapi.Parameter('groupids', openapi.IN_QUERY, description="Intel Group UUIDs", type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING))
@@ -1736,63 +1705,93 @@ def feeds(request):
 						for result in results:
 							if result == 'ipv4addr' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv4cidr' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 CIDR', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 CIDR', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv4range' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv6addr' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv6cidr' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ipv6range' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'md5' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='MD5', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='MD5', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'sha1' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA1', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA1', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'sha256' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA256', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA256', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'ssdeep' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Hash', type_api='hash', value='Ssdeep', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='Ssdeep', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'fqdn' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='FQDN', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='FQDN', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'url' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='URL', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='URL', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'useragent' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='User Agent', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='User Agent', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'email' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='Email Address', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Email Address', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'filename' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='Filename', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filename', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'filepath' and len(results[result])>0:
 								temp = []
@@ -1803,47 +1802,69 @@ def feeds(request):
 									if temp != []:
 										temp.reverse()
 										if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-											GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+											globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+											for intelgroup in IntelGroups.objects.all():
+												GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 										Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'regkey' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'asn' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'asnown' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN Owner', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN Owner', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'cc' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='Country', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='Country', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'isp' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ISP', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ISP', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'cve' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='CVE', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='CVE', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'malware' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Malware', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Malware', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'attacktype' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Attack Type', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Attack Type', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'incident' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Incident', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Incident', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'topic' and len(results[result])>0:
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-									GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Topic', value_api=result)
+									globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Topic', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							else:
 								print('indicator->', result)
@@ -1878,63 +1899,93 @@ def feeds(request):
 							for result in results:
 								if result == 'ipv4addr' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv4cidr' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 CIDR', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 CIDR', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv4range' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv6addr' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv6cidr' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv6range' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'md5' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='MD5', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='MD5', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'sha1' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA1', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA1', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'sha256' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA256', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='SHA256', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ssdeep' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Hash', type_api='hash', value='Ssdeep', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Hash', type_api='hash', value='Ssdeep', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'fqdn' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='FQDN', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='FQDN', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'url' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='URL', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='URL', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'useragent' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='User Agent', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='User Agent', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'email' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='Email Address', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Email Address', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'filename' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='Filename', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filename', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'filepath' and len(results[result])>0:
 									temp = []
@@ -1945,47 +1996,69 @@ def feeds(request):
 										if temp != []:
 											temp.reverse()
 											if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-												GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+												globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='filepath', value_api=result)
+												for intelgroup in IntelGroups.objects.all():
+													GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 											Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'regkey' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'asn' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'asnown' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN Owner', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ASN Owner', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'cc' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='Country', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='Country', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'isp' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ISP', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='ISP', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'cve' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='CVE', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='CVE', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'malware' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Malware', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Malware', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'attacktype' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Attack Type', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Attack Type', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'incident' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Incident', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Incident', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'topic' and len(results[result])>0:
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Topic', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='Analysis', type_api='analysis', value='Topic', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								else:
 									print('indicator->', result)
@@ -2488,20 +2561,14 @@ def enableglobal(request):
 def whitelist(request):
 	if request.method == 'POST':
 		if not 'indicator' in request.data:
-			feedids = []
-			feeditemids = []
 			if request.data['currentgroup'] == '':
 				groupid = IntelGroups.objects.order_by('id').first().id
 			else:
 				groupid = request.data['currentgroup']
-			for feed in GroupFeeds.objects.filter(intelgroup_id=groupid).all():
-				feedids.append(feed.feed_id)
-			for feeditem in FeedItems.objects.filter(feed_id__in=feedids).all():
-				feeditemids.append(feeditem.id)
-			indicator_serializer = IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id__in=feeditemids).order_by('id').all(), many=True)
-			whitelist_serializer = UserIndicatorWhitelistSerializer(Whitelists.objects.order_by('id').all(), many=True)
-			global_serializer = GlobalIndicatorSerializer(GlobalIndicators.objects.order_by('id').all(), many=True)
-			return Response({'indicators': indicator_serializer.data, 'whitelist': whitelist_serializer.data, 'globalindicators': global_serializer.data})
+			groupindicators = GroupGlobalIndicatorSerializer(GroupGlobalIndicators.objects.filter(intelgroup_id=groupid).order_by('id').all(), many=True).data
+			whitelist = UserIndicatorWhitelistSerializer(Whitelists.objects.order_by('id').all(), many=True).data
+			globalindicators = GlobalIndicatorSerializer(GlobalIndicators.objects.order_by('id').all(), many=True).data
+			return Response({'groupindicators': groupindicators, 'whitelist': whitelist, 'globalindicators': globalindicators})
 		else:
 			flag = True
 			if len(Whitelists.objects.filter(globalindicator_id=request.data['indicator'],value=request.data['value']).all())>0:
@@ -2519,12 +2586,12 @@ def whitelist(request):
 @swagger_auto_schema(methods=['put'], request_body=EnabledSerializer, responses={200: GlobalItemIndicatorSerializer})
 @api_view(['PUT'])
 def indicators(request):
-	if Indicators.objects.filter(id=request.data['id']).last().isenable:
-		Indicators.objects.filter(id=request.data['id']).update(isenable=False)
+	if GroupGlobalIndicators.objects.filter(id=request.data['id']).last().isenable:
+		GroupGlobalIndicators.objects.filter(id=request.data['id']).update(isenable=False)
 	else:
-		Indicators.objects.filter(id=request.data['id']).update(isenable=True)
-	serializer = GlobalItemIndicatorSerializer(Indicators.objects.filter(id=request.data['id']).all()[0])
-	return Response(serializer.data)
+		GroupGlobalIndicators.objects.filter(id=request.data['id']).update(isenable=True)
+	groupindicators = GroupGlobalIndicatorSerializer(GroupGlobalIndicators.objects.filter(id=request.data['id']).last()).data
+	return Response(groupindicators)
 
 @swagger_auto_schema(methods=['delete'], request_body=IDSerializer, responses={204: GroupInviteEmialSerializer})
 @swagger_auto_schema(methods=['post'], request_body=InviteSerializer, responses={201: UserIntelGroupRolesSerializer})
@@ -2803,10 +2870,11 @@ We look forward to welcoming you onboard.
 				except Exception as e:
 					print(str(e))
 				
-			IntelGroups.objects.create(name=name, description=request.data['description'], ispublic=request.data['ispublic'])
-			new_group = IntelGroups.objects.last()
+			new_group = IntelGroups.objects.create(name=name, description=request.data['description'], ispublic=request.data['ispublic'])
 			for globalattribute in GlobalAttributes.objects.all():
 				GroupGlobalAttributes.objects.create(intelgroup_id=new_group.id, globalattribute_id=globalattribute.id, isenable=True)
+			for globalindicator in GlobalIndicators.objects.all():
+				GroupGlobalIndicators.objects.create(intelgroup_id=new_group.id, globalindicator_id=globalindicator.id, isenable=True)
 			UserIntelGroupRoles.objects.create(intelgroup_id=new_group.id, user_id=request.user.id, role=2)
 			for invite_id in userids:
 				if invite_id != request.user.id:

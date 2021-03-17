@@ -18,3 +18,4 @@ from .groupplans import GroupPlan
 from .groupglobalattributes import GroupGlobalAttributes
 from .groupfeeds import GroupFeeds
 from .inviteemails import InviteEmails
+from .groupglobalindicators import GroupGlobalIndicators

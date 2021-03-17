@@ -66,7 +66,7 @@ const WhiteList = (props) => {
     }
 
     const IndicatorEnable = (index) => {
-        let params={id:props.indicators[index].id};
+        let params={id:props.groupindicators[index].id};
         fetch('/api/indicators', {
             method: 'put',
             headers: {
@@ -129,7 +129,7 @@ const WhiteList = (props) => {
                         </Tr>
                     </Thead>
                     <Tbody>
-                        {props.indicators.map((indicator, index)=>{
+                        {props.groupindicators.map((indicator, index)=>{
                             return <IndicatorTable index={index} key={indicator.id} indicator={indicator} IndicatorEnable={(index)=>IndicatorEnable(index)} isAutoDown={props.isAutoDown} />
                         })}
                     </Tbody>
@@ -169,12 +169,12 @@ const WhiteList = (props) => {
 const WhiteLists = (props) => {
     const [isLoading, setIsLoading] = useState(true);
     const [whitelist, setWhitelist] = useState([]);
-    const [indicators, setIndicators] = useState([]);
+    const [groupindicators, setGroupIndicators] = useState([]);
     const [globalindicators, setGlobalIndicators] = useState([]);
     const history = useHistory();
 
     useEffect(() => {
-        if(props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding) history.push('/');
+        if(props.currentgroup == '' && !props.onboarding) history.push('/');
         else{
             let params = {
                 currentgroup: props.currentgroup
@@ -191,7 +191,7 @@ const WhiteLists = (props) => {
             .then(res=>{
                 console.log(res);
                 setWhitelist(res.whitelist);
-                setIndicators(res.indicators);
+                setGroupIndicators(res.groupindicators);
                 setGlobalIndicators(res.globalindicators);
                 setIsLoading(false);
             })
@@ -216,7 +216,7 @@ const WhiteLists = (props) => {
     const saveIndicator = (newIndicator) =>{
         let flag = false;
         const newIndicators = [];
-        for(const indicator of indicators){
+        for(const indicator of groupindicators){
             if(indicator.id === newIndicator.id){
                 newIndicators.push(newIndicator);
                 flag = true;
@@ -225,7 +225,7 @@ const WhiteLists = (props) => {
         }
         if(!flag)
             newIndicators.push(newIndicator);
-        setIndicators(newIndicators);
+        setGroupIndicators(newIndicators);
     }
     
     const WhiteListView = () => {
@@ -248,7 +248,7 @@ const WhiteLists = (props) => {
 			if(props.currentrole.role ==2 || props.onboarding){
 				if(props.isPlan)
 					return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} onboarding={props.onboarding}
-                        indicators={indicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} mygroups={props.mygroups} />
+                        groupindicators={groupindicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} mygroups={props.mygroups} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
         }
@@ -257,7 +257,7 @@ const WhiteLists = (props) => {
     return(
         <Switch>
             <Route path="/whitelist/new">
-                <AddWhitelist client={props.client} indicators={indicators} globalindicators={globalindicators} saveWhitelist={saveWhitelist} />
+                <AddWhitelist client={props.client} globalindicators={globalindicators} saveWhitelist={saveWhitelist} />
             </Route>
             <Route path="/whitelist">
                 {WhiteListView()}

@@ -2,6 +2,7 @@ from allauth.account.signals import user_signed_up, email_confirmed
 from django.conf import settings
 from django.core.mail import mail_admins
 from django.dispatch import receiver
+from mailerlite import MailerLiteApi
 
 
 @receiver(user_signed_up)
@@ -12,6 +13,17 @@ def handle_sign_up(request, user, **kwargs):
     _notify_admins_of_signup(user)
     # and subscribes them to a mailchimp mailing list
     _subscribe_to_mailing_list(user)
+
+    # add maillist
+    mailerAPI = MailerLiteApi(settings.MAILERLIST_API_KEY)
+    data = [{
+        'email': user.email,
+        'name': user.username
+    }]
+    try:
+        mailerAPI.groups.add_subscribers(group_id=settings.MAILERLIST_GROUP_ID, subscribers_data=data)
+    except:
+        pass
 
 
 @receiver(email_confirmed)
@@ -38,7 +50,6 @@ def _subscribe_to_mailing_list(user):
         from mailchimp3.mailchimpclient import MailChimpError
     except ImportError:
         return
-
     if getattr(settings, 'MAILCHIMP_API_KEY', None) and getattr(settings, 'MAILCHIMP_LIST_ID', None):
         client = MailChimp(mc_api=settings.MAILCHIMP_API_KEY)
         try:

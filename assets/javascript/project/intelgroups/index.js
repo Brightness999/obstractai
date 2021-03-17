@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useHistory, Link } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
-import { Tooltip, TextField, Grid, Container } from "@material-ui/core";
+import { Alert, AlertTitle } from '@material-ui/lab';
+import { Tooltip, TextField, Grid, Container, Dialog } from "@material-ui/core";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
@@ -10,6 +11,7 @@ const IntelGroups = function(props) {
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
   const [isPublic, setIsPublic] = useState(false);
+  const [open, setOpen] = useState(false);
   const history = useHistory();  
   
   const reacttag= React.createRef();
@@ -53,7 +55,7 @@ const IntelGroups = function(props) {
       emails: emails,
       ispublic: isPublic?true:false,
     };
-    if(name != '' && description != '' && emails.length > 0){
+    if(name != '' && description != ''){
       fetch('/api/intelgroups', {
         method: 'post',
         headers: {
@@ -67,6 +69,9 @@ const IntelGroups = function(props) {
         props.intelgroupSave(res)
         history.goBack();
       })
+    }
+    else{
+      setOpen(true);
     }
   };
 
@@ -88,84 +93,98 @@ const IntelGroups = function(props) {
   else {
     return (
       <Container>
-      <section className="section app-card">
-        <h2 className="subtitle">Create New Intel Group</h2>
-        <div className="field column is-two-thirds">
-          <label className="label">Name</label>
-          <TextField
-            placeholder="Name of intel group"
-            className="column is-three-quarters"
-            margin="normal"
-            InputLabelProps={{
-              shrink: true,
-            }}
-            variant="outlined"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-        
-          <label className="label">Description</label>
-          <TextField
-            placeholder="Description of intel group"
-            className="column is-three-quarters"
-            margin="normal"
-            InputLabelProps={{
-              shrink: true,
-            }}
-            variant="outlined"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-          /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-          <div style={{zIndex:1}}>
-            <label className="label mb-5">Invite Users</label>
-            <Grid container>
-              <Grid item xs={9}>
-                <ReactTags
-                  ref={reacttag}
-                  tags={tags}
-                  onDelete={onDelete}
-                  placeholderText="Comma separated list of emails for users to invite"
-                  onAddition={onAddition}
-                  addOnBlur={true}
-                  allowNew={true}
-                  delimiters={['Enter', 'Tab', ',', ' ']}
-                />
+        <section className="section app-card">
+          <h2 className="subtitle">Create New Intel Group</h2>
+          <div className="field column is-two-thirds">
+            <label className="label">Name</label>
+            <TextField
+              placeholder="Name of intel group"
+              className="column is-three-quarters"
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              variant="outlined"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+          
+            <label className="label">Description</label>
+            <TextField
+              placeholder="Description of intel group"
+              className="column is-three-quarters"
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              variant="outlined"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+            <div style={{zIndex:1}}>
+              <label className="label mb-5">Invite Users</label>
+              <Grid container>
+                <Grid item xs={9}>
+                  <ReactTags
+                    ref={reacttag}
+                    tags={tags}
+                    onDelete={onDelete}
+                    placeholderText="Comma separated list of emails for users to invite"
+                    onAddition={onAddition}
+                    addOnBlur={true}
+                    allowNew={true}
+                    delimiters={['Enter', 'Tab', ',', ' ']}
+                  />
+                </Grid>
+                <Grid item xs={3}>
+                  <Tooltip title="Users you want to invite" arrow><HelpIcon className="mt-2" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+                </Grid>
               </Grid>
-              <Grid item xs={3}>
-                <Tooltip title="Users you want to invite" arrow><HelpIcon className="mt-2" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-              </Grid>
-            </Grid>
+            </div>
+            <label className="label">Public</label>
+            <TextField
+              className="column is-three-quarters"
+              select
+              margin="normal"
+              SelectProps={{
+                  native: true
+              }}
+              variant="outlined"
+              value={isPublic}
+              onChange={(event) => setIsPublic(event.target.value)}
+            >
+              <option value={false}>False</option>
+              <option value={true}>True</option>
+            </TextField>
+            <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
           </div>
-          <label className="label">Public</label>
-          <TextField
-            className="column is-three-quarters"
-            select
-            margin="normal"
-            SelectProps={{
-                native: true
-            }}
-            variant="outlined"
-            value={isPublic}
-            onChange={(event) => setIsPublic(event.target.value)}
-          >
-            <option value={false}>False</option>
-            <option value={true}>True</option>
-          </TextField>
-          <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-        </div>
-        <div className="field is-grouped">
-          <div className="control">
-            <button type='button' className="button is-primary" onClick={() => saveIntelgroup()} >
-              <span>Create intel group</span>
-            </button>
-          </div>
-          <div className="control">
-              <button className="button is-text" onClick={()=>{history.goBack()}}>
-                <span>Cancel</span>
+          <div className="field is-grouped">
+            <div className="control">
+              <button type='button' className="button is-primary" onClick={() => saveIntelgroup()} >
+                <span>Create intel group</span>
               </button>
+            </div>
+            <div className="control">
+                <button className="button is-text" onClick={()=>{history.goBack()}}>
+                  <span>Cancel</span>
+                </button>
+            </div>
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={open}
+                onClose={()=>setOpen(false)}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="warning" className="my-5 has-text-centered">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold" fullWidth>Warning</AlertTitle>
+                    <span className="subtitle is-5">Please enter name and description.</span>
+                </Alert>
+            </Dialog>
           </div>
-        </div>
-      </section>
+        </section>
+        
       </Container>
     );
   }

@@ -4,7 +4,6 @@ import { TextField, Container, Grid, Dialog } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 
 const AddWhitelist = (props) => {
-    console.log(props);
     const [isAlert, setIsAlert] = useState(false);
     const [indicator, setIndicator] = useState('');
     const [value, setValue] = useState('');

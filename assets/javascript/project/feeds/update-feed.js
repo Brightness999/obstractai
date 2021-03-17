@@ -419,7 +419,7 @@ const UpdateFeed = (props) => {
 															}
 															if (flag) {
 																let target = "<span style='background:#faeb42;'>" + item + "</span>";
-																let target1 = `<Tooltip title='indicator = ${indicator.indicator}'>${target}</Tooltip>`;
+																let target1 = `<Tooltip title='Indicator = ${indicator.indicator}'>${target}</Tooltip>`;
 																str = str.substring(0, ids[i]) + target1 + str.substr(ids[i] + item.length);
 																for (let k = i + 1; k < ids.length; k++) {
 																	ids[k] = ids[k] + target1.length - item.length;
@@ -588,7 +588,7 @@ const UpdateFeed = (props) => {
 																}
 																if (flag) {
 																	let target = "<span style='background:#faeb42;'>" + item + "</span>";
-																	let target1 = `<Tooltip title='indicator = ${indicator.indicator}'>${target}</Tooltip>`;
+																	let target1 = `<Tooltip title='Indicator = ${indicator.indicator}'>${target}</Tooltip>`;
 																	str = str.substring(0, ids[i]) + target1 + str.substr(ids[i] + item.length);
 																	for (let k = i + 1; k < ids.length; k++) {
 																		ids[k] = ids[k] + target1.length - item.length;

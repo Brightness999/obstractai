@@ -2,8 +2,7 @@ from rest_framework import serializers
 import json
 
 from djstripe.models import Product, Plan, Subscription
-from .models import IntelGroups, UserIntelGroupRoles, Categories, Tags, Feeds, Indicators, Whitelists, APIKeys, GroupFeeds, \
-    WebHooks, FeedChannels, FeedItems, GlobalIndicators, GlobalAttributes, Attributes, IntelReports, GroupGlobalAttributes, InviteEmails
+from .models import *
 from apps.users.models import CustomUser
 
 class IntelGroupSerializer(serializers.ModelSerializer):
@@ -46,7 +45,13 @@ class GlobalIndicatorSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = GlobalIndicators
-        fields = ('id', 'type', 'type_api', 'value', 'value_api')
+        fields = ('__all__')
+
+class GroupGlobalIndicatorSerializer(serializers.ModelSerializer):
+    globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
+    class Meta:
+        model = GroupGlobalIndicators
+        fields = ('__all__')
 
 class IndicatorSerializer(serializers.ModelSerializer):
     class Meta:

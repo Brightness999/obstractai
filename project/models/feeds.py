@@ -27,3 +27,6 @@ class Feeds(BaseModel):
 
     class Meta:
         verbose_name_plural = "Feeds"
+
+    def __str__(self):
+        return str(self.id)

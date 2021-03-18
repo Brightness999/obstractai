@@ -8,6 +8,7 @@ import djstripe
 from cyobstract import extract
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
+from django import forms
 
 # Register your models here.
 from .models import *
@@ -552,19 +553,39 @@ class GroupPlanAdmin(admin.ModelAdmin):
 			djstripe.models.Plan.sync_from_stripe_data(day_plan)
 		return True
 
+
 @admin.register(IntelReports)
 class IntelReportsAdmin(admin.ModelAdmin):
+	list_display = ("id", "report_name", "feed_name", "date_ingested" )
+	readonly_fields = ("feeditem", "id", "report_name", "feed_name", "date_ingested" )
+	
+	def report_name(self, obj):
+		return obj.feeditem.title
+	def date_ingested(slef, obj):
+		return obj.created_at
+	def feed_name(self, obj):
+		return obj.feeditem.feed.name
+
 	def has_add_permission(self, request, obj=None):
 		return False
 	def has_delete_permission(self, request, obj=None):
 		return False
 	def has__permission(self, request, obj=None):
 		return False
+	
 
 @admin.register(GroupFeeds)
 class GroupFeedsAdmin(admin.ModelAdmin):
+
+	list_display = ('id', 'feed', 'intelgroup', 'name', 'description', 'category', 'tags', 'confidence')
+
+	def feed(self, obj):
+		return obj.feed.id
+
 	def has_add_permission(self, request, obj=None):
 		return False
+	# def has_change_permission(self, request, obj=None):
+	# 	return False
 	def has_delete_permission(self, request, obj=None):
 		return False
 	def has__permission(self, request, obj=None):

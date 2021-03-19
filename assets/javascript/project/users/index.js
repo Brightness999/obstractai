@@ -108,33 +108,39 @@ const User = (props) => {
 	const [emails, setEmails] = useState([]);
 	const [myId, setMyId] = useState([]);
 	const [groupRole, setGroupRole] = useState({});
+	const [currentgroup, setCurrentGroup] = useState('');
 	const history = useHistory();
 
 	useEffect(() => {
 		if (props.currentgroup == '') {
-			if (props.mygroups.length != 0)
-				history.push('/');
+			history.push('/');
 		}
 		else {
-			let params = {
-				id: props.currentgroup
+			setCurrentGroup(props.currentgroup);
+			if (currentgroup != '' && currentgroup != props.currentgroup) {
+				history.push('/intelreports');
 			}
-			fetch('/api/users', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res => { return res.json() })
-				.then(res => {
-					setUsers(res.users);
-					setEmails(res.emails);
-					setMyId(res.myId);
-					setGroupRole(res.grouprole);
-					setIsLoading(false);
-				})
+			else {
+				let params = {
+					id: props.currentgroup
+				}
+				fetch('/api/users', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res => { return res.json() })
+					.then(res => {
+						setUsers(res.users);
+						setEmails(res.emails);
+						setMyId(res.myId);
+						setGroupRole(res.grouprole);
+						setIsLoading(false);
+					});
+			}
 		}
 	}, [props.currentgroup]);
 

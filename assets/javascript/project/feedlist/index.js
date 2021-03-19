@@ -199,6 +199,7 @@ const FeedLists = (props) => {
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [customfeeds, setCustomFeeds] = useState(true);
+	const [currentgroup, setCurrentGroup] = useState('');
 	const history = useHistory();
 	const confidences = [];
 	for (let i = 1; i <= 100; i++) {
@@ -206,30 +207,38 @@ const FeedLists = (props) => {
 	}
 
 	useEffect(() => {
-		if (props.currentgroup == '' && !props.onboarding) history.push('/');
+		if (props.currentgroup == '' && !props.onboarding) {
+			history.push('/');
+		}
 		else {
-			let params = {
-				id: props.currentgroup
+			setCurrentGroup(props.currentgroup);
+			if(currentgroup != '' && currentgroup != props.currentgroup){
+				history.push('/intelreports');
 			}
-			fetch('/api/configuredfeeds', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res => { return res.json() })
-				.then(res => {
-					console.log(res);
-					setFeedList(res.configuredfeeds);
-					setChannels(res.channels);
-					setCollections(res.collections);
-					setCategories(res.categories);
-					setTags(res.tags);
-					setCustomFeeds(res.customfeeds);
-					setIsLoading(false);
-				});
+			else{
+				let params = {
+					id: props.currentgroup
+				}
+				fetch('/api/configuredfeeds', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res => { return res.json() })
+					.then(res => {
+						console.log(res);
+						setFeedList(res.configuredfeeds);
+						setChannels(res.channels);
+						setCollections(res.collections);
+						setCategories(res.categories);
+						setTags(res.tags);
+						setCustomFeeds(res.customfeeds);
+						setIsLoading(false);
+					});
+			}
 		}
 	}, [props.currentgroup]);
 

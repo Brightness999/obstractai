@@ -248,28 +248,37 @@ const Extractions = (props) => {
 	const [globalattributes, setGlobalAttributes] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [customobservable, setCustomObservable] = useState(true);
+	const [currentgroup, setCurrentGroup] = useState('');
 	const history = useHistory();
 
 	useEffect(() => {
-		if (props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding) history.push('/');
+		if (props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding){
+			history.push('/');
+		}
 		else {
-			let params = { currentgroup: props.currentgroup };
-			fetch('/api/attributes', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res => { return res.json() })
-				.then(res => {
-					console.log(res);
-					setExtractionList(res.attributes);
-					setGlobalAttributes(res.globalattributes);
-					setCustomObservable(res.customobservable)
-					setIsLoading(false);
-				})
+			setCurrentGroup(props.currentgroup);
+			if(currentgroup != '' && currentgroup != props.currentgroup){
+				history.push('/intelreports');
+			}
+			else{
+				let params = { currentgroup: props.currentgroup };
+				fetch('/api/attributes', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res => { return res.json() })
+					.then(res => {
+						console.log(res);
+						setExtractionList(res.attributes);
+						setGlobalAttributes(res.globalattributes);
+						setCustomObservable(res.customobservable)
+						setIsLoading(false);
+					});
+			}
 		}
 	}, [props.currentgroup]);
 

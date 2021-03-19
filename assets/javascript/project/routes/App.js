@@ -149,7 +149,7 @@ const App = () => {
               <IntelGroup planname={planname} client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
             </Route>
             <Route path="/grouplist">
-              <GroupList client={client} mygroups={mygroups} />
+              <GroupList client={client} mygroups={mygroups} currentgroup={currentgroup} />
             </Route>
             <Route path="/users" >
               <User onboarding={onboarding} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />
@@ -173,7 +173,7 @@ const App = () => {
               <WhiteLists onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/account" >
-              <Account client={client} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Account client={client} currentgroup={currentgroup} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
           </Switch>
         </BrowserRouter>

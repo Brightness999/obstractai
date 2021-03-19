@@ -146,6 +146,7 @@ const ConfiguredFeeds = (props) => {
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [banner, setBanner] = useState(false);
+	const [currentgroup, setCurrentGroup] = useState('');
 	const history = useHistory();
 	const confidences = [];
 	for (let i = 1; i <= 100; i++) {
@@ -157,31 +158,36 @@ const ConfiguredFeeds = (props) => {
 			history.push('/');
 		}
 		else {
-			let params = { id: props.currentgroup };
-			fetch('/api/configuredfeeds', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res => { return res.json() })
-				.then(res => {
-					if (Boolean(res.banner)) {
-						setBanner(res.banner);
-						setIsLoading(false);
-					}
-					else {
-						setConfiguredFeeds(res.configuredfeeds);
-						setCategories(res.categories);
-						setTags(res.tags);
-						setIsLoading(false);
-					}
-				});
+			setCurrentGroup(props.currentgroup);
+			if(currentgroup != '' && currentgroup != props.currentgroup){
+				history.push('/intelreports');
+			}
+			else{
+				let params = { id: props.currentgroup };
+				fetch('/api/configuredfeeds', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res => { return res.json() })
+					.then(res => {
+						if (Boolean(res.banner)) {
+							setBanner(res.banner);
+							setIsLoading(false);
+						}
+						else {
+							setConfiguredFeeds(res.configuredfeeds);
+							setCategories(res.categories);
+							setTags(res.tags);
+							setIsLoading(false);
+						}
+					});
+			}
 		}
-	}, []);
-
+	}, [props.currentgroup]);
 
 	const Search = (category, tag, confidence) => {
 		let params = {

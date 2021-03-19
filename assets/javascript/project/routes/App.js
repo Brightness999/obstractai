@@ -7,7 +7,6 @@ import TopNavbar from '../components/topnavbar';
 import MenuBar from '../components/menubar';
 import IntelGroup from '../intelgroups/intel-group';
 import Feeds from '../feeds';
-import Categories from '../categories';
 import Extractions from '../extractions';
 import IntelReports from '../intelreports';
 import WhiteLists from '../whitelist';
@@ -163,9 +162,6 @@ const App = () => {
             </Route>
             <Route path="/feedlist">
               <FeedLists onboarding={onboarding} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
-            </Route>
-            <Route path="/categories" >
-              <Categories client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
             </Route>
             <Route path="/extractions">
               <Extractions onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>

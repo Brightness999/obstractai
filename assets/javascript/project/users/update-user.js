@@ -62,6 +62,7 @@ const UpdateUser = function (props) {
       }).then(res => { return res.json() })
         .then(res => {
           if (Boolean(res.message)) {
+            document.querySelector('#button').classList.remove('is-loading');
             setIsAlert(true);
           }
           else {
@@ -71,6 +72,7 @@ const UpdateUser = function (props) {
             else {
               props.userSaved([], res.emails);
             }
+            document.querySelector('#button').classList.remove('is-loading');
             history.push('/users');
           }
         })

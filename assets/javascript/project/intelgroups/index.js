@@ -31,6 +31,7 @@ const IntelGroups = function(props) {
 
   const saveIntelgroup = function() {
     const emails = [];
+    const users = [];
     tags.forEach(tag => {
       if(tag.name.search('\\+') > -1){
         let pluspos = tag.name.search('\\+');
@@ -48,14 +49,17 @@ const IntelGroups = function(props) {
       else{
         emails.push(tag.name)
       }
+      users.push(tag.name);
     });
     let params = {
       name: name,
       description: description,
       emails: emails,
+      users: users,
       ispublic: isPublic?true:false,
     };
     if(name != '' && description != ''){
+      document.querySelector('#button').classList.add('is-loading');
       fetch('/api/intelgroups', {
         method: 'post',
         headers: {
@@ -67,6 +71,7 @@ const IntelGroups = function(props) {
       }).then(res=>{return res.json()})
       .then(res=>{
         props.intelgroupSave(res)
+        document.querySelector('#button').classList.remove('is-loading');
         history.goBack();
       })
     }
@@ -160,7 +165,7 @@ const IntelGroups = function(props) {
           </div>
           <div className="field is-grouped">
             <div className="control">
-              <button type='button' className="button is-primary" onClick={() => saveIntelgroup()} >
+              <button type='button' id="button" className="button is-primary" onClick={() => saveIntelgroup()} >
                 <span>Create intel group</span>
               </button>
             </div>

@@ -1,80 +1,88 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { Tooltip, TextField, Dialog, Container } from "@material-ui/core";
 import { Alert, AlertTitle } from '@material-ui/lab';
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
 
-const Loading = function() {
-	return (
-		<div className='app-card has-text-centered'>
-			<div className="lds-ripple"><div></div><div></div></div>
-			<p className="heading has-text-primary">Loading...</p>
-		</div>
-	)
+const Loading = function () {
+    return (
+        <div className='app-card has-text-centered'>
+            <div className="lds-ripple"><div></div><div></div></div>
+            <p className="heading has-text-primary">Loading...</p>
+        </div>
+    )
 }
 
-const IntelGroup = function(props) {
+const IntelGroup = function (props) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [isPublic, setIsPublic] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [open, setOpen] = useState(false);
-    const history = useHistory();  
-  
-    useEffect(()=>{
-        if(props.currentgroup == '') history.push('/');
-        else{
-            let params = {id:props.currentgroup};
-            fetch('/api/intelgroups',{
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': props.client.transports[0].auth.csrfToken
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify(params)
-            }).then(res=>{return res.json()})
-            .then(res=>{
-                setName(res.name);
-                setDescription(res.description);
-                setIsPublic(res.ispublic);
-                setIsLoading(false);
-            })
+    const [currentgroup, setCurrentGroup] = useState('');
+    const history = useHistory();
 
+    useEffect(() => {
+        if (props.currentgroup == '') {
+            history.push('/');
         }
-    },[props.currentgroup]);
+        else {
+            setCurrentGroup(props.currentgroup);
+            if (currentgroup != '' && currentgroup != props.currentgroup) {
+                history.push('/intelreports');
+            }
+            else {
+                let params = { id: props.currentgroup };
+                fetch('/api/intelgroups', {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': props.client.transports[0].auth.csrfToken
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(params)
+                }).then(res => { return res.json() })
+                    .then(res => {
+                        setName(res.name);
+                        setDescription(res.description);
+                        setIsPublic(res.ispublic);
+                        setIsLoading(false);
+                    });
+            }
+        }
+    }, [props.currentgroup]);
 
-    const saveIntelgroup = function() {
+    const saveIntelgroup = function () {
         let params = {
             name: name.trim(),
             description: description.trim(),
-            ispublic: isPublic?true:false,
+            ispublic: isPublic ? true : false,
             userids: [],
             emails: []
         };
         params['id'] = props.currentgroup;
         fetch('/api/intelgroups', {
-        method: 'put',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': props.client.transports[0].auth.csrfToken
-        },
-        credentials: 'same-origin',
-        body:JSON.stringify(params)
-        }).then(res=>{return res.json()})
-        .then(res=>{
-            if(Boolean(res.id)){
-                props.intelgroupSave(res);
-                setOpen(true);
-            }
-        })
+            method: 'put',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': props.client.transports[0].auth.csrfToken
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(params)
+        }).then(res => { return res.json() })
+            .then(res => {
+                if (Boolean(res.id)) {
+                    props.intelgroupSave(res);
+                    setOpen(true);
+                }
+            })
     };
-    if(isLoading){
-        return <Loading/>
+    if (isLoading) {
+        return <Loading />
     }
-    else{
-        if(props.currentrole.role ==0){
+    else {
+        if (props.currentrole.role == 0) {
             return (
                 <div className='app-card has-text-centered'>
                     <div className="lds-ripple"><div></div><div></div></div>
@@ -82,22 +90,22 @@ const IntelGroup = function(props) {
                 </div>
             )
         }
-        if(props.currentrole.role == 1){
-            return(
+        if (props.currentrole.role == 1) {
+            return (
                 <div className='section has-text-centered'>
                     <p className="subtitle is-3">! You are now a member of <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span>.</p>
                 </div>
             )
         }
-        if(props.currentrole.role == 2){
+        if (props.currentrole.role == 2) {
             return (
                 <Container>
                     <section className="section app-card">
-                        {props.isInit&&
-                        <Alert severity="info" className="my-5">
-                            <AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
-                            <span className="subtitle is-5">{props.message}</span>
-                        </Alert>}
+                        {props.isInit &&
+                            <Alert severity="info" className="my-5">
+                                <AlertTitle className="subtitle is-4 has-text-weight-bold">Info</AlertTitle>
+                                <span className="subtitle is-5">{props.message}</span>
+                            </Alert>}
                         <h2 className="title is-size-3">Intel Group Details</h2>
                         <div className="field column is-four-fifths">
                             <label className="label">Name</label>
@@ -111,8 +119,8 @@ const IntelGroup = function(props) {
                                 variant="outlined"
                                 value={name}
                                 onChange={(event) => setName(event.target.value)}
-                            /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
-                        
+                            /><Tooltip title="Name to be displayed in UI" arrow><HelpIcon className="mt-5" style={{ color: yellow[900] }} fontSize="large" /></Tooltip>
+
                             <label className="label">Description</label>
                             <TextField
                                 placeholder="write about description of feed"
@@ -124,53 +132,53 @@ const IntelGroup = function(props) {
                                 variant="outlined"
                                 value={description}
                                 onChange={(event) => setDescription(event.target.value)}
-                            /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip>
+                            /><Tooltip title="Description to be displayed in UI" arrow><HelpIcon className="mt-5" style={{ color: yellow[900] }} fontSize="large" /></Tooltip>
                             {(props.planname == 'Silver' || props.planname == 'Gold' || props.isInit) &&
-                            <><label className="label">Public</label>
-                            <TextField
-                                className="column is-three-quarters"
-                                select
-                                margin="normal"
-                                SelectProps={{
-                                    native: true
-                                }}
-                                variant="outlined"
-                                value={isPublic}
-                                onChange={(event) => setIsPublic(event.target.value)}
-                            >
-                                <option value={false}>False</option>
-                                <option value={true}>True</option>
-                            </TextField>
-                            <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
+                                <><label className="label">Public</label>
+                                    <TextField
+                                        className="column is-three-quarters"
+                                        select
+                                        margin="normal"
+                                        SelectProps={{
+                                            native: true
+                                        }}
+                                        variant="outlined"
+                                        value={isPublic}
+                                        onChange={(event) => setIsPublic(event.target.value)}
+                                    >
+                                        <option value={false}>False</option>
+                                        <option value={true}>True</option>
+                                    </TextField>
+                                    <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{ color: yellow[900] }} fontSize="large" /></Tooltip></>}
                             {props.planname == 'Free' &&
-                            <><label className="label">Public</label>
-                            <TextField
-                                className="column is-three-quarters"
-                                select
-                                disabled
-                                margin="normal"
-                                SelectProps={{
-                                    native: true
-                                }}
-                                variant="outlined"
-                                value=""
-                                onChange={(event) => setIsPublic(event.target.value)}
-                            >
-                                <option value="">Upgrade to paid plan to enable</option>
-                                <option value={false}>False</option>
-                                <option value={true}>True</option>
-                            </TextField>
-                            <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{color:yellow[900]}} fontSize="large"/></Tooltip></>}
+                                <><label className="label">Public</label>
+                                    <TextField
+                                        className="column is-three-quarters"
+                                        select
+                                        disabled
+                                        margin="normal"
+                                        SelectProps={{
+                                            native: true
+                                        }}
+                                        variant="outlined"
+                                        value=""
+                                        onChange={(event) => setIsPublic(event.target.value)}
+                                    >
+                                        <option value="">Upgrade to paid plan to enable</option>
+                                        <option value={false}>False</option>
+                                        <option value={true}>True</option>
+                                    </TextField>
+                                    <Tooltip title="Options to make public or private Intel Group" arrow><HelpIcon className="mt-5" style={{ color: yellow[900] }} fontSize="large" /></Tooltip></>}
                         </div>
                         <div className="field is-grouped">
                             <div className="control">
-                            <button type='button' className="button is-primary is-outlined" onClick={() => saveIntelgroup()} >
-                                <span>Save intel group</span>
-                            </button>
+                                <button type='button' className="button is-primary is-outlined" onClick={() => saveIntelgroup()} >
+                                    <span>Save intel group</span>
+                                </button>
                             </div>
                             <div className="control">
-                                <button className="button is-text" onClick={()=>{history.goBack()}}>
-                                <span>Cancel</span>
+                                <button className="button is-text" onClick={() => { history.goBack() }}>
+                                    <span>Cancel</span>
                                 </button>
                             </div>
                         </div>
@@ -179,7 +187,7 @@ const IntelGroup = function(props) {
                                 maxWidth="md"
                                 fullWidth
                                 open={open}
-                                onClose={()=>setOpen(false)}
+                                onClose={() => setOpen(false)}
                                 aria-labelledby="alert-dialog-title"
                                 aria-describedby="alert-dialog-description"
                             >
@@ -193,8 +201,8 @@ const IntelGroup = function(props) {
                 </Container>
             );
         }
-        if(props.currentrole.role == 4){
-            return(
+        if (props.currentrole.role == 4) {
+            return (
                 <div className='section has-text-centered'>
                     <p className="subtitle is-3">Your request for <span className="title is-3 has-text-primary">{props.currentrole.intelgroup.name}</span> Intel Group has not been accepted yet.</p>
                 </div>

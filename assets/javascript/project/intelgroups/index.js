@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory, Link } from "react-router-dom";
 import ReactTags from 'react-tag-autocomplete';
 import { Alert, AlertTitle } from '@material-ui/lab';
@@ -12,8 +12,16 @@ const IntelGroups = function(props) {
   const [tags, setTags] = useState([]);
   const [isPublic, setIsPublic] = useState(false);
   const [open, setOpen] = useState(false);
+  const [currentgroup, setCurrentGroup] = useState('');
   const history = useHistory();  
   
+  useEffect(() => {
+    setCurrentGroup(props.currentgroup);
+    if(currentgroup != '' && currentgroup != props.currentgroup){
+      history.push('/');
+    }
+  }, [props.currentgroup]);
+
   const reacttag= React.createRef();
   const onDelete= (i)=> {
       var temp = tags.slice(0)

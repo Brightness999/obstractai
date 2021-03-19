@@ -1804,6 +1804,10 @@ def feeds(request):
 								if len(results[result])>0:
 									Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'filepath':
+								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filepath', value_api=result)
+									for intelgroup in IntelGroups.objects.all():
+										GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 								temp = []
 								for re in results[result]:
 									if '\t' in re or '\n' in re or r'\u20' in re:
@@ -1811,12 +1815,8 @@ def feeds(request):
 								if temp != None:
 									if temp != []:
 										temp.reverse()
-										if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-											globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filepath', value_api=result)
-											for intelgroup in IntelGroups.objects.all():
-												GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
-								if len(results[result])>0:
-									Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+										if len(results[result])>0:
+											Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 							elif result == 'regkey':
 								if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
 									globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
@@ -2024,6 +2024,10 @@ def feeds(request):
 									if len(results[result])>0:
 										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'filepath':
+									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
+										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filepath', value_api=result)
+										for intelgroup in IntelGroups.objects.all():
+											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									temp = []
 									for re in results[result]:
 										if '\t' in re or '\n' in re or r'\u20' in re:
@@ -2031,12 +2035,8 @@ def feeds(request):
 									if temp != None:
 										if temp != []:
 											temp.reverse()
-											if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-												globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filepath', value_api=result)
-												for intelgroup in IntelGroups.objects.all():
-													GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
-									if len(results[result])>0:
-										Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+											if len(results[result])>0:
+												Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'regkey':
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
 										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)

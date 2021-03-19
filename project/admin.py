@@ -106,7 +106,7 @@ class FeedAdmin(admin.ModelAdmin):
 										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv4range':
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 Range', value_api=result)
 										for intelgroup in IntelGroups.objects.all():
 											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									if len(results[result])>0:
@@ -127,7 +127,7 @@ class FeedAdmin(admin.ModelAdmin):
 										Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'ipv6range':
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+										globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 Range', value_api=result)
 										for intelgroup in IntelGroups.objects.all():
 											GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 									if len(results[result])>0:
@@ -207,8 +207,8 @@ class FeedAdmin(admin.ModelAdmin):
 												globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filepath', value_api=result)
 												for intelgroup in IntelGroups.objects.all():
 													GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
-											if len(results[result])>0:
-												Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+									if len(results[result])>0:
+										Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 								elif result == 'regkey':
 									if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
 										globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)
@@ -326,7 +326,7 @@ class FeedAdmin(admin.ModelAdmin):
 											Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 									elif result == 'ipv4range':
 										if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-											globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 range', value_api=result)
+											globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv4 Range', value_api=result)
 											for intelgroup in IntelGroups.objects.all():
 												GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 										if len(results[result])>0:
@@ -347,7 +347,7 @@ class FeedAdmin(admin.ModelAdmin):
 											Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 									elif result == 'ipv6range':
 										if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-											globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 CIDR', value_api=result)
+											globalindicator = GlobalIndicators.objects.create(type='IP address', type_api='ip', value='IPv6 Range', value_api=result)
 											for intelgroup in IntelGroups.objects.all():
 												GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 										if len(results[result])>0:
@@ -427,8 +427,8 @@ class FeedAdmin(admin.ModelAdmin):
 													globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Filepath', value_api=result)
 													for intelgroup in IntelGroups.objects.all():
 														GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
-												if len(results[result])>0:
-													Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
+										if len(results[result])>0:
+											Indicators.objects.create(value=','.join(temp), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 									elif result == 'regkey':
 										if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
 											globalindicator = GlobalIndicators.objects.create(type='System', type_api='system', value='Registry Key', value_api=result)

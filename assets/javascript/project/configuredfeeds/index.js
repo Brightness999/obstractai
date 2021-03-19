@@ -153,7 +153,9 @@ const ConfiguredFeeds = (props) => {
 	}
 
 	useEffect(() => {
-		if (props.currentgroup == '') history.push('/');
+		if (props.currentgroup == '') {
+			history.push('/');
+		}
 		else {
 			let params = { id: props.currentgroup };
 			fetch('/api/configuredfeeds', {
@@ -178,7 +180,8 @@ const ConfiguredFeeds = (props) => {
 					}
 				});
 		}
-	}, [props.currentgroup]);
+	}, []);
+
 
 	const Search = (category, tag, confidence) => {
 		let params = {

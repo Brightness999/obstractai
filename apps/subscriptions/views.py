@@ -426,6 +426,15 @@ def update_customer(request, subscription_holder=None):
                     plan = Plan.objects.filter(id=new_plan_id).last().id
                 )
                 djstripe.models.Subscription.sync_from_stripe_data(new_subscription)
+                productid = Plan.objects.filter(djstripe_id=new_subscription.plan_id).last().product_id
+                if Product.objects.filter(djstripe_id=productid).last().name.strip() == 'Free':
+                    IntelGroups.objects.filter(id=groupid).update(ispublic=True)
+                else:
+                    if Product.objects.filter(djstripe_id=productid).last().metadata['group_public'] == 'True':
+                        IntelGroups.objects.filter(id=groupid).update(ispublic=True)
+                    else:
+                        IntelGroups.objects.filter(id=groupid).update(ispublic=False)
+
         else:
             if current_amount != 0:
                 delta_time = current_period_end.date()-datetime.now().date()
@@ -452,6 +461,14 @@ def update_customer(request, subscription_holder=None):
                 plan = Plan.objects.filter(id=new_plan_id).last().id
             )
             djstripe.models.Subscription.sync_from_stripe_data(new_subscription)
+            productid = Plan.objects.filter(djstripe_id=new_subscription.plan_id).last().product_id
+            if Product.objects.filter(djstripe_id=productid).last().name.strip() == 'Free':
+                IntelGroups.objects.filter(id=groupid).update(ispublic=True)
+            else:
+                if Product.objects.filter(djstripe_id=productid).last().metadata['group_public'] == 'True':
+                    IntelGroups.objects.filter(id=groupid).update(ispublic=True)
+                else:
+                    IntelGroups.objects.filter(id=groupid).update(ispublic=False)
 
     else:
         return JsonResponse(

@@ -420,7 +420,6 @@ const IntelReports = (props) => {
 		return (
 			<Switch>
 			<Route path="/intelreports/:id" render={(props) => renderViewReport(props)} ></Route>
-			<Route path="/intelreports/:id/:groupid" render={(props) => renderViewReport(props)} ></Route>
 			<Route path="/intelreports">
 				{ReportListView()}
 			</Route> 

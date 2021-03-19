@@ -211,38 +211,46 @@ const Feeds = (props) => {
 	const [categories, setCategories] = useState([]);
 	const [tags, setTags] = useState([]);
 	const [customfeeds, setCustomFeeds] = useState(true);
-
+	const [currentgroup, setCurrentGroup] = useState('');
+	
 	const history = useHistory();
 	const confidences = [];
 	for (let i = 1; i <= 100; i++) {
 		confidences.push(i);
 	}
-
+	
 	useEffect(() => {
 		if (props.currentgroup == '' && props.mygroups.length != 0 && !props.onboarding) {
 			history.push('/');
 		}
 		else {
-			let params = {
-				id: props.currentgroup
+			setCurrentGroup(props.currentgroup);
+			if(currentgroup!='' && currentgroup != props.currentgroup){
+				history.push('/intelreports');
 			}
-			fetch('/api/feedlist', {
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRFToken': props.client.transports[0].auth.csrfToken
-				},
-				credentials: 'same-origin',
-				body: JSON.stringify(params)
-			}).then(res => { return res.json() })
-				.then(res => {
-					setFeedList(res.feedlist);
-					setGroupFeeds(res.groupfeeds)
-					setCategories(res.categories);
-					setTags(res.tags);
-					setCustomFeeds(res.customfeeds);
-					setIsLoading(false);
-				});
+			else{
+
+				let params = {
+					id: props.currentgroup
+				}
+				fetch('/api/feedlist', {
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': props.client.transports[0].auth.csrfToken
+					},
+					credentials: 'same-origin',
+					body: JSON.stringify(params)
+				}).then(res => { return res.json() })
+					.then(res => {
+						setFeedList(res.feedlist);
+						setGroupFeeds(res.groupfeeds)
+						setCategories(res.categories);
+						setTags(res.tags);
+						setCustomFeeds(res.customfeeds);
+						setIsLoading(false);
+					});
+			}
 		}
 	}, [props.currentgroup]);
 
@@ -251,7 +259,7 @@ const Feeds = (props) => {
 			category: category,
 			tags: tag,
 			confidence: confidence,
-			currentgroup: props.currentgroup
+			currentgroup: currentgroup
 		}
 		fetch('/api/searchfeeds', {
 			method: 'post',
@@ -290,8 +298,8 @@ const Feeds = (props) => {
 			if (props.currentrole.role == 2 || props.onboarding) {
 				if (props.isPlan)
 					return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} groupfeeds={groupfeeds} onboarding={props.onboarding}
-						Search={Search} confidences={confidences} currentgroup={props.currentgroup} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
-				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
+						Search={Search} confidences={confidences} currentgroup={currentgroup} currentrole={props.currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
+				else return <Plan currentgroup={currentgroup} currentrole={props.currentrole} />
 			}
 			if (props.currentrole.role == 4) {
 				return (
@@ -334,14 +342,14 @@ const Feeds = (props) => {
 			if (feed_id == 'new') {
 				return (
 					<UpdateFeed client={props.client} categories={categories} currentrole={props.currentrole}
-						alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
+						alltags={tags} saveFeed={saveFeed} currentgroup={currentgroup} confidences={confidences} />
 				);
 			}
 			else {
 				const feed = getFeedById(feed_id);
 				return (
 					<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole}
-						alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
+						alltags={tags} saveFeed={saveFeed} currentgroup={currentgroup} confidences={confidences} />
 				);
 			}
 		}

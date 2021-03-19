@@ -73,6 +73,7 @@ const AddIntelgroup = (props) => {
 
 	const saveIntelgroup = function() {
 		const emails = [];
+		const users = [];
 		tags.forEach(tag => {
 			if(tag.name.search('\\+') > -1){
 				let pluspos = tag.name.search('\\+');
@@ -90,11 +91,13 @@ const AddIntelgroup = (props) => {
 			else{
 				emails.push(tag.name)
 			}
+			users.push(tag.name);
 		});
 		let params = {
 		  name: name,
 		  description: description,
 		  emails: emails,
+		  users: users,
 		  ispublic: isPublic?true:false,
 		};
 		if((name != '' && description != '') || isRefuse){
@@ -109,6 +112,8 @@ const AddIntelgroup = (props) => {
 			}).then(res=>{return res.json()})
 			.then(res=>{
 				props.intelgroupSave(res);
+				setStepsEnabled(false);
+				window.location.href="/app/feeds";
 			})
 		}
 	};
@@ -144,8 +149,7 @@ const AddIntelgroup = (props) => {
 					onAfterChange={(nextIndex, newElement)=>{
 						if(nextIndex == 5){
 							newElement.addEventListener('click', function(){
-								setStepsEnabled(false);
-								window.location.href="/app/feeds";
+								saveIntelgroup()
 							})
 						}
 					}}

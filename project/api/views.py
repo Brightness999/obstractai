@@ -469,27 +469,28 @@ def apireports(request):
 				if api_access and current_period_end.replace(tzinfo=None) > datetime.now():
 					report = ItemReportSerializer(IntelReports.objects.filter(uniqueid=body['UUID']).last()).data
 					ip=[]; system=[]; infrastructure=[]; analysis=[]; hash=[]
-					for indicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).all(), many=True).data:
-						if indicator['globalindicator']['type'] == 'IP':
-							dic = {}
-							dic[indicator['globalindicator']['value']] = indicator['value']
-							ip.append(dic)
-						elif indicator['globalindicator']['type'] == 'System':
-							dic = {}
-							dic[indicator['globalindicator']['value']] = indicator['value']
-							system.append(dic)
-						elif indicator['globalindicator']['type'] == 'Infrastructure':
-							dic = {}
-							dic[indicator['globalindicator']['value']] = indicator['value']
-							infrastructure.append(dic)
-						elif indicator['globalindicator']['type'] == 'Analysis':
-							dic = {}
-							dic[indicator['globalindicator']['value']] = indicator['value']
-							analysis.append(dic)
-						elif indicator['globalindicator']['type'] == 'Hash':
-							dic = {}
-							dic[indicator['globalindicator']['value']] = indicator['value']
-							hash.append(dic)
+					for indicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).all(), many=True).data:
+						if GroupGlobalIndicators.objects.filter(intelgroup_id=IntelReports.objects.filter(uniqueid=body['UUID']).last().intelgroup_id, globalindicator_id=indicator['globalindicator']['id']).last().isenable:
+							if indicator['globalindicator']['type'] == 'IP':
+								dic = {}
+								dic[indicator['globalindicator']['value']] = indicator['value']
+								ip.append(dic)
+							elif indicator['globalindicator']['type'] == 'System':
+								dic = {}
+								dic[indicator['globalindicator']['value']] = indicator['value']
+								system.append(dic)
+							elif indicator['globalindicator']['type'] == 'Infrastructure':
+								dic = {}
+								dic[indicator['globalindicator']['value']] = indicator['value']
+								infrastructure.append(dic)
+							elif indicator['globalindicator']['type'] == 'Analysis':
+								dic = {}
+								dic[indicator['globalindicator']['value']] = indicator['value']
+								analysis.append(dic)
+							elif indicator['globalindicator']['type'] == 'Hash':
+								dic = {}
+								dic[indicator['globalindicator']['value']] = indicator['value']
+								hash.append(dic)
 					gthreattype=[]; gthreatactor=[]; gcountry=[]; gproduct=[]; gsector=[]
 					for globalattribute in GroupGlobalAttributeSerializer(GroupGlobalAttributes.objects.filter(intelgroup_id=report['intelgroup']['id'], isenable=True), many=True).data:
 						if globalattribute['globalattribute']['attribute'] == 'Threat type':
@@ -678,7 +679,7 @@ def apireports(request):
 					for report in ItemReportSerializer(IntelReports.objects.filter(feeditem_id__in=itemids).order_by('id').all(), many=True).data:
 						flag = False
 						for indicator in body['indicators'].split(','):
-							for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+							for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 								if globalindicator['globalindicator']['value_api'] == indicator.strip():
 									flag = True
 						if flag:
@@ -687,7 +688,7 @@ def apireports(request):
 					for report in ItemReportSerializer(IntelReports.objects.filter(feeditem_id__in=itemids, updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
 						flag = False
 						for indicator in body['indicators'].split(','):
-							for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+							for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 								if globalindicator['globalindicator']['value_api'] == indicator.strip():
 									flag = True
 						if flag:
@@ -697,7 +698,7 @@ def apireports(request):
 					for report in ItemReportSerializer(IntelReports.objects.filter(feeditem_id__in=itemids, created_at__date__gte=body['created_at']).order_by('id').all(), many=True).data:
 						flag = False
 						for indicator in body['indicators'].split(','):
-							for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+							for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 								if globalindicator['globalindicator']['value_api'] == indicator.strip():
 									flag = True
 						if flag:
@@ -706,7 +707,7 @@ def apireports(request):
 					for report in ItemReportSerializer(IntelReports.objects.filter(feeditem_id__in=itemids, created_at__date__gte=body['created_at'], updated_at__date__gte=body['updated_at']).order_by('id').all(), many=True).data:
 						flag = False
 						for indicator in body['indicators'].split(','):
-							for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+							for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 								if globalindicator['globalindicator']['value_api'] == indicator.strip():
 									flag = True
 						if flag:
@@ -758,7 +759,7 @@ def apireports(request):
 						if flag:
 							iflag = False
 							for indicator in body['indicators'].split(','):
-								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+								for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 									if globalindicator['globalindicator']['value_api'] == indicator.strip():
 										iflag = True
 							if iflag:
@@ -772,7 +773,7 @@ def apireports(request):
 						if flag:
 							iflag = False
 							for indicator in body['indicators'].split(','):
-								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+								for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 									if globalindicator['globalindicator']['value_api'] == indicator.strip():
 										iflag = True
 							if iflag:
@@ -787,7 +788,7 @@ def apireports(request):
 						if flag:
 							iflag = False
 							for indicator in body['indicators'].split(','):
-								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+								for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 									if globalindicator['globalindicator']['value_api'] == indicator.strip():
 										iflag = True
 							if iflag:
@@ -801,7 +802,7 @@ def apireports(request):
 						if flag:
 							iflag = False
 							for indicator in body['indicators'].split(','):
-								for globalindicator in IndicatorGlobalSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).order_by('id').all(), many=True).data:
+								for globalindicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).order_by('id').all(), many=True).data:
 									if globalindicator['globalindicator']['value_api'] == indicator.strip():
 										iflag = True
 							if iflag:
@@ -810,7 +811,7 @@ def apireports(request):
 	result = []
 	for report in reports:
 		ip=[]; system=[]; infrastructure=[]; analysis=[]; hash=[]
-		for indicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id'], isenable=True).all(), many=True).data:
+		for indicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id=report['feeditem']['id']).all(), many=True).data:
 			if indicator['globalindicator']['type'] == 'IP':
 				dic = {}
 				dic[indicator['globalindicator']['value']] = indicator['value']
@@ -1089,16 +1090,17 @@ def reports(request):
 		for item in FeedItems.objects.filter(feed_id=feed['feed']['id']).all():
 			itemids.append(item.id)
 	indicators = []
-	for indicator in ItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True).data:
-		if len(UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data) >0:
-			for white in UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data:
-				flag = True
-				if indicator['globalindicator_id'] == white['globalindicator_id'] and white['value'] in indicator['value']:
-					flag = False
-				if flag:
-					indicators.append(indicator)
-		else:
-			indicators.append(indicator)
+	for indicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids).order_by('id').all(), many=True).data:
+		if GroupGlobalIndicators.objects.filter(intelgroup_id=groupid, globalindicator_id=indicator['globalindicator']['id']).last().isenable:
+			if len(UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data) >0:
+				for white in UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data:
+					flag = True
+					if indicator['globalindicator_id'] == white['globalindicator_id'] and white['value'] in indicator['value']:
+						flag = False
+					if flag:
+						indicators.append(indicator)
+			else:
+				indicators.append(indicator)
 	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=groupid, isenable=True).order_by('id').all(), many=True).data
 	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True).data
 	tags = TagSerializer(Tags.objects.filter(Q(isglobal=True) | Q(intelgroup_id=groupid)).order_by('id').all(), many=True).data
@@ -1545,16 +1547,17 @@ def searchreports(request):
 			if flag:
 				reports.append(report)
 	indicators = []
-	for indicator in ItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True).data:
-		if len(UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data) > 0:
-			for white in UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data:
-				flag = True
-				if indicator['globalindicator_id'] == white['globalindicator_id'] and white['value'] in indicator['value']:
-					flag = False
-				if flag:
-					indicators.append(indicator)
-		else:
-			indicators.append(indicator)
+	for indicator in GlobalItemIndicatorSerializer(Indicators.objects.filter(feeditem_id__in=itemids, isenable=True).order_by('id').all(), many=True).data:
+		if GroupGlobalIndicators.objects.filter(intelgroup_id=request.data['id'], globalindicator_id=indicator['globalindicator']['id']).last().isenable:
+			if len(UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data) > 0:
+				for white in UserIndicatorWhitelistSerializer(Whitelists.objects.filter(enabled="Enable").order_by('id').all(), many=True).data:
+					flag = True
+					if indicator['globalindicator_id'] == white['globalindicator_id'] and white['value'] in indicator['value']:
+						flag = False
+					if flag:
+						indicators.append(indicator)
+			else:
+				indicators.append(indicator)
 	extractions = UserGroupAttributeSerializer(Attributes.objects.filter(intelgroup_id=request.data['id'], isenable=True).order_by('id').all(), many=True).data
 	categories = CategorySerializer(Categories.objects.order_by('id').all(), many=True).data
 	tags = TagSerializer(Tags.objects.filter(Q(isglobal=True) | Q(intelgroup_id=request.user.id)).order_by('id').all(), many=True).data

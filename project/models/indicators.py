@@ -9,5 +9,4 @@ class Indicators(BaseModel):
     globalindicator = models.ForeignKey(GlobalIndicators, on_delete=models.CASCADE, null=True)
     value = models.TextField(default='')
     feeditem = models.ForeignKey(FeedItems, on_delete=models.CASCADE, null=True)
-    isenable = models.BooleanField(default=True)
     

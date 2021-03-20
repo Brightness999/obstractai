@@ -53,11 +53,6 @@ class GroupGlobalIndicatorSerializer(serializers.ModelSerializer):
         model = GroupGlobalIndicators
         fields = ('__all__')
 
-class IndicatorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Indicators
-        fields = ('id', 'globalindicator_id', 'feeditem_id', 'isenable', 'value')
-
 class APIKeySerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -153,31 +148,12 @@ class FeedItemSerializer(serializers.ModelSerializer):
         model = FeedItems
         fields =('__all__')
 
-class ItemIndicatorSerializer(serializers.ModelSerializer):
-    feeditem = FeedItemSerializer(many=False, read_only=True)
-    globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
-    class Meta:
-        model = Indicators
-        fields = ('id', 'feeditem_id', 'isenable', 'globalindicator_id', 'value', 'feeditem', 'globalindicator')
-
-class UserGlobalIndicatorSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer(many=False, read_only=True)
-    class Meta:
-        model = GlobalIndicators
-        fields = ('id', 'type', 'type_api', 'value', 'value_api', 'user')
-
-class IndicatorGlobalSerializer(serializers.ModelSerializer):
-    globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
-    class Meta:
-        model = Indicators
-        fields = ('id', 'value', 'isenable', 'feeditem_id', 'globalindicator_id', 'globalindicator' )
-
 class GlobalItemIndicatorSerializer(serializers.ModelSerializer):
     globalindicator = GlobalIndicatorSerializer(many=False, read_only=True)
     feeditem = FeedItemSerializer(many=False, read_only=True)
     class Meta:
         model = Indicators
-        fields = ('id', 'value', 'isenable', 'feeditem_id', 'globalindicator_id', 'globalindicator', 'feeditem' )
+        fields = ('id', 'value', 'feeditem_id', 'globalindicator_id', 'globalindicator', 'feeditem')
 
 class UserIndicatorWhitelistSerializer(serializers.ModelSerializer):
     user = UserSerializer(many=False, read_only=True)

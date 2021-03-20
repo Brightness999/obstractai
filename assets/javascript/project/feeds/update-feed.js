@@ -50,7 +50,7 @@ const UpdateFeed = (props) => {
 			name: name.trim(),
 			description: description.trim(),
 			category: category,
-			tags: str,
+			tags: str.trim(),
 			confidence: confidence,
 			type: type.trim()
 		}
@@ -126,7 +126,7 @@ const UpdateFeed = (props) => {
 			name: name.trim(),
 			description: description.trim(),
 			category: category == 'Select category' ? '' : category,
-			tags: str,
+			tags: str.trim(),
 			confidence: confidence,
 			type: type == 'Select Type' ? '' : type.trim()
 		}

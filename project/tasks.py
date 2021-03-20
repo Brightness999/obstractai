@@ -147,7 +147,7 @@ def feed(self):
                                     Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
                                 elif result == 'asnown' and len(results[result])>0:
                                     Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
-                                elif result == 'country' and len(results[result])>0:
+                                elif result == 'cc' and len(results[result])>0:
                                     Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
                                 elif result == 'isp' and len(results[result])>0:
                                     Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
@@ -298,7 +298,7 @@ def feed(self):
                                 Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
                             elif result == 'asnown' and len(results[result])>0:
                                 Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
-                            elif result == 'country' and len(results[result])>0:
+                            elif result == 'cc' and len(results[result])>0:
                                 Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)
                             elif result == 'isp' and len(results[result])>0:
                                 Indicators.objects.create(value=','.join(results[result]), feeditem_id=itemid, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).last().id, isenable=True)

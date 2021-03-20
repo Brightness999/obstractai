@@ -452,7 +452,7 @@ class FeedAdmin(admin.ModelAdmin):
 											Indicators.objects.create(value=','.join(results[result]), feeditem_id=FeedItems.objects.last().id, globalindicator_id=GlobalIndicators.objects.filter(value_api=result).values()[0]['id'], isenable=True)
 									elif result == 'cc':
 										if len(GlobalIndicators.objects.filter(value_api=result).all()) == 0:
-											globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='country', value_api=result)
+											globalindicator = GlobalIndicators.objects.create(type='Infrastructure', type_api='infrastructure', value='Country', value_api=result)
 											for intelgroup in IntelGroups.objects.all():
 												GroupGlobalIndicators.objects.create(intelgroup_id=intelgroup.id, globalindicator_id=globalindicator.id, isenable=True)
 										if len(results[result])>0:

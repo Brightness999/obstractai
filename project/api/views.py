@@ -1614,7 +1614,6 @@ def feeds(request):
 		for feed in Feeds.objects.all():
 			if(data['url'] in feed.url):
 				isUrlExist = True
-				print(groupid)
 				if len(GroupFeeds.objects.filter(feed_id=feed.id, intelgroup_id=groupid).all()) == 0:
 					if data['tags'] == '':
 						GroupFeeds.objects.create(feed_id=feed.id, name=data['name'], description=data['description'], category_id=data['category'], tags=feed.tags, isenable=True, confidence=data['confidence'], intelgroup_id=groupid)

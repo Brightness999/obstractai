@@ -137,7 +137,7 @@ const WhiteList = (props) => {
             </section>
             <section className="section">
                 <span className="title is-5">Manage by whitelist</span>
-                <Link to="/whitelist/new">
+                <Link to={`/intel_group/${props.currentgroup}/whitelist/new`}>
                     <button className={props.isAutoDown ? "button is-static is-pulled-right" : "button is-info is-pulled-right"}  >
                         <span>Add whitelist</span>
                     </button>
@@ -181,7 +181,7 @@ const WhiteLists = (props) => {
         else {
             setCurrentGroup(props.currentgroup);
             if (currentgroup != '' && currentgroup != props.currentgroup) {
-                history.push('/intelreports');
+                history.push(`/intel_group/${props.currentgroup}/intelreports`);
             }
             else {
                 let params = {
@@ -197,7 +197,6 @@ const WhiteLists = (props) => {
                     body: JSON.stringify(params)
                 }).then(res => { return res.json() })
                     .then(res => {
-                        console.log(res);
                         setWhitelist(res.whitelist);
                         setGroupIndicators(res.groupindicators);
                         setGlobalIndicators(res.globalindicators);
@@ -257,7 +256,7 @@ const WhiteLists = (props) => {
             if (props.currentrole.role == 2 || props.onboarding) {
                 if (props.isPlan)
                     return <WhiteList client={props.client} whitelist={whitelist} saveWhitelist={saveWhitelist} saveIndicator={saveIndicator} onboarding={props.onboarding}
-                        groupindicators={groupindicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} mygroups={props.mygroups} />
+                        groupindicators={groupindicators} isInit={props.isInit} isAutoDown={props.isAutoDown} message={props.message} mygroups={props.mygroups} currentgroup={props.currentgroup} />
                 else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
             }
         }
@@ -265,10 +264,10 @@ const WhiteLists = (props) => {
 
     return (
         <Switch>
-            <Route path="/whitelist/new">
+            <Route path="/intel_group/:id/whitelist/new">
                 <AddWhitelist client={props.client} globalindicators={globalindicators} saveWhitelist={saveWhitelist} />
             </Route>
-            <Route path="/whitelist">
+            <Route path="/intel_group/:id/whitelist">
                 {WhiteListView()}
             </Route>
         </Switch>

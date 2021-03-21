@@ -212,10 +212,10 @@ const FeedLists = (props) => {
 		}
 		else {
 			setCurrentGroup(props.currentgroup);
-			if(currentgroup != '' && currentgroup != props.currentgroup){
-				history.push('/intelreports');
+			if (currentgroup != '' && currentgroup != props.currentgroup) {
+				history.push(`/intel_group/${props.currentgroup}/intelreports`);
 			}
-			else{
+			else {
 				let params = {
 					id: props.currentgroup
 				}
@@ -299,7 +299,7 @@ const FeedLists = (props) => {
 
 	return (
 		<Switch>
-			<Route path="/feedlist">
+			<Route path="/intel_group/:id/feedlist">
 				{FeedListView()}
 			</Route>
 		</Switch>

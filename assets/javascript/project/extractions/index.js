@@ -189,7 +189,7 @@ const ExtractionList = (props) => {
 						<label className="title is-5">Custom extractions</label>
 					</Grid>
 					<Grid item xs={3}>
-						<Link to="/extractions/new">
+						<Link to={`/intel_group/${props.currentgroup}/extractions/new`}>
 							<button className="button is-link is-rounded is-medium has-pulled-right" id="attribute_button">
 								Add extraction
 							</button>
@@ -258,7 +258,7 @@ const Extractions = (props) => {
 		else {
 			setCurrentGroup(props.currentgroup);
 			if(currentgroup != '' && currentgroup != props.currentgroup){
-				history.push('/intelreports');
+				history.push(`/intel_group/${props.currentgroup}/intelreports`);
 			}
 			else{
 				let params = { currentgroup: props.currentgroup };
@@ -354,11 +354,11 @@ const Extractions = (props) => {
 
 	return (
 		<Switch>
-			<Route path="/extractions/new">
+			<Route path="/intel_group/:id/extractions/new">
 				<UpdateExtraction client={props.client} customobservable={customobservable} onboarding={props.onboarding}
 					saveExtraction={saveExtraction} isAutoDown={props.isAutoDown} currentgroup={props.currentgroup} />
 			</Route>
-			<Route path="/extractions">
+			<Route path="/intel_group/:id/extractions">
 				{ExtractionListView()}
 			</Route>
 		</Switch>

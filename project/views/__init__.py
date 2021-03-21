@@ -24,6 +24,6 @@ class Home(ObjectLifecycleView):
         context.update({
             'framework_url': 'https://reactjs.org/',
             'framework_name': 'React',
-            'active_tab': 'react_object_lifecycle',
+            'active_tab': 'Dashboard',
         })
         return context

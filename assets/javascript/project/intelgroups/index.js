@@ -12,11 +12,14 @@ const IntelGroups = function(props) {
   const [tags, setTags] = useState([]);
   const [isPublic, setIsPublic] = useState(false);
   const [open, setOpen] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [currentgroup, setCurrentGroup] = useState('');
   const history = useHistory();  
   
   useEffect(() => {
     setCurrentGroup(props.currentgroup);
+    console.log(currentgroup)
+    console.log(props.currentgroup)
     if(currentgroup != '' && currentgroup != props.currentgroup){
       history.push(`/intel_group/${props.currentgroup}/intelreports`);
     }
@@ -80,7 +83,7 @@ const IntelGroups = function(props) {
       .then(res=>{
         props.intelgroupSave(res)
         document.querySelector('#button').classList.remove('is-loading');
-        history.goBack();
+        setSuccess(true);
       })
     }
     else{
@@ -193,6 +196,22 @@ const IntelGroups = function(props) {
                 <Alert severity="warning" className="my-5 has-text-centered">
                     <AlertTitle className="subtitle is-4 has-text-weight-bold" fullWidth>Warning</AlertTitle>
                     <span className="subtitle is-5">Please enter name and description.</span>
+                </Alert>
+            </Dialog>
+            <Dialog
+                maxWidth="md"
+                fullWidth
+                open={success}
+                onClose={() => {
+                  setSuccess(false); 
+                  history.push(`/intel_group/${props.currentgroup}/intelreports`);
+                }}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <Alert severity="success" className="my-5">
+                    <AlertTitle className="subtitle is-4 has-text-weight-bold">Success</AlertTitle>
+                    <span className="subtitle is-5">Your intel group is successfully created.</span>
                 </Alert>
             </Dialog>
           </div>

@@ -18,7 +18,7 @@ const IntelGroups = function(props) {
   useEffect(() => {
     setCurrentGroup(props.currentgroup);
     if(currentgroup != '' && currentgroup != props.currentgroup){
-      history.push('/');
+      history.push(`/intel_group/${props.currentgroup}/intelreports`);
     }
   }, [props.currentgroup]);
 

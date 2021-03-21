@@ -101,7 +101,7 @@ const FeedCard = function (props) {
                   </button>}
               </Link>
               {props.feed.feed ?
-                <Link to="/feedlist" className="button is-text">
+                <Link to={`/intel_group/${props.currentgroup}/feedlist`} className="button is-text">
                   <span>See in feed list</span>
                 </Link> :
                 <Link to={`/feeds/${props.feed.uniqueid}`} className="button is-text">

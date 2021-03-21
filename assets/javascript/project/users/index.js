@@ -45,11 +45,8 @@ const UserList = function (props) {
 					</Alert>}
 				<div>
 					<label className="title is-3">Manage Intel Group Users</label>
-					<button className="button is-outlined is-pulled-right mx-4" onClick={() => history.goBack()}>
-						<span>Back</span>
-					</button>
 					{props.group_role == 2 ?
-						<Link to="/users/new" >
+						<Link to={`/intel_group/${props.currentgroup}/users/new`} >
 							<button className="button is-primary is-pulled-right">
 								<span>Add New Users</span>
 							</button>
@@ -118,7 +115,7 @@ const User = (props) => {
 		else {
 			setCurrentGroup(props.currentgroup);
 			if (currentgroup != '' && currentgroup != props.currentgroup) {
-				history.push('/intelreports');
+				history.push(`/intel_group/${props.currentgroup}/intelreports`);
 			}
 			else {
 				let params = {
@@ -246,7 +243,7 @@ const User = (props) => {
 			}
 			if (groupRole.role == 2) {
 				// if(props.isPlan)
-				return <UserList users={users} emails={emails} deleteUser={deleteUser} deleteEmail={deleteEmail} adminUser={adminUser} myId={myId} group_role={groupRole.role} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} />
+				return <UserList users={users} emails={emails} deleteUser={deleteUser} deleteEmail={deleteEmail} adminUser={adminUser} myId={myId} group_role={groupRole.role} isInit={props.isInit} message={props.message} isAutoDown={props.isAutoDown} currentgroup={props.currentgroup} />
 				// else return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
 			}
 			if (groupRole.role == 4) {
@@ -262,10 +259,10 @@ const User = (props) => {
 
 	return (
 		<Switch>
-			<Route path="/users/new">
-				<UpdateUser client={props.client} userSaved={(user, emails) => handleUserSaved(user, emails)} groupid={props.currentgroup} />
+			<Route path={`/intel_group/:id/users/new`}>
+				<UpdateUser client={props.client} currentgroup={props.currentgroup} userSaved={(user, emails) => handleUserSaved(user, emails)} groupid={props.currentgroup} />
 			</Route>
-			<Route path="/">
+			<Route path={`/intel_group/:id/users`}>
 				{getDefaultView()}
 			</Route>
 		</Switch>

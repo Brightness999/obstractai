@@ -30,7 +30,7 @@ const IntelGroup = function (props) {
         else {
             setCurrentGroup(props.currentgroup);
             if (currentgroup != '' && currentgroup != props.currentgroup) {
-                history.push('/intelreports');
+                history.push(`/intel_group/${props.currentgroup}/intelreports`);
             }
             else {
                 let params = { id: props.currentgroup };

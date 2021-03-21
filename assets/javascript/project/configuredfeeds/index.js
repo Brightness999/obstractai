@@ -131,7 +131,7 @@ const FeedList = (props) => {
 			</section>
 			{
 				props.configuredfeeds.map((feed, index) => {
-					return <FeedCard index={index} key={feed.id} feed={feed} currentrole={props.currentrole} saveFeed={(data) => props.saveFeed(data)} client={props.client} />;
+					return <FeedCard index={index} key={feed.id} feed={feed} currentgroup={props.currentgroup} currentrole={props.currentrole} saveFeed={(data) => props.saveFeed(data)} client={props.client} />;
 				})
 			}
 
@@ -159,10 +159,10 @@ const ConfiguredFeeds = (props) => {
 		}
 		else {
 			setCurrentGroup(props.currentgroup);
-			if(currentgroup != '' && currentgroup != props.currentgroup){
-				history.push('/intelreports');
+			if (currentgroup != '' && currentgroup != props.currentgroup) {
+				history.push(`/intel_group/${props.currentgroup}/intelreports`);
 			}
-			else{
+			else {
 				let params = { id: props.currentgroup };
 				fetch('/api/configuredfeeds', {
 					method: 'post',
@@ -233,7 +233,7 @@ const ConfiguredFeeds = (props) => {
 			if (props.currentrole.role == 2) {
 				if (props.isPlan)
 					return <FeedList client={props.client} saveFeed={saveFeed} configuredfeeds={configuredfeeds} categories={categories} tags={tags}
-						Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} />
+						Search={Search} confidences={confidences} currentrole={props.currentrole} isInit={props.isInit} message={props.message} currentgroup={props.currentgroup} />
 				else return <Plan currentgroup={props.currentgroup} currentrole={props.currentrole} />
 			}
 			if (props.currentrole.role == 4) {
@@ -243,16 +243,6 @@ const ConfiguredFeeds = (props) => {
 					</div>
 				)
 			}
-			// else{
-			// 	if(props.isPlan){
-			// 		return <FeedList client={props.client} saveFeed={saveFeed} feedlist={feedlist} categories={categories} tags={tags} 
-			// 			Search={Search} confidences={confidences} currentrole={currentrole} isInit={props.isInit} message={props.message} customfeeds={customfeeds} />
-			// 	}
-			// 	else{
-			// 		return <Plan currentgroup={props.currentgroup} currentrole={currentrole} />
-			// 	}
-
-			// }
 		}
 	}
 
@@ -284,16 +274,16 @@ const ConfiguredFeeds = (props) => {
 			const feed = getFeedById(feed_id);
 			return (
 				<UpdateFeed client={props.client} {...feed} categories={categories} currentrole={props.currentrole}
-					alltags={tags} saveFeed={saveFeed} currentgroup={props.currentgroup} confidences={confidences} />
+					alltags={tags} saveFeed={saveFeed} currentgroup={currentgroup} confidences={confidences} />
 			);
 		}
 	}
 
 	return (
 		<Switch>
-			<Route path="/configuredfeeds/:id" render={(props) => renderUpdateFeed(props)} >
+			<Route path="/intel_group/:id/configuredfeeds/:id" render={(props) => renderUpdateFeed(props)} >
 			</Route>
-			<Route path="/configuredfeeds">
+			<Route path="/intel_group/:id/configuredfeeds">
 				{ConfiguredFeedsView()}
 			</Route>
 		</Switch>

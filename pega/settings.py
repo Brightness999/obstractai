@@ -329,7 +329,6 @@ PROJECT_METADATA = {
     'IMAGE': 'https://upload.wikimedia.org/wikipedia/commons/2/20/PEO-pegasus_black.svg',
     'KEYWORDS': 'security, rss',
     'CONTACT_EMAIL': os.environ.get('CONTACT_EMAIL'),
-    'TITLE': 'PEGA NAME | Obstract AI'
 }
 
 

@@ -4,7 +4,7 @@ import ReactTags from 'react-tag-autocomplete';
 import { Tooltip, TextField, Grid, Container } from "@material-ui/core";
 import HelpIcon from '@material-ui/icons/Help';
 import { yellow } from '@material-ui/core/colors';
-import { Steps, Hints } from 'intro.js-react';
+import { Steps } from 'intro.js-react';
 
 const Welcome = (props) => {
 	const history = useHistory();

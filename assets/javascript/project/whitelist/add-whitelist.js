@@ -105,9 +105,9 @@ const AddWhitelist = (props) => {
                         <button className="button is-success" onClick={AddList} >
                             <span>Add</span>
                         </button>
-                        <Link to ="/whitelist">
+                        <Link to ={`/intel_group/${props.currentgroup}/whitelist`}>
                             <button className="button is-text">
-                                <span>back</span>
+                                <span>Back</span>
                             </button>
                         </Link>
                     </span>

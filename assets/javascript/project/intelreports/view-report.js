@@ -385,7 +385,7 @@ const ViewReport = (props) => {
 				</Grid>
 			</section>
 			<section className="section">
-				<button className="button is-info is-pulled-left" onClick={()=>history.push('/intelreports')}>Back</button>
+				<button className="button is-info is-pulled-left" onClick={()=>history.push(`/intel_group/${props.currentgroup}/intelreports/`)}>Back</button>
 			</section>
 			<section id="extraction">
 			</section>

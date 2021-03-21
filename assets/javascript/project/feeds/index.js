@@ -190,7 +190,7 @@ const FeedList = (props) => {
 				</section>}
 			{
 				props.groupfeeds.map((groupfeed, index) => {
-					return <FeedCard index={index} key={groupfeed.id} feed={groupfeed} currentrole={props.currentrole} client={props.client} />;
+					return <FeedCard index={index} key={groupfeed.id} feed={groupfeed} currentgroup={props.currentgroup} currentrole={props.currentrole} client={props.client} />;
 				})
 			}
 			{
@@ -226,7 +226,7 @@ const Feeds = (props) => {
 		else {
 			setCurrentGroup(props.currentgroup);
 			if(currentgroup!='' && currentgroup != props.currentgroup){
-				history.push('/intelreports');
+				history.push(`/intel_group/${props.currentgroup}/intelreports`);
 			}
 			else{
 

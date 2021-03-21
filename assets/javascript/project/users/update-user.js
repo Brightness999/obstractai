@@ -117,7 +117,7 @@ const UpdateUser = function (props) {
             </button>
           </div>
           <div className="control">
-            <button className="button is-text" onClick={() => history.goBack()}>
+            <button className="button is-text" onClick={() => history.push(`/intel_group/${props.currentgroup}/users`)}>
               <span>Cancel</span>
             </button>
           </div>

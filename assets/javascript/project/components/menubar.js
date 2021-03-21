@@ -24,7 +24,6 @@ const MenuBar = (props) => {
 
     return (
         <div className="container semisection">
-            {/* {props.currentgroup != '' && */}
             <div className="navbar-menu" id="nav-menu">
                 <div className="navbar-start">
                     <Link to="/grouplist/" className="navbar-item">Intel Group List</Link>
@@ -34,8 +33,8 @@ const MenuBar = (props) => {
                                 <span className="is-show-desktop">View intel</span>
                             </a>
                             <div className="navbar-dropdown is-left">
-                                <Link to="/feedlist/" className="navbar-item">Feed List</Link>
-                                <Link to="/intelreports/" className="navbar-item">Intel Reports</Link>
+                                <Link to={`/intel_group/${currentrole.intelgroup_id}/feedlist/`} className="navbar-item">Feed List</Link>
+                                <Link to={`/intel_group/${currentrole.intelgroup_id}/intelreports/`} className="navbar-item">Intel Reports</Link>
                             </div>
                         </div>
                     }
@@ -48,7 +47,7 @@ const MenuBar = (props) => {
                             </a>
                             <div className="navbar-dropdown is-left">
                                 <Link to="/feeds/" className="navbar-item">Feed Store</Link>
-                                <Link to="/configuredfeeds/" className="navbar-item">Configured Feeds</Link>
+                                <Link to={`/intel_group/${currentrole.intelgroup_id}/configuredfeeds/`} className="navbar-item">Configured Feeds</Link>
                             </div>
                         </div>
                         <div className="navbar-item has-dropdown is-hoverable">
@@ -56,8 +55,8 @@ const MenuBar = (props) => {
                                 <span className="is-show-desktop">Manage Group</span>
                             </a>
                             <div className="navbar-dropdown is-left">
-                                <Link to="/intelgroup" className="navbar-item">Edit Group</Link>
-                                <Link to="/users" className="navbar-item">Manage Users</Link>
+                                <Link to={`/intel_group/${currentrole.intelgroup_id}/edit`} className="navbar-item">Edit Group</Link>
+                                <Link to={`/intel_group/${currentrole.intelgroup_id}/users`} className="navbar-item">Manage Users</Link>
                             </div>
                         </div>
                         <div className="navbar-item has-dropdown is-hoverable">
@@ -65,16 +64,14 @@ const MenuBar = (props) => {
                                 <span className="is-show-desktop">Manage Extractions</span>
                             </a>
                             <div className="navbar-dropdown is-left">
-                                {/* <Link to="/categories/" className="navbar-item">Categories</Link> */}
-                                <Link to="/extractions/" className="navbar-item">Observables</Link>
-                                <Link to="/whitelist/" className="navbar-item">Whitelist</Link>
+                                <Link to={`/intel_group/${currentrole.intelgroup_id}/extractions/`} className="navbar-item">Observables</Link>
+                                <Link to={`/intel_group/${currentrole.intelgroup_id}/whitelist/`} className="navbar-item">Whitelist</Link>
                             </div>
                         </div>
                         <a href={`/subscriptions/intelgroup/${currentrole.intelgroup_id}`} className="navbar-item">Plan</a>
                     </div>
                 }
             </div>
-            {/* } */}
         </div>
     );
 }

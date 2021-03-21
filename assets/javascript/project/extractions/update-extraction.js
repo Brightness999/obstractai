@@ -199,7 +199,7 @@ const UpdateExtraction = (props) => {
                 <button className="button is-primary" id="button" onClick={() => saveExtraction()}>
                     Save
                 </button>
-                <Link to="/extractions">
+                <Link to={`/intel_group/${props.currentgroup}/extractions`}>
                     <button className="button is-text">
                         <span>Cancel</span>
                     </button>

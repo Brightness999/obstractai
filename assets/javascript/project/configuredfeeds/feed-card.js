@@ -75,7 +75,7 @@ const FeedCard = function (props) {
                 <button className="button is-fullwidth is-success" onClick={enableFeed}>
                   <span className="is-size-4">Enable</span>
                 </button>}
-              <Link to={`/configuredfeeds/${props.feed.uniqueid}`} className="button is-text">
+              <Link to={`/intel_group/${props.currentgroup}/configuredfeeds/${props.feed.uniqueid}`} className="button is-text">
                 <span>{props.feed.isenable ? "Edit settings" : "Edit settings and enable"}</span>
               </Link>
             </Grid>

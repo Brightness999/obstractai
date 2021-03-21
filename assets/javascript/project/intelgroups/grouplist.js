@@ -40,7 +40,7 @@ const GroupList = (props) => {
         }
         else {
             localStorage.removeItem('groupid');
-            history.push('/intelreports');
+            history.push(`/intel_group/${props.currentgroup}/intelreports`);
         }
     }, [props.currentgroup]);
 

@@ -172,7 +172,7 @@ const UpdateFeed = (props) => {
 				<Button variant="contained" className="button is-primary" onClick={() => updateFeed()}>
 					{props.isenable ? "Save" : "Enable"}
 				</Button>
-				<Link to="/configuredfeeds">
+				<Link to={`/intel_group/${props.currentgroup}/configuredfeeds`}>
 					<button className="button is-text">
 						<span>Cancel</span>
 					</button>

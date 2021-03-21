@@ -4,20 +4,20 @@ import { Link } from "react-router-dom";
 const MenuBar = (props) => {
     const [currentrole, setCurrentRole] = useState({});
     useEffect(() => {
-        if(props.currentgroup != ''){
-            let params = {id:props.currentgroup};
-            fetch('/api/currentrole',{
+        if (props.currentgroup != '') {
+            let params = { id: props.currentgroup };
+            fetch('/api/currentrole', {
                 method: 'post',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': props.client.transports[0].auth.csrfToken
                 },
-                credentials:'same-origin',
-                body:JSON.stringify(params)
-            }).then(res=>{return res.json()})
-            .then(res=>{
-                setCurrentRole(res.currentrole);
-            })
+                credentials: 'same-origin',
+                body: JSON.stringify(params)
+            }).then(res => { return res.json() })
+                .then(res => {
+                    setCurrentRole(res.currentrole);
+                })
 
         }
     }, [props.currentgroup])
@@ -27,7 +27,7 @@ const MenuBar = (props) => {
             <div className="navbar-menu" id="nav-menu">
                 <div className="navbar-start">
                     <Link to="/grouplist/" className="navbar-item">Intel Group List</Link>
-                    {(currentrole.role == 1 || currentrole.role == 2) &&
+                    {(!props.addgroup && (currentrole.role == 1 || currentrole.role == 2)) &&
                         <div className="navbar-item has-dropdown is-hoverable">
                             <a className="navbar-link">
                                 <span className="is-show-desktop">View intel</span>
@@ -39,7 +39,7 @@ const MenuBar = (props) => {
                         </div>
                     }
                 </div>
-                {currentrole.role == 2 &&
+                {(!props.addgroup && currentrole.role == 2) &&
                     <div className="navbar-end">
                         <div className="navbar-item has-dropdown is-hoverable">
                             <a className="navbar-link">

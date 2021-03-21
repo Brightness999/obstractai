@@ -43,6 +43,7 @@ const App = () => {
   const [isAutoDown, setIsAutoDown] = useState(false);
   const [message, setMessage] = useState('');
   const [currentrole, setCurrentRole] = useState({});
+  const [addgroup, setAddGroup] = useState(false);
 
   useEffect(() => {
     let params = {}
@@ -89,26 +90,32 @@ const App = () => {
   }, []);
 
   const currentIntelgroup = (intelgroup) => {
-    let params = { id: intelgroup };
-    fetch('/api/changegroup', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': client.transports[0].auth.csrfToken
-      },
-      credentials: 'same-origin',
-      body: JSON.stringify(params)
-    }).then(res => { return res.json() })
-      .then(res => {
-        console.log(res);
-        setCurrentRole(res.currentrole);
-        setCurrentGroup(intelgroup);
-        setIsPlan(res.isPlan);
-        setPlanName(res.planname);
-        setIsInit(res.isInit);
-        setIsAutoDown(res.isAutoDown);
-        setMessage(res.message);
-      })
+    if (intelgroup == 'add') {
+      setAddGroup(true);
+    }
+    else {
+      setAddGroup(false);
+      let params = { id: intelgroup };
+      fetch('/api/changegroup', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': client.transports[0].auth.csrfToken
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(params)
+      }).then(res => { return res.json() })
+        .then(res => {
+          console.log(res);
+          setCurrentRole(res.currentrole);
+          setCurrentGroup(intelgroup);
+          setIsPlan(res.isPlan);
+          setPlanName(res.planname);
+          setIsInit(res.isInit);
+          setIsAutoDown(res.isAutoDown);
+          setMessage(res.message);
+        });
+    }
   }
   const intelgroupSave = (intelgroup) => {
     let flag = false;
@@ -137,16 +144,16 @@ const App = () => {
       <Provider store={store}>
         <BrowserRouter basename='/app/'>
           <TopNavbar mygroups={mygroups} client={client} currentIntelgroup={(intelgroup) => currentIntelgroup(intelgroup)} />
-          <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} />
+          <MenuBar currentrole={currentrole} currentgroup={currentgroup} client={client} addgroup={addgroup} />
           <Switch>
             <Route exact path="/">
-              <HomePage onboarding={onboarding} currentrole={currentrole} mygroups={mygroups} client={client} intelgroupSave={(data)=>intelgroupSave(data)} currentgroup={currentgroup} />
+              <HomePage onboarding={onboarding} currentrole={currentrole} mygroups={mygroups} client={client} intelgroupSave={(data) => intelgroupSave(data)} currentgroup={currentgroup} />
             </Route>
             <Route path="/newgroup">
-              <IntelGroups currentgroup={currentgroup} currentrole={currentrole} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
+              <IntelGroups currentgroup={currentgroup} currentrole={currentrole} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} intelgroupSave={(data) => intelgroupSave(data)} />
             </Route>
             <Route path="/intel_group/:id/edit">
-              <IntelGroup planname={planname} client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data)=>intelgroupSave(data)}/>
+              <IntelGroup planname={planname} client={client} currentgroup={currentgroup} currentrole={currentrole} isAutoDown={isAutoDown} isInit={isInit} message={message} intelgroupSave={(data) => intelgroupSave(data)} />
             </Route>
             <Route path="/grouplist">
               <GroupList client={client} mygroups={mygroups} currentgroup={currentgroup} />
@@ -155,25 +162,25 @@ const App = () => {
               <User onboarding={onboarding} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} client={client} message={message} currentrole={currentrole} currentgroup={currentgroup} />
             </Route>
             <Route path="/feeds">
-              <Feeds onboarding={onboarding} mygroups={mygroups} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Feeds onboarding={onboarding} mygroups={mygroups} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole} />
             </Route>
             <Route path="/intel_group/:id/configuredfeeds">
-              <ConfiguredFeeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <ConfiguredFeeds currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole} />
             </Route>
             <Route path="/intel_group/:id/feedlist">
-              <FeedLists onboarding={onboarding} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <FeedLists onboarding={onboarding} currentgroup={currentgroup} client={client} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole} />
             </Route>
             <Route path="/intel_group/:id/extractions">
-              <Extractions onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Extractions onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole} />
             </Route>
             <Route path="/intel_group/:id/intelreports" >
-              <IntelReports onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <IntelReports onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole} />
             </Route>
             <Route path="/intel_group/:id/whitelist" >
-              <WhiteLists onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <WhiteLists onboarding={onboarding} mygroups={mygroups} client={client} currentgroup={currentgroup} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole} />
             </Route>
             <Route path="/account" >
-              <Account client={client} currentgroup={currentgroup} deleteIntelGroup={(intelgroups)=>deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole}/>
+              <Account client={client} currentgroup={currentgroup} deleteIntelGroup={(intelgroups) => deleteIntelGroup(intelgroups)} mygroups={mygroups} isPlan={isPlan} isAutoDown={isAutoDown} isInit={isInit} message={message} currentrole={currentrole} />
             </Route>
           </Switch>
         </BrowserRouter>

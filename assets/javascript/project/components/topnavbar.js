@@ -47,6 +47,8 @@ const TopNavBar = (props) => {
 								onChange={(event) => {
 									if (event.target.value == 'add') {
 										history.push('/newgroup');
+										props.currentIntelgroup(event.target.value);
+										setIntelGroup(event.target.value);
 									}
 									else {
 										localStorage.setItem('currentgroup', event.target.value);
